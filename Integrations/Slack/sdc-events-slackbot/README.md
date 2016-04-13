@@ -1,5 +1,5 @@
 # sdc-events-slackbot
-A script that allows you to post custom events to Sysdig Cloud by talking to Slack chatbot.
+A script that allows you to post custom events directly to Sysdig Cloud through chats with a Slack bot.
 
 Note, this script utilizes the Sysdig Cloud python client (https://github.com/draios/python-sdc-client), a wrapper for the Sysdig Cloud REST API. 
 
