@@ -1,15 +1,10 @@
 #!/usr/bin/env python
 import sys
 import time
-import requests
 import json
-import re
 
-sys.path.insert(0, '../python-sdc-client/')
 from slackclient import SlackClient
 from sdcclient import SdcClient
-
-SYSDIG_URL = 'https://app-staging2.sysdigcloud.com'
 
 ###############################################################################
 # Basic slack interface class
@@ -20,10 +15,11 @@ class SlackWrapper(object):
     def __init__(self, slack_client, slack_id):
         self.slack_client = slack_client
         self.slack_id = slack_id
+        self.last_channel_id = None
 
         self.slack_users = {}
-        for u in self.slack_client.server.users:
-            self.slack_users[u.id] = u.name
+        for user in self.slack_client.server.users:
+            self.slack_users[user.id] = user.name
 
     def say(self, channelid, text):
         message_json = {'type': 'message', 'channel': channelid, 'text': text}
@@ -37,7 +33,7 @@ class SlackWrapper(object):
                 time.sleep(.1)
             except KeyboardInterrupt:
                 sys.exit(0)
-            except:
+            except Exception:
                 rv = []
 
 
@@ -46,15 +42,15 @@ class SlackWrapper(object):
                     if 'type' in reply and reply['type'] == 'message':
                         # only accept direct messages
                         if reply['channel'][0] == 'D':
-                            if not 'user' in reply:
+                            if 'user' not in reply:
                                 continue
 
                             if reply['user'] != self.slack_id:
                                 self.last_channel_id = reply['channel']
 
-                                if not 'text' in reply:
+                                if 'text' not in reply:
                                     continue
-                                
+
                                 txt = reply['text']
                                 self.inputs.append(txt.strip(' \t\n\r?!.'))
 
@@ -87,15 +83,15 @@ class SlackBuddy(SlackWrapper):
             severity = 6
             for c in components:
                 tpl = c.strip(' \t\n\r?!.').split("=")
-                if tpl[0]== 'name':
+                if tpl[0] == 'name':
                     name = tpl[1]
-                if tpl[0]== 'desc':
+                if tpl[0] == 'desc':
                     desc = tpl[1]
-                if tpl[0]== 'severity':
+                if tpl[0] == 'severity':
                     severity = int(tpl[1])
 
             if name == '':
-                self.say('error: name cannot be empty')
+                self.say(self.last_channel_id, 'error: name cannot be empty')
                 return
 
             self._sdclient.post_event(name, desc, severity)
@@ -117,8 +113,8 @@ class SlackBuddy(SlackWrapper):
 ###############################################################################
 def init():
     if len(sys.argv) != 3:
-        print 'usage: %s <sysdig-token> <slack-token>' % sys.argv[1]
-        sys.exit(0)
+        print 'usage: %s <sysdig-token> <slack-token>' % sys.argv[0]
+        sys.exit(1)
     else:
         sdc_token = sys.argv[1]
         slack_token = sys.argv[2]
@@ -126,7 +122,7 @@ def init():
     #
     # Instantiate the SDC client and Retrieve the SDC user information to make sure we have a valid connection
     #
-    sdclient = SdcClient(sdc_token, SYSDIG_URL)
+    sdclient = SdcClient(sdc_token)
 
     #
     # Make a connection to the slack API
