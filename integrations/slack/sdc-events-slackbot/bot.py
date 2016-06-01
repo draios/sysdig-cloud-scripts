@@ -15,7 +15,6 @@ class SlackWrapper(object):
     def __init__(self, slack_client, slack_id):
         self.slack_client = slack_client
         self.slack_id = slack_id
-        self.last_channel_id = None
 
         self.slack_users = {}
         for user in self.slack_client.server.users:
@@ -36,23 +35,30 @@ class SlackWrapper(object):
             except Exception:
                 rv = []
 
-
             for reply in rv:
-                if 'channel' in reply:
-                    if 'type' in reply and reply['type'] == 'message':
-                        # only accept direct messages
-                        if reply['channel'][0] == 'D':
-                            if 'user' not in reply:
-                                continue
+                if 'type' not in reply:
+                    continue
 
-                            if reply['user'] != self.slack_id:
-                                self.last_channel_id = reply['channel']
+                if reply['type'] != 'message':
+                    continue
 
-                                if 'text' not in reply:
-                                    continue
+                if 'subtype' in reply and reply['subtype'] not in ('bot_message'):
+                    continue
 
-                                txt = reply['text']
-                                self.inputs.append(txt.strip(' \t\n\r?!.'))
+                if 'channel' not in reply:
+                    continue
+
+                if 'user' in reply and reply['user'] == self.slack_id:
+                    continue
+
+                if 'text' in reply and len(reply['text']) > 0:
+                    txt = reply['text']
+                elif 'attachments' in reply and 'fallback' in reply['attachments'][0]:
+                    txt = reply['attachments'][0]['fallback']
+                else:
+                    continue
+
+                self.inputs.append((reply['channel'], txt.strip(' \t\n\r')))
 
             if len(self.inputs) != 0:
                 return
@@ -67,17 +73,28 @@ class SlackBuddy(SlackWrapper):
         self._sdclient = sdclient
         super(SlackBuddy, self).__init__(slack_client, slack_id)
 
-    def print_help(self):
-        self.say(self.last_channel_id, '*Basic syntax*: just type something (e.g. _load balancer going down for maintenance_). The text you type will be converted into an alert with severity 6 (info)')
-        self.say(self.last_channel_id, '*Advanced syntax*: name, description (optional) and severity (optional) can be specified separately. For example:\n    _name=test 1, desc=test event, severity=5_\n    _name=test 2, severity=1_')
+    def handle_help(self, channel):
+        self.say(channel, '*Basic syntax*: just type something (e.g. _load balancer going down for maintenance_). The text you type will be converted into a custom event')
+        self.say(channel, '*Advanced syntax*: !post_event name, description (optional) and severity (optional) can be specified separately. For example:\n    _!event name=test 1, desc=test event, severity=5_\n    _!event name=test 2, severity=1_')
 
-    def parse_line(self, line):
-        components = line.split(",")
+    def post_event(self, channel, evt):
+        tags = evt.get('tags', {})
+        tags['source'] = 'slack'
+        tags['channel'] = channel
+        evt['tags'] = tags
 
-        if len(components) == 1:
-            self._sdclient.post_event(line)
-            self.say(self.last_channel_id, 'event posted')
+        res = self._sdclient.post_event(**evt)
+        if res[0]:
+            self.say(channel, 'Event posted')
         else:
+            self.say(channel, 'Error posting event: ' + res[1])
+
+    def handle_post_event_advanced(self, inpt):
+        channel = inpt[0]
+        line = inpt[1][len('!event'):]
+
+        evt = {}
+        if line.startswith('!event '):
             name = ''
             desc = ''
             severity = 6
@@ -94,19 +111,25 @@ class SlackBuddy(SlackWrapper):
                 self.say(self.last_channel_id, 'error: name cannot be empty')
                 return
 
-            self._sdclient.post_event(name, desc, severity)
-            self.say(self.last_channel_id, 'event posted')
+        self.post_event(**evt)
 
+    def handle_post_event_simple(self, inpt):
+        channel = inpt[0]
+        line = inpt[1]
+        event = {'name' : line}
+        self.post_event(channel, event)
 
     def run(self):
         while True:
             self.listen()
 
-            for i in self.inputs:
-                if i == 'help':
-                    self.print_help()
+            for inpt in self.inputs:
+                if inpt[1].startswith('!help'):
+                    self.handle_help(inpt[0])
+                elif inpt[1].startswith('!post_event'):
+                    self.handle_post_event_advanced(inpt)
                 else:
-                    self.parse_line(i)
+                    self.handle_post_event_simple(inpt)
 
 ###############################################################################
 # Entry point
@@ -130,7 +153,7 @@ def init():
     sc = SlackClient(slack_token)
     sc.rtm_connect()
 
-    slack_id = json.loads(sc.api_call('auth.test'))['user_id']
+    slack_id = sc.api_call('auth.test')['user_id']
 
     #
     # Start talking!
@@ -138,4 +161,5 @@ def init():
     dude = SlackBuddy(sdclient, sc, slack_id)
     dude.run()
 
-init()
+if __name__ == "__main__":
+    init()
