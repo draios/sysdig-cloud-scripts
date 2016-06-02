@@ -5,7 +5,7 @@ This is a hack deployment method for older Kubernetes clusters (<1.2 on GKE) whi
 If you are using a newer version of Kubernetes (1.2+), you should use the Daemon Set based DM templates in the alternate folder in this repo.
 
 
-###Follow these steps:
+Follow these steps:
 
 1) Fill in the appropriate information for your cluster in cluster.yaml. Your cluster's API server IP address and authentication can be found in the Google Cloud Platform console in the details for your cluster under "Endpoint".
 

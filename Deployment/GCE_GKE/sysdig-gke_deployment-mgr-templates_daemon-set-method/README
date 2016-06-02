@@ -5,7 +5,7 @@ The minimum version required for Kubernetes on GKE is 1.2
 If you are using an older version of Kubernetes, you'll need to the use the Replication Controller (RC) based DM templates in the alternate folder in this repo.
 
 
-###Follow these steps:
+Follow these steps:
 
 1) Fill in the appropriate information for your cluster in cluster.yaml. Your cluster's API server IP address and authentication can be found in the Google Cloud Platform console in the details for your cluster under "Endpoint".
 
