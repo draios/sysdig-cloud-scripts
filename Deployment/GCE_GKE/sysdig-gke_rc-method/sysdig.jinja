@@ -10,8 +10,7 @@ resources:
     metadata:
       name: sysdig-agent
       labels:
-        name: sysdig-agent
-        app: demo
+        app: sysdig-agent
     spec:
       replicas: {{ properties['slaveNodeNumbers'] }}
       template:
