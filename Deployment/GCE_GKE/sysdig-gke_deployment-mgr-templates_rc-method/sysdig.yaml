@@ -1,0 +1,12 @@
+imports:
+- path: sysdig.jinja
+
+resources:
+- name: sysdig
+  type: sysdig.jinja
+  properties:
+    cluster: <cluster name>
+    key: <sysdig cloud access key>
+    delegatedNode: <delegated node IP>
+    apiUri: https://<basic auth username>@<api server IP>
+    slaveNodeNumbers: <number of slave nodes>
