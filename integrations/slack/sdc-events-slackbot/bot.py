@@ -77,7 +77,7 @@ _!post_event description [name=<eventname> [severity=<1 to 7>] [some_tag_key=som
 *Examples*:
 _!post_event load balancer going down for maintenance_. The text you type will be converted into the custom event description'
 _!post_event my test event name="test 1" severity=5_
-_!post_event name="test 2" severity=1_'
+_!post_event name="test 2" severity=1_
 
 """
 
