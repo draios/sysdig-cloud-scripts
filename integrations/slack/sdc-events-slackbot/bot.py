@@ -68,6 +68,19 @@ class SlackWrapper(object):
 ###############################################################################
 # Chat endpoint class
 ###############################################################################
+
+SLACK_BUDDY_HELP = """
+*Available commands*:
+_!help_ - shows this message
+_!post_event description [name=<eventname> [severity=<1 to 7>] [some_tag_key=some_tag_value]_ - sends a custom event to Sysdig Cloud
+
+*Examples*:
+_!post_event load balancer going down for maintenance_. The text you type will be converted into the custom event description'
+_!post_event my test event name="test 1" severity=5_
+_!post_event name="test 2" severity=1_'
+
+"""
+
 class SlackBuddy(SlackWrapper):
     inputs = []
     PARAMETER_MATCHER = re.compile(u"([a-z]+) ?= ?(?:\u201c([^\u201c]*)\u201d|\"([^\"]*)\"|([^\s]+))")
@@ -77,8 +90,7 @@ class SlackBuddy(SlackWrapper):
         super(SlackBuddy, self).__init__(slack_client, slack_id)
 
     def handle_help(self, channel):
-        self.say(channel, '*Basic syntax*: just type something (e.g. _load balancer going down for maintenance_). The text you type will be converted into a custom event')
-        self.say(channel, '*Advanced syntax*: !post_event name, description (optional) and severity (optional) can be specified separately. For example:\n    _!event name=test 1, desc=test event, severity=5_\n    _!event name=test 2, severity=1_')
+        self.say(channel, SLACK_BUDDY_HELP)
 
     def post_event(self, channel, evt):
         tags = evt.get('tags', {})
