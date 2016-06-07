@@ -1,7 +1,9 @@
 #!/usr/bin/env python
+# coding=utf8
 import sys
 import time
 import json
+import re
 
 from slackclient import SlackClient
 from sdcclient import SdcClient
@@ -68,6 +70,7 @@ class SlackWrapper(object):
 ###############################################################################
 class SlackBuddy(SlackWrapper):
     inputs = []
+    PARAMETER_MATCHER = re.compile("([a-z]+)=(?:\"([^\"]*)\"|([^\s]+))")
 
     def __init__(self, sdclient, slack_client, slack_id):
         self._sdclient = sdclient
@@ -102,7 +105,7 @@ class SlackBuddy(SlackWrapper):
                 tpl = c.strip(' \t\n\r?!.').split("=")
                 if tpl[0] == 'name':
                     name = tpl[1]
-                if tpl[0] == 'desc':
+                if tpl[0] == 'description':
                     desc = tpl[1]
                 if tpl[0] == 'severity':
                     severity = int(tpl[1])
@@ -116,7 +119,24 @@ class SlackBuddy(SlackWrapper):
     def handle_post_event_simple(self, inpt):
         channel = inpt[0]
         line = inpt[1]
-        event = {'name' : line}
+        purged_line = re.sub(self.PARAMETER_MATCHER, "", line).strip(' \t\n\r?!.')
+        event = {
+            "name": "SlackEvent",
+            "description": purged_line,
+            "severity": 5,
+            "tags": {}}
+        for item in re.finditer(self.PARAMETER_MATCHER, line):
+            key = item.group(1)
+            value = item.group(2)
+            if value is None:
+                value = item.group(3)
+            if key in ("name", "description"):
+                event[key] = value
+            elif key == "severity":
+                event[key] = int(value)
+            else:
+                event["tags"][key] = value
+        print "sending event", str(event)
         self.post_event(channel, event)
 
     def run(self):
