@@ -10,11 +10,16 @@ Note, this script utilizes the Sysdig Cloud python client (https://github.com/dr
 4. Browse to https://app.sysdigcloud.com/#/settings/user and copy the Sysdig Cloud API Token that you find under _Sysdig Cloud API_
 5. `python bot.py <sysdig_token> <slack_token>`
 
+Alternatively you can use our docker file provided:
+
+1. `docker build -t sdc-bot .`
+2. `docker run -d --name sdc-bot -e SYSDIG_API_TOKEN=<sysdig_token> -e SLACK_TOKEN=<slack_token> sdc-bot`
+
 # Usage
 
-You can now send messages to the bot or invite the bot to Slack channels. By default, the bot will translate each received messages into a Sysdig Cloud event. This behavior can be handy if there are other bots in the channel that post automatic notifications
+You can now send messages to the bot or invite the bot to Slack channels. Then you can use the bot syntax to use it.
 
-They will be posted to Sysdig Cloud as events and they will appear on charts.
+If you launch it with `--auto-events` parameters, the bot will translate each received messages into a Sysdig Cloud event. This behavior can be handy if there are other bots in the channel that post automatic notifications. They will be posted to Sysdig Cloud as events and they will appear on charts.
 
 # Improvements
 
