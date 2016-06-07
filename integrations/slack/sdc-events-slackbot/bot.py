@@ -70,7 +70,7 @@ class SlackWrapper(object):
 ###############################################################################
 class SlackBuddy(SlackWrapper):
     inputs = []
-    PARAMETER_MATCHER = re.compile("([a-z]+)=(?:\"([^\"]*)\"|([^\s]+))")
+    PARAMETER_MATCHER = re.compile(u"([a-z]+) ?= ?(?:\u201c([^\u201c]*)\u201d|\"([^\"]*)\"|([^\s]+))")
 
     def __init__(self, sdclient, slack_client, slack_id):
         self._sdclient = sdclient
@@ -83,7 +83,6 @@ class SlackBuddy(SlackWrapper):
     def post_event(self, channel, evt):
         tags = evt.get('tags', {})
         tags['source'] = 'slack'
-        tags['channel'] = channel
         evt['tags'] = tags
 
         res = self._sdclient.post_event(**evt)
@@ -92,36 +91,10 @@ class SlackBuddy(SlackWrapper):
         else:
             self.say(channel, 'Error posting event: ' + res[1])
 
-    def handle_post_event_advanced(self, inpt):
-        channel = inpt[0]
-        line = inpt[1][len('!event'):]
-
-        evt = {}
-        if line.startswith('!event '):
-            name = ''
-            desc = ''
-            severity = 6
-            for c in components:
-                tpl = c.strip(' \t\n\r?!.').split("=")
-                if tpl[0] == 'name':
-                    name = tpl[1]
-                if tpl[0] == 'description':
-                    desc = tpl[1]
-                if tpl[0] == 'severity':
-                    severity = int(tpl[1])
-
-            if name == '':
-                self.say(self.last_channel_id, 'error: name cannot be empty')
-                return
-
-        self.post_event(**evt)
-
-    def handle_post_event_simple(self, inpt):
-        channel = inpt[0]
-        line = inpt[1]
+    def handle_post_event(self, channel, line):
         purged_line = re.sub(self.PARAMETER_MATCHER, "", line).strip(' \t\n\r?!.')
         event = {
-            "name": "SlackEvent",
+            "name": "Slack Event",
             "description": purged_line,
             "severity": 5,
             "tags": {}}
@@ -130,13 +103,14 @@ class SlackBuddy(SlackWrapper):
             value = item.group(2)
             if value is None:
                 value = item.group(3)
+            if value is None:
+                value = item.group(4)
             if key in ("name", "description"):
                 event[key] = value
             elif key == "severity":
                 event[key] = int(value)
             else:
                 event["tags"][key] = value
-        print "sending event", str(event)
         self.post_event(channel, event)
 
     def run(self):
@@ -147,21 +121,24 @@ class SlackBuddy(SlackWrapper):
                 if inpt[1].startswith('!help'):
                     self.handle_help(inpt[0])
                 elif inpt[1].startswith('!post_event'):
-                    self.handle_post_event_advanced(inpt)
-                else:
-                    self.handle_post_event_simple(inpt)
+                    self.handle_post_event(inpt[0], inpt[1][len("!post_event"):].strip(' \t\n\r?!.'))
+                elif self.auto_events:
+                    self.handle_post_event(inpt[0], inpt[1])
 
 ###############################################################################
 # Entry point
 ###############################################################################
 def init():
-    if len(sys.argv) != 3:
-        print 'usage: %s <sysdig-token> <slack-token>' % sys.argv[0]
+    if len(sys.argv) < 3:
+        print('usage: %s <sysdig-token> <slack-token>' % sys.argv[0])
         sys.exit(1)
     else:
         sdc_token = sys.argv[1]
         slack_token = sys.argv[2]
 
+    auto_events=False
+    if len(sys.argv) > 3 and sys.argv[3] == "--auto-events":
+        auto_events = True
     #
     # Instantiate the SDC client and Retrieve the SDC user information to make sure we have a valid connection
     #
@@ -179,6 +156,7 @@ def init():
     # Start talking!
     #
     dude = SlackBuddy(sdclient, sc, slack_id)
+    dude.auto_events = auto_events
     dude.run()
 
 if __name__ == "__main__":
