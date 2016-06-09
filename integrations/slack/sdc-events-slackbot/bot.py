@@ -131,7 +131,7 @@ class SlackBuddy(SlackWrapper):
         logging.info("Posting event=%s channel=%s" % (repr(evt), channel))
         res = self._sdclient.post_event(**evt)
         if res[0]:
-            self.say(channel, 'Event posted')
+            self.say(channel, 'Event posted successfully')
         else:
             self.say(channel, 'Error posting event: ' + res[1])
             logging.error('Error posting event: ' + res[1])
@@ -141,8 +141,9 @@ class SlackBuddy(SlackWrapper):
         event = {
             "name": "Slack Event",
             "description": purged_line,
-            "severity": 5,
-            "tags": {}}
+            "severity": 6,
+            "tags": {}
+        }
         for item in re.finditer(self.PARAMETER_MATCHER, line):
             key = item.group(1)
             value = item.group(2)
@@ -153,7 +154,16 @@ class SlackBuddy(SlackWrapper):
             if key in ("name", "description"):
                 event[key] = value
             elif key == "severity":
-                event[key] = int(value)
+                try:
+                    severity = int(value)
+                except ValueError:
+                    severity = 0
+
+                if severity >= 1 and severity <= 7:
+                    event[key] = int(value)
+                else:
+                    self.say(channel, "invalid severity, it must be a number from 1 (highest) to 7 (lowest)")
+                    return
             else:
                 event["tags"][key] = value
         self.post_event(channel, event)

@@ -19,7 +19,7 @@ Alternatively you can use our provided Dockerfile:
 
 You can now send messages to the bot or invite the bot to Slack channels. Then you can use the bot syntax to use it.
 
-If you launch it with `--auto-events` parameters, the bot will translate each received messages into a Sysdig Cloud event. This behavior can be handy if there are other bots in the channel that post automatic notifications. They will be posted to Sysdig Cloud as events and they will appear on charts.
+If you launch it with `--auto-events` parameter, the bot will translate each received messages into a Sysdig Cloud event. This behavior can be handy if there are other bots in the channel that post automatic notifications. They will be posted to Sysdig Cloud as events and they will appear on charts.
 
 ## Available commands
 
