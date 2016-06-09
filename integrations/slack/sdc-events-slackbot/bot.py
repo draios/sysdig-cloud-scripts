@@ -32,7 +32,7 @@ class SlackWrapper(object):
                 return self.resolved_channels_cache[channel]
             else:
                 channel_info = self.slack_client.api_call("channels.info", channel=channel)
-                print channel_info
+                logging.debug("channels.info channel=%s response=%s" % (channel, channel_info))
                 if channel_info["ok"]:
                     self.resolved_channels_cache[channel] = channel_info['channel']['name']
                     return self.resolved_channels_cache[channel]
@@ -43,6 +43,7 @@ class SlackWrapper(object):
                 return self.resolved_groups_cache[channel]
             else:
                 group_info = self.slack_client.api_call("groups.info", channel=channel)
+                logging.debug("groups.info channel=%s response=%s" % (channel, group_info))
                 if group_info["ok"]:
                     self.resolved_groups_cache[channel] = group_info['group']['name']
                     return self.resolved_groups_cache[channel]
@@ -184,7 +185,7 @@ def init():
     parser.add_argument('--log-level', dest='log_level', type=LogLevelFromString, help='Logging level')
     args = parser.parse_args()
 
-    logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=args.log_level)
+    logging.basicConfig(format="%(asctime)s - %(levelname)s - %(message)s", level=args.log_level)
     # requests generates too noise on information level
     logging.getLogger("requests").setLevel(logging.WARNING)
     logging.getLogger("urllib3").setLevel(logging.WARNING)
