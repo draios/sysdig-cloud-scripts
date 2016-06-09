@@ -28,7 +28,7 @@ class SlackWrapper(object):
 
     def resolve_channel(self, channel):
         if channel.startswith('C'):
-            if self.resolved_channels_cache.has_key(channel):
+            if channel in self.resolved_channels_cache:
                 return self.resolved_channels_cache[channel]
             else:
                 channel_info = self.slack_client.api_call("channels.info", channel=channel)
@@ -39,7 +39,7 @@ class SlackWrapper(object):
                 else:
                     return channel
         elif channel.startswith('G'):
-            if self.resolved_groups_cache.has_key(channel):
+            if channel in self.resolved_groups_cache:
                 return self.resolved_groups_cache[channel]
             else:
                 group_info = self.slack_client.api_call("groups.info", channel=channel)
@@ -182,7 +182,7 @@ def init():
     parser.add_argument('--sysdig-api-token', dest='sdc_token', required=True, type=str, help='Sysdig API Token')
     parser.add_argument('--slack-token', dest='slack_token', required=True, type=str, help='Slack Token')
     parser.add_argument('--auto-events', '-a', dest='auto_events', action='store_true', help='When enabled, every message received by the bot will be converted to a Sysdig Cloud event')
-    parser.add_argument('--log-level', dest='log_level', type=LogLevelFromString, help='Logging level')
+    parser.add_argument('--log-level', dest='log_level', type=LogLevelFromString, help='Logging level, available values: debug, info, warning, error')
     args = parser.parse_args()
 
     logging.basicConfig(format="%(asctime)s - %(levelname)s - %(message)s", level=args.log_level)
