@@ -4,6 +4,8 @@ import sys
 import time
 import json
 import re
+import argparse
+import logging
 
 from slackclient import SlackClient
 from sdcclient import SdcClient
@@ -21,6 +23,33 @@ class SlackWrapper(object):
         self.slack_users = {}
         for user in self.slack_client.server.users:
             self.slack_users[user.id] = user.name
+        self.resolved_channels_cache = {}
+        self.resolved_groups_cache = {}
+
+    def resolve_channel(self, channel):
+        if channel.startswith('C'):
+            if self.resolved_channels_cache.has_key(channel):
+                return self.resolved_channels_cache[channel]
+            else:
+                channel_info = self.slack_client.api_call("channels.info", channel=channel)
+                print channel_info
+                if channel_info["ok"]:
+                    self.resolved_channels_cache[channel] = channel_info['channel']['name']
+                    return self.resolved_channels_cache[channel]
+                else:
+                    return channel
+        elif channel.startswith('G'):
+            if self.resolved_groups_cache.has_key(channel):
+                return self.resolved_groups_cache[channel]
+            else:
+                group_info = self.slack_client.api_call("groups.info", channel=channel)
+                if group_info["ok"]:
+                    self.resolved_groups_cache[channel] = group_info['group']['name']
+                    return self.resolved_groups_cache[channel]
+                else:
+                    return channel
+        else:
+            return channel
 
     def say(self, channelid, text):
         message_json = {'type': 'message', 'channel': channelid, 'text': text}
@@ -94,14 +123,17 @@ class SlackBuddy(SlackWrapper):
 
     def post_event(self, channel, evt):
         tags = evt.get('tags', {})
+        tags['channel'] = self.resolve_channel(channel)
         tags['source'] = 'slack'
         evt['tags'] = tags
 
+        logging.info("Posting event=%s channel=%s" % (repr(evt), channel))
         res = self._sdclient.post_event(**evt)
         if res[0]:
             self.say(channel, 'Event posted')
         else:
             self.say(channel, 'Error posting event: ' + res[1])
+            logging.error('Error posting event: ' + res[1])
 
     def handle_post_event(self, channel, line):
         purged_line = re.sub(self.PARAMETER_MATCHER, "", line).strip(' \t\n\r?!.')
@@ -130,6 +162,7 @@ class SlackBuddy(SlackWrapper):
             self.listen()
 
             for inpt in self.inputs:
+                logging.debug("Received message channel=%s line=%s" % inpt)
                 if inpt[1].startswith('!help'):
                     self.handle_help(inpt[0])
                 elif inpt[1].startswith('!post_event'):
@@ -137,29 +170,34 @@ class SlackBuddy(SlackWrapper):
                 elif self.auto_events:
                     self.handle_post_event(inpt[0], inpt[1])
 
+def LogLevelFromString(level):
+    return getattr(logging, level.upper())
+
 ###############################################################################
 # Entry point
 ###############################################################################
 def init():
-    if len(sys.argv) < 3:
-        print('usage: %s <sysdig-token> <slack-token>' % sys.argv[0])
-        sys.exit(1)
-    else:
-        sdc_token = sys.argv[1]
-        slack_token = sys.argv[2]
+    parser = argparse.ArgumentParser(description='Sysdig Cloud Slack bot.')
+    parser.add_argument('--sysdig-api-token', dest='sdc_token', required=True, type=str, help='Sysdig API Token')
+    parser.add_argument('--slack-token', dest='slack_token', required=True, type=str, help='Slack Token')
+    parser.add_argument('--auto-events', '-a', dest='auto_events', action='store_true', help='When enabled, every message received by the bot will be converted to a Sysdig Cloud event')
+    parser.add_argument('--log-level', dest='log_level', type=LogLevelFromString, help='Logging level')
+    args = parser.parse_args()
 
-    auto_events=False
-    if len(sys.argv) > 3 and sys.argv[3] == "--auto-events":
-        auto_events = True
+    logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=args.log_level)
+    # requests generates too noise on information level
+    logging.getLogger("requests").setLevel(logging.WARNING)
+    logging.getLogger("urllib3").setLevel(logging.WARNING)
+    
     #
     # Instantiate the SDC client and Retrieve the SDC user information to make sure we have a valid connection
     #
-    sdclient = SdcClient(sdc_token)
+    sdclient = SdcClient(args.sdc_token, sdc_url="https://app-staging.sysdigcloud.com")
 
     #
     # Make a connection to the slack API
     #
-    sc = SlackClient(slack_token)
+    sc = SlackClient(args.slack_token)
     sc.rtm_connect()
 
     slack_id = sc.api_call('auth.test')['user_id']
@@ -168,7 +206,7 @@ def init():
     # Start talking!
     #
     dude = SlackBuddy(sdclient, sc, slack_id)
-    dude.auto_events = auto_events
+    dude.auto_events = args.auto_events
     dude.run()
 
 if __name__ == "__main__":
