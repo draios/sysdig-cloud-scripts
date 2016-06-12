@@ -139,7 +139,7 @@ class SlackBuddy(SlackWrapper):
     def handle_post_event(self, channel, line):
         purged_line = re.sub(self.PARAMETER_MATCHER, "", line).strip(' \t\n\r?!.')
         event = {
-            "name": "Slack Event",
+            "name": "Slack Event From " + self.resolve_channel(channel),
             "description": purged_line,
             "severity": 6,
             "tags": {}
