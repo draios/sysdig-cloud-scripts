@@ -31,7 +31,7 @@ class SlackWrapper(object):
             if channel in self.resolved_channels_cache:
                 return self.resolved_channels_cache[channel]
             else:
-                channel_info = self.slack_client.api_call("channels.info", channel=channel)
+                channel_info = json.loads(self.slack_client.api_call("channels.info", channel=channel))
                 logging.debug("channels.info channel=%s response=%s" % (channel, channel_info))
                 if channel_info["ok"]:
                     self.resolved_channels_cache[channel] = channel_info['channel']['name']
@@ -211,7 +211,8 @@ def init():
     sc = SlackClient(args.slack_token)
     sc.rtm_connect()
 
-    slack_id = sc.api_call('auth.test')['user_id']
+    sinfo = json.loads(sc.api_call('auth.test'))
+    slack_id = sinfo['user_id']
 
     #
     # Start talking!
