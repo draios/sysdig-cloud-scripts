@@ -2,7 +2,6 @@
 # coding=utf8
 import sys
 import time
-import json
 import re
 import argparse
 import logging
@@ -23,34 +22,49 @@ class SlackWrapper(object):
         self.slack_users = {}
         for user in self.slack_client.server.users:
             self.slack_users[user.id] = user.name
-        self.resolved_channels_cache = {}
-        self.resolved_groups_cache = {}
+        self.resolved_channels = {}
+        self.resolved_groups = {}
+        self.resolved_users = {}
 
     def resolve_channel(self, channel):
         if channel.startswith('C'):
-            if channel in self.resolved_channels_cache:
-                return self.resolved_channels_cache[channel]
+            if channel in self.resolved_channels:
+                return self.resolved_channels[channel]
             else:
                 channel_info = json.loads(self.slack_client.api_call("channels.info", channel=channel))
                 logging.debug("channels.info channel=%s response=%s" % (channel, channel_info))
                 if channel_info["ok"]:
-                    self.resolved_channels_cache[channel] = channel_info['channel']['name']
-                    return self.resolved_channels_cache[channel]
+                    self.resolved_channels[channel] = channel_info['channel']['name']
+                    return self.resolved_channels[channel]
                 else:
                     return channel
         elif channel.startswith('G'):
-            if channel in self.resolved_groups_cache:
-                return self.resolved_groups_cache[channel]
+            if channel in self.resolved_groups:
+                return self.resolved_groups[channel]
             else:
                 group_info = self.slack_client.api_call("groups.info", channel=channel)
                 logging.debug("groups.info channel=%s response=%s" % (channel, group_info))
                 if group_info["ok"]:
-                    self.resolved_groups_cache[channel] = group_info['group']['name']
-                    return self.resolved_groups_cache[channel]
+                    self.resolved_groups[channel] = group_info['group']['name']
+                    return self.resolved_groups[channel]
                 else:
                     return channel
+        elif channel.startswith('D'):
+            return "Direct"
         else:
             return channel
+
+    def resolve_user(self, user):
+        if user in self.resolved_users:
+            return self.resolved_users[user]
+        else:
+            user_info = self.slack_client.api_call("users.info", user=user)
+            logging.debug("users.info user=%s response=%s" % (user, user_info))
+            if user_info["ok"]:
+                self.resolved_users[user] = user_info["user"]["name"]
+                return self.resolved_users[user]
+            else:
+                return user
 
     def say(self, channelid, text):
         message_json = {'type': 'message', 'channel': channelid, 'text': text}
@@ -90,7 +104,7 @@ class SlackWrapper(object):
                 else:
                     continue
 
-                self.inputs.append((reply['channel'], txt.strip(' \t\n\r')))
+                self.inputs.append((reply['user'], reply['channel'], txt.strip(' \t\n\r')))
 
             if len(self.inputs) != 0:
                 return
@@ -122,24 +136,23 @@ class SlackBuddy(SlackWrapper):
     def handle_help(self, channel):
         self.say(channel, SLACK_BUDDY_HELP)
 
-    def post_event(self, channel, evt):
+    def post_event(self, user, channel, evt):
         tags = evt.get('tags', {})
         tags['channel'] = self.resolve_channel(channel)
+        tags['user'] = self.resolve_user(user)
         tags['source'] = 'slack'
         evt['tags'] = tags
 
         logging.info("Posting event=%s channel=%s" % (repr(evt), channel))
-        res = self._sdclient.post_event(**evt)
-        if res[0]:
-            self.say(channel, 'Event posted successfully')
-        else:
-            self.say(channel, 'Error posting event: ' + res[1])
-            logging.error('Error posting event: ' + res[1])
+        return self._sdclient.post_event(**evt)
 
-    def handle_post_event(self, channel, line):
+    def handle_post_event(self, user, channel, line, silent=False):
         purged_line = re.sub(self.PARAMETER_MATCHER, "", line).strip(' \t\n\r?!.')
+        event_from = self.resolve_channel(channel)
+        if event_from == "Direct":
+            event_from = self.resolve_user(user)
         event = {
-            "name": "Slack Event From " + self.resolve_channel(channel),
+            "name": "Slack Event From " + event_from,
             "description": purged_line,
             "severity": 6,
             "tags": {}
@@ -166,20 +179,29 @@ class SlackBuddy(SlackWrapper):
                     return
             else:
                 event["tags"][key] = value
-        self.post_event(channel, event)
+
+        res, error = self.post_event(user, channel, event)
+        if res and not silent:
+            self.say(channel, 'Event posted successfully')
+        else:
+            self.say(channel, 'Error posting event: ' + error)
+            logging.error('Error posting event: ' + error)
 
     def run(self):
         while True:
             self.listen()
 
-            for inpt in self.inputs:
-                logging.debug("Received message channel=%s line=%s" % inpt)
-                if inpt[1].startswith('!help'):
-                    self.handle_help(inpt[0])
-                elif inpt[1].startswith('!post_event'):
-                    self.handle_post_event(inpt[0], inpt[1][len("!post_event"):].strip(' \t\n\r?!.'))
+            for user, channel, txt in self.inputs:
+                logging.debug("Received message user=%s channel=%s line=%s" % (user, channel, txt))
+                if txt.startswith('!help'):
+                    self.handle_help(channel)
+                elif txt.startswith('!post_event'):
+                    self.handle_post_event(user, channel, txt[len("!post_event"):].strip(' \t\n\r?!.'))
                 elif self.auto_events:
-                    self.handle_post_event(inpt[0], inpt[1])
+                    self.handle_post_event(user, channel, txt, True)
+                else:
+                    self.say(channel, "Unknown command!")
+                    self.handle_help(channel)
 
 def LogLevelFromString(level):
     return getattr(logging, level.upper())
@@ -211,7 +233,7 @@ def init():
     sc = SlackClient(args.slack_token)
     sc.rtm_connect()
 
-    sinfo = json.loads(sc.api_call('auth.test'))
+    sinfo = sc.api_call('auth.test')
     slack_id = sinfo['user_id']
 
     #
