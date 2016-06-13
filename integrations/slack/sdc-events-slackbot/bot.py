@@ -23,41 +23,38 @@ class SlackWrapper(object):
         for user in self.slack_client.server.users:
             self.slack_users[user.id] = user.name
         self.resolved_channels = {}
-        self.resolved_groups = {}
         self.resolved_users = {}
 
     def resolve_channel(self, channel):
-        if channel.startswith('C'):
-            if channel in self.resolved_channels:
+        channel_type = channel[0]
+        if channel in self.resolved_channels:
+            return self.resolved_channels[channel]
+        elif channel_type == 'C':
+            channel_info = self.slack_client.api_call("channels.info", channel=channel)
+            logging.debug("channels.info channel=%s response=%s" % (channel, channel_info))
+            if channel_info["ok"]:
+                self.resolved_channels[channel] = channel_info['channel']['name']
                 return self.resolved_channels[channel]
             else:
-                channel_info = json.loads(self.slack_client.api_call("channels.info", channel=channel))
-                logging.debug("channels.info channel=%s response=%s" % (channel, channel_info))
-                if channel_info["ok"]:
-                    self.resolved_channels[channel] = channel_info['channel']['name']
-                    return self.resolved_channels[channel]
-                else:
-                    return channel
-        elif channel.startswith('G'):
-            if channel in self.resolved_groups:
-                return self.resolved_groups[channel]
+                return channel
+        elif channel_type == 'G':
+            group_info = self.slack_client.api_call("groups.info", channel=channel)
+            logging.debug("groups.info channel=%s response=%s" % (channel, group_info))
+            if group_info["ok"]:
+                self.resolved_channels[channel] = group_info['group']['name']
+                return self.resolved_channels[channel]
             else:
-                group_info = self.slack_client.api_call("groups.info", channel=channel)
-                logging.debug("groups.info channel=%s response=%s" % (channel, group_info))
-                if group_info["ok"]:
-                    self.resolved_groups[channel] = group_info['group']['name']
-                    return self.resolved_groups[channel]
-                else:
-                    return channel
-        elif channel.startswith('D'):
+                return channel
+        elif channel_type == 'D':
             return "Direct"
         else:
             return channel
 
     def resolve_user(self, user):
+        user_type = user[0]
         if user in self.resolved_users:
             return self.resolved_users[user]
-        else:
+        elif user_type == 'U':
             user_info = self.slack_client.api_call("users.info", user=user)
             logging.debug("users.info user=%s response=%s" % (user, user_info))
             if user_info["ok"]:
@@ -65,6 +62,12 @@ class SlackWrapper(object):
                 return self.resolved_users[user]
             else:
                 return user
+        elif user_type == 'B':
+            # Right now we are not able to resolve bots
+            # see https://api.slack.com/methods/bots.info
+            return "bot"
+        else:
+            return user
 
     def say(self, channelid, text):
         message_json = {'type': 'message', 'channel': channelid, 'text': text}
@@ -103,8 +106,14 @@ class SlackWrapper(object):
                     txt = reply['attachments'][0]['fallback']
                 else:
                     continue
+                if 'user' in reply:
+                    user_id = reply['user']
+                elif 'bot_id' in reply:
+                    user_id = reply['bot_id']
+                else:
+                    user_id = None
 
-                self.inputs.append((reply['user'], reply['channel'], txt.strip(' \t\n\r')))
+                self.inputs.append((user_id, reply['channel'], txt.strip(' \t\n\r')))
 
             if len(self.inputs) != 0:
                 return
@@ -181,8 +190,9 @@ class SlackBuddy(SlackWrapper):
                 event["tags"][key] = value
 
         res, error = self.post_event(user, channel, event)
-        if res and not silent:
-            self.say(channel, 'Event posted successfully')
+        if res:
+            if not silent:
+                self.say(channel, 'Event posted successfully')
         else:
             self.say(channel, 'Error posting event: ' + error)
             logging.error('Error posting event: ' + error)
