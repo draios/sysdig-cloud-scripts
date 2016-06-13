@@ -202,6 +202,7 @@ class SlackBuddy(SlackWrapper):
             self.listen()
 
             for user, channel, txt in self.inputs:
+                channel_type = channel[0]
                 logging.debug("Received message user=%s channel=%s line=%s" % (user, channel, txt))
                 if txt.startswith('!help'):
                     self.handle_help(channel)
@@ -209,7 +210,7 @@ class SlackBuddy(SlackWrapper):
                     self.handle_post_event(user, channel, txt[len("!post_event"):].strip(' \t\n\r?!.'))
                 elif self.auto_events:
                     self.handle_post_event(user, channel, txt, True)
-                else:
+                elif channel_type == 'D':
                     self.say(channel, "Unknown command!")
                     self.handle_help(channel)
 
