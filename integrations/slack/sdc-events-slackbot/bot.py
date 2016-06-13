@@ -85,6 +85,7 @@ class SlackWrapper(object):
                 rv = []
 
             for reply in rv:
+                logging.debug("Received from Slack: %s", reply)
                 if 'type' not in reply:
                     continue
 
@@ -126,6 +127,7 @@ SLACK_BUDDY_HELP = """
 *Available commands*:
 _!help_ - shows this message
 _!post_event description [name=<eventname> [severity=<1 to 7>] [some_tag_key=some_tag_value]_ - sends a custom event to Sysdig Cloud
+_!auto_events enable|disable_ - when enabled, all message in this channel will be automatically converted to a Sysdig Cloud event
 
 *Examples*:
 _!post_event load balancer going down for maintenance_. The text you type will be converted into the custom event description'
@@ -141,6 +143,7 @@ class SlackBuddy(SlackWrapper):
     def __init__(self, sdclient, slack_client, slack_id):
         self._sdclient = sdclient
         super(SlackBuddy, self).__init__(slack_client, slack_id)
+        self.auto_events_channels = set()
 
     def handle_help(self, channel):
         self.say(channel, SLACK_BUDDY_HELP)
@@ -155,8 +158,24 @@ class SlackBuddy(SlackWrapper):
         logging.info("Posting event=%s channel=%s" % (repr(evt), channel))
         return self._sdclient.post_event(**evt)
 
+    def handle_auto_events_cmd(self, channel, line):
+        channel_type = channel[0]
+        if channel_type not in ('C', 'G'):
+            self.say(channel, "This feature works only on channels")
+            return
+
+        subcmd = line.strip()
+        if subcmd == "enable":
+            self.auto_events_channels.add(channel)
+            self.say(channel, "auto-events enabled, every message in this channel will be converted in an event from now on.")
+        elif subcmd == "disable":
+            self.auto_events_channels.remove(channel)
+            self.say(channel, "auto-events disabled.")
+        else:
+            self.say(channel, "wrong syntax, argument can be `enable` or `disable`")
+
     def handle_post_event(self, user, channel, line, silent=False):
-        purged_line = re.sub(self.PARAMETER_MATCHER, "", line).strip(' \t\n\r?!.')
+        purged_line = self.strip_message(re.sub(self.PARAMETER_MATCHER, "", line))
         event_from = self.resolve_channel(channel)
         if event_from == "Direct":
             event_from = self.resolve_user(user)
@@ -197,6 +216,10 @@ class SlackBuddy(SlackWrapper):
             self.say(channel, 'Error posting event: ' + error)
             logging.error('Error posting event: ' + error)
 
+    @classmethod
+    def strip_message(cls, s):
+        return s.strip(' \t\n\r?!.')
+
     def run(self):
         while True:
             self.listen()
@@ -207,9 +230,11 @@ class SlackBuddy(SlackWrapper):
                 if txt.startswith('!help'):
                     self.handle_help(channel)
                 elif txt.startswith('!post_event'):
-                    self.handle_post_event(user, channel, txt[len("!post_event"):].strip(' \t\n\r?!.'))
-                elif self.auto_events:
-                    self.handle_post_event(user, channel, txt, True)
+                    self.handle_post_event(user, channel, self.strip_message(txt[len("!post_event"):]))
+                elif txt.startswith("!auto_events"):
+                    self.handle_auto_events_cmd(channel, self.strip_message(txt[len("!auto_events"):]))
+                elif channel in self.auto_events_channels:
+                    self.handle_post_event(user, channel, txt, silent=True)
                 elif channel_type == 'D':
                     self.say(channel, "Unknown command!")
                     self.handle_help(channel)
@@ -224,7 +249,7 @@ def init():
     parser = argparse.ArgumentParser(description='Sysdig Cloud Slack bot.')
     parser.add_argument('--sysdig-api-token', dest='sdc_token', required=True, type=str, help='Sysdig API Token')
     parser.add_argument('--slack-token', dest='slack_token', required=True, type=str, help='Slack Token')
-    parser.add_argument('--auto-events', '-a', dest='auto_events', action='store_true', help='When enabled, every message received by the bot will be converted to a Sysdig Cloud event')
+    #parser.add_argument('--auto-events', '-a', dest='auto_events', action='store_true', help='When enabled, every message received by the bot will be converted to a Sysdig Cloud event')
     parser.add_argument('--log-level', dest='log_level', type=LogLevelFromString, help='Logging level, available values: debug, info, warning, error')
     args = parser.parse_args()
 
@@ -251,7 +276,7 @@ def init():
     # Start talking!
     #
     dude = SlackBuddy(sdclient, sc, slack_id)
-    dude.auto_events = args.auto_events
+    #dude.auto_events = args.auto_events
     dude.run()
 
 if __name__ == "__main__":
