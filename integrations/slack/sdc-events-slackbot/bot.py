@@ -140,6 +140,7 @@ class SlackBuddy(SlackWrapper):
 
     def __init__(self, sdclient, slack_client, slack_id):
         self._sdclient = sdclient
+        self.auto_events_message_sent = set()
         super(SlackBuddy, self).__init__(slack_client, slack_id)
 
     def handle_help(self, channel):
@@ -208,8 +209,13 @@ class SlackBuddy(SlackWrapper):
                     self.handle_help(channel)
                 elif txt.startswith('!post_event'):
                     self.handle_post_event(user, channel, txt[len("!post_event"):].strip(' \t\n\r?!.'))
-                elif self.auto_events:
-                    self.handle_post_event(user, channel, txt, True)
+                elif self.auto_events and channel_type in ( 'G', 'C'):
+                    if channel in self.auto_events_message_sent:
+                        self.handle_post_event(user, channel, txt, silent=True)
+                    else:
+                        self.say(channel, "Posting this message as Sysdig Cloud event, this warning will be posted only once")
+                        self.auto_events_message_sent.add(channel)
+                        self.handle_post_event(user, channel, txt)
                 elif channel_type == 'D':
                     self.say(channel, "Unknown command!")
                     self.handle_help(channel)
@@ -224,7 +230,7 @@ def init():
     parser = argparse.ArgumentParser(description='Sysdig Cloud Slack bot.')
     parser.add_argument('--sysdig-api-token', dest='sdc_token', required=True, type=str, help='Sysdig API Token')
     parser.add_argument('--slack-token', dest='slack_token', required=True, type=str, help='Slack Token')
-    parser.add_argument('--auto-events', '-a', dest='auto_events', action='store_true', help='When enabled, every message received by the bot will be converted to a Sysdig Cloud event')
+    parser.add_argument('--no-auto-events', dest='auto_events', action='store_false', help='By default the bot converts every message in a channel in a Sysdig Cloud event, this flag disables it')
     parser.add_argument('--log-level', dest='log_level', type=LogLevelFromString, help='Logging level, available values: debug, info, warning, error')
     args = parser.parse_args()
 
@@ -232,7 +238,8 @@ def init():
     # requests generates too noise on information level
     logging.getLogger("requests").setLevel(logging.WARNING)
     logging.getLogger("urllib3").setLevel(logging.WARNING)
-    
+    logging.debug("Starting Bot, config=%s", repr(args))
+
     #
     # Instantiate the SDC client and Retrieve the SDC user information to make sure we have a valid connection
     #
