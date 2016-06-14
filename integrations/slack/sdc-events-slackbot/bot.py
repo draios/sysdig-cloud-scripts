@@ -123,14 +123,24 @@ class SlackWrapper(object):
 ###############################################################################
 
 SLACK_BUDDY_HELP = """
+*Usage*:
+
+Just type something, it will be automatically converted to a Sysdig Cloud event:
+
+_load balancer going down for maintenance_
+
+You can customize all the event fields in this way:
+
+_Turning down API server severity=3_
+_Turning down API server severity=3 name=manteinance_
+
+or add custom tags:
+
+_Turning down API server severity=3 name=manteinance region=us-east-1_
+
 *Available commands*:
 _!help_ - shows this message
-_!post_event description [name=<eventname> [severity=<1 to 7>] [some_tag_key=some_tag_value]_ - sends a custom event to Sysdig Cloud
-
-*Examples*:
-_!post_event load balancer going down for maintenance_. The text you type will be converted into the custom event description'
-_!post_event my test event name="test 1" severity=5_
-_!post_event name="test 2" severity=1_
+_[!post_event] description [name=<eventname> [severity=<1 to 7>] [some_tag_key=some_tag_value]_ - sends a custom event to Sysdig Cloud
 
 """
 
@@ -193,7 +203,7 @@ class SlackBuddy(SlackWrapper):
         res, error = self.post_event(user, channel, event)
         if res:
             if not silent:
-                self.say(channel, 'Event posted successfully')
+                self.say(channel, 'Event successfully posted to Sysdig Cloud.')
         else:
             self.say(channel, 'Error posting event: ' + error)
             logging.error('Error posting event: ' + error)
@@ -209,13 +219,13 @@ class SlackBuddy(SlackWrapper):
                     self.handle_help(channel)
                 elif txt.startswith('!post_event'):
                     self.handle_post_event(user, channel, txt[len("!post_event"):].strip(' \t\n\r?!.'))
-                elif self.auto_events and channel_type in ( 'G', 'C'):
-                    if channel in self.auto_events_message_sent:
+                elif self.auto_events:
+                    if user in self.auto_events_message_sent:
                         self.handle_post_event(user, channel, txt, silent=True)
                     else:
-                        self.say(channel, "Posting this message as Sysdig Cloud event, this warning will be posted only once")
-                        self.auto_events_message_sent.add(channel)
                         self.handle_post_event(user, channel, txt)
+                        self.say(channel, "By the way, you have the option to customize title, description, severity and other event properties. Type _!help_ to learn how to do it.")
+                        self.auto_events_message_sent.add(user)
                 elif channel_type == 'D':
                     self.say(channel, "Unknown command!")
                     self.handle_help(channel)
