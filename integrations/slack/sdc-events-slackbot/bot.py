@@ -147,11 +147,32 @@ _[!post_event] description [name=<eventname> [severity=<1 to 7>] [some_tag_key=s
 class SlackBuddy(SlackWrapper):
     inputs = []
     PARAMETER_MATCHER = re.compile(u"([a-z]+) ?= ?(?:\u201c([^\u201c]*)\u201d|\"([^\"]*)\"|([^\s]+))")
+    SLACK_LINK_MATCHER = re.compile('<http(.*?)>')
 
     def __init__(self, sdclient, slack_client, slack_id):
         self._sdclient = sdclient
         self.auto_events_message_sent = set()
         super(SlackBuddy, self).__init__(slack_client, slack_id)
+
+
+    def links_2_mkdown(self, str):
+        res = str
+        sllinks = re.finditer(self.SLACK_LINK_MATCHER, str)
+        for l in sllinks:
+            txt = l.group()
+            span = l.span()
+            if '|' in txt:
+                # Link is in the format <http(s)://xxx|desc>. Conver it to [desc](http(s)://xxx)
+                components = txt[1:-1].split("|")
+                newlink = '[%s](%s)' % (components[1], components[0])
+                res = res[:span[0]] + newlink + res[span[1]:]
+            else:
+                # Link is in the format <http(s)://xxx>. Just remove the '<' and '>'
+                res = res[:span[0]] + txt[1:-1] + res[span[1]:]
+
+            # Done converting the first link in the message. Recursively convert the following ones
+            return self.links_2_mkdown(res)
+        return res
 
     def handle_help(self, channel):
         self.say(channel, SLACK_BUDDY_HELP)
@@ -167,6 +188,7 @@ class SlackBuddy(SlackWrapper):
         return self._sdclient.post_event(**evt)
 
     def handle_post_event(self, user, channel, line, silent=False):
+        line = self.links_2_mkdown(line)
         purged_line = re.sub(self.PARAMETER_MATCHER, "", line).strip(' \t\n\r?!.')
         event_from = self.resolve_channel(channel)
         if event_from == "Direct":
