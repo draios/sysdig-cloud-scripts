@@ -149,8 +149,9 @@ class SlackBuddy(SlackWrapper):
     PARAMETER_MATCHER = re.compile(u"([a-z]+) ?= ?(?:\u201c([^\u201c]*)\u201d|\"([^\"]*)\"|([^\s]+))")
     SLACK_LINK_MATCHER = re.compile('<http(.*?)>')
 
-    def __init__(self, sdclient, slack_client, slack_id):
+    def __init__(self, sdclient, slack_client, slack_id, quiet):
         self._sdclient = sdclient
+        self._quiet = quiet
         self.auto_events_message_sent = set()
         super(SlackBuddy, self).__init__(slack_client, slack_id)
 
@@ -193,6 +194,9 @@ class SlackBuddy(SlackWrapper):
         event_from = self.resolve_channel(channel)
         if event_from == "Direct":
             event_from = self.resolve_user(user)
+        else:
+            if self._quiet:
+                silent = True
         event = {
             "name": "Slack Event From " + event_from,
             "description": purged_line,
@@ -246,7 +250,9 @@ class SlackBuddy(SlackWrapper):
                         self.handle_post_event(user, channel, txt, silent=True)
                     else:
                         self.handle_post_event(user, channel, txt)
-                        self.say(channel, "By the way, you have the option to customize title, description, severity and other event properties. Type _!help_ to learn how to do it.")
+                        ch = self.resolve_channel(channel)
+                        if ch == "Direct" or (ch != "Direct" and not self._quiet):
+                            self.say(channel, "By the way, you have the option to customize title, description, severity and other event properties. Type _!help_ to learn how to do it.")
                         self.auto_events_message_sent.add(user)
                 elif channel_type == 'D':
                     self.say(channel, "Unknown command!")
@@ -262,6 +268,7 @@ def init():
     parser = argparse.ArgumentParser(description='Sysdig Cloud Slack bot.')
     parser.add_argument('--sysdig-api-token', dest='sdc_token', required=True, type=str, help='Sysdig API Token')
     parser.add_argument('--slack-token', dest='slack_token', required=True, type=str, help='Slack Token')
+    parser.add_argument('--quiet', dest='quiet', action='store_true', help='Prevents the bot from printing output on channels, which is useful to avoid any kind of channel pollution')
     parser.add_argument('--no-auto-events', dest='auto_events', action='store_false', help='By default the bot converts every message in a channel in a Sysdig Cloud event, this flag disables it')
     parser.add_argument('--log-level', dest='log_level', type=LogLevelFromString, help='Logging level, available values: debug, info, warning, error')
     args = parser.parse_args()
@@ -289,7 +296,7 @@ def init():
     #
     # Start talking!
     #
-    dude = SlackBuddy(sdclient, sc, slack_id)
+    dude = SlackBuddy(sdclient, sc, slack_id, args.quiet)
     dude.auto_events = args.auto_events
     dude.run()
 
