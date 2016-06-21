@@ -101,8 +101,19 @@ class SlackWrapper(object):
                 time.sleep(.1)
             except KeyboardInterrupt:
                 sys.exit(0)
-            except Exception:
-                rv = []
+            except ConnectionError as ex:
+                logging.warning("ConnectionError on Slack WebSocket: %s" % str(ex))
+                
+                for t in [2**i for i in range(12)]:
+                    logging.info("Reconnecting to Slack in %d seconds..." % t)
+                    time.sleep(t)
+                    if self.slack_client.rtm_connect():
+                        logging.info("Successfully reconnected to Slack")
+                        break
+                else:
+                    logging.error("Cannot connect to Slack, terminating...")
+                    sys.exit(1)
+
 
             for reply in rv:
                 if 'type' not in reply:
@@ -267,6 +278,7 @@ class SlackBuddy(SlackWrapper):
                     self.handle_post_event(user, channel, txt[len("!post_event"):].strip(' \t\n\r?!.'))
                 elif self.auto_events:
                     if user in self.auto_events_message_sent:
+                        # Post silently on channels, to avoid noise
                         self.handle_post_event(user, channel, txt, silent=True)
                     else:
                         self.handle_post_event(user, channel, txt)
