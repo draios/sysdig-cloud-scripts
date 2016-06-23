@@ -8,5 +8,5 @@ resources:
     cluster: <cluster name>
     key: <sysdig cloud access key>
     delegatedNode: <delegated node IP>
-    apiUri: https://<basic auth username>@<api server IP>
+    apiUri: https://<username>:<password>@<serveraddress>:<port>
     slaveNodeNumbers: <number of slave nodes>
