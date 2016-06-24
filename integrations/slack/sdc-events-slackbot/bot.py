@@ -116,6 +116,7 @@ class SlackWrapper(object):
 
 
             for reply in rv:
+                logging.debug("Data from Slack: %s", repr(reply))
                 if 'type' not in reply:
                     continue
 
