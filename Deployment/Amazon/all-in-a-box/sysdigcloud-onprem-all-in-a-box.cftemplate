@@ -1,0 +1,524 @@
+{
+    "Mappings": {
+        "Image2Region": {
+            "ap-northeast-1": {
+                "64": "ami-b2c321dd"
+            },
+            "ap-southeast-1": {
+                "64": "ami-d3c022bc"
+            },
+            "ap-southeast-2": {
+                "64": "ami-37dd0a54"
+            },
+            "eu-central-1": {
+                "64": "ami-1aad2469"
+            },
+            "eu-west-1": {
+                "64": "ami-ac85fbcc"
+            },
+            "sa-east-1": {
+                "64": "ami-5430f83a"
+            },
+            "us-east-1": {
+                "64": "ami-f5f41398"
+            },
+            "us-west-1": {
+                "64": "ami-bae80fd7"
+            },
+            "us-west-2": {
+                "64": "ami-92f003f2"
+            }
+        },
+        "Region2AZ": {
+            "ap-northeast-1": {
+                "AZ0": "ap-northeast-1a",
+                "AZ1": "ap-northeast-1b",
+                "AZ2": "ap-northeast-1c"
+            },
+            "ap-southeast-1": {
+                "AZ0": "ap-southeast-1a",
+                "AZ1": "ap-southeast-1b",
+                "AZ2": "ap-southeast-1a"
+            },
+            "ap-southeast-2": {
+                "AZ0": "ap-southeast-2a",
+                "AZ1": "ap-southeast-2b",
+                "AZ2": "ap-southeast-2a"
+            },
+            "eu-west-1": {
+                "AZ0": "eu-west-1a",
+                "AZ1": "eu-west-1b",
+                "AZ2": "eu-west-1c"
+            },
+            "sa-east-1": {
+                "AZ0": "sa-east-1a",
+                "AZ1": "sa-east-1b",
+                "AZ2": "sa-east-1a"
+            },
+            "us-east-1": {
+                "AZ0": "us-east-1c",
+                "AZ1": "us-east-1b",
+                "AZ2": "us-east-1d"
+            },
+            "us-west-1": {
+                "AZ0": "us-west-1a",
+                "AZ1": "us-west-1b",
+                "AZ2": "us-west-1c"
+            },
+            "us-west-2": {
+                "AZ0": "us-west-2a",
+                "AZ1": "us-west-2b",
+                "AZ2": "us-west-2c"
+            }
+        }
+    },
+    "Outputs": {
+        "AdministrationConsoleURL": {
+            "Description": "Administration console",
+            "Value": {
+                "Fn::Join": [
+                    "",
+                    [
+                        "https://",
+                        {
+                            "Fn::GetAtt": [
+                                "sysdigOnpremAllInAboxConsole",
+                                "PublicIp"
+                            ]
+                        },
+                        ":8800"
+                    ]
+                ]
+            }
+        },
+        "SysdigcloudConsoleURL": {
+            "Description": "Sysdigcloud console",
+            "Value": {
+                "Fn::Join": [
+                    "",
+                    [
+                        "https://",
+                        {
+                            "Fn::GetAtt": [
+                                "sysdigOnpremAllInAboxConsole",
+                                "PublicIp"
+                            ]
+                        }
+                    ]
+                ]
+            }
+        }
+    },
+    "Parameters": {
+        "AgentImageTag": {
+            "Default": "latest",
+            "Type": "String"
+        },
+        "InfrastructureName": {
+            "Default": "sysdigcloud-on-prem-all-in-a-box",
+            "Type": "String"
+        },
+        "InstanceType": {
+            "Default": "m4.large",
+            "Type": "String"
+        },
+        "LicenseFileURL": {
+            "Default": "",
+            "Type": "String"
+        },
+        "SSHKey": {
+            "Type": "AWS::EC2::KeyPair::KeyName"
+        },
+        "ServerDiskSize": {
+            "Default": "100",
+            "Type": "String"
+        },
+        "SysdigcloudEmail": {
+            "Default": "",
+            "Type": "String"
+        },
+        "SysdigcloudPassword": {
+            "Default": "",
+            "NoEcho": true,
+            "Type": "String"
+        }
+    },
+    "Resources": {
+        "InternetRoute": {
+            "Properties": {
+                "DestinationCidrBlock": "0.0.0.0/0",
+                "GatewayId": {
+                    "Ref": "internetGW"
+                },
+                "RouteTableId": {
+                    "Ref": "sysdigOnpremAllInAboxRoutingTable"
+                }
+            },
+            "Type": "AWS::EC2::Route"
+        },
+        "SNSPolicy": {
+            "Properties": {
+                "PolicyDocument": {
+                    "Statement": [
+                        {
+                            "Action": [
+                                "sns:Publish"
+                            ],
+                            "Effect": "Allow",
+                            "Resource": [
+                                "*"
+                            ]
+                        }
+                    ],
+                    "Version": "2012-10-17"
+                },
+                "PolicyName": "SNSSendPolicy",
+                "Roles": [
+                    {
+                        "Ref": "sysdigOnpremAllInAboxServerIamRole"
+                    }
+                ]
+            },
+            "Type": "AWS::IAM::Policy"
+        },
+        "SgRulealltraffic5f93c6df1cd4a78977b598b5e177fec6": {
+            "Properties": {
+                "FromPort": "0",
+                "GroupId": {
+                    "Ref": "sysdigOnpremAllInAboxSg"
+                },
+                "IpProtocol": "-1",
+                "SourceSecurityGroupId": {
+                    "Ref": "sysdigOnpremAllInAboxSg"
+                },
+                "ToPort": "65535"
+            },
+            "Type": "AWS::EC2::SecurityGroupIngress"
+        },
+        "SgRulereplicatedConsole68740a3b02c9e7767e419b117e1510b1": {
+            "Properties": {
+                "CidrIp": "0.0.0.0/0",
+                "FromPort": "8800",
+                "GroupId": {
+                    "Ref": "sysdigOnpremAllInAboxSg"
+                },
+                "IpProtocol": "tcp",
+                "ToPort": "8800"
+            },
+            "Type": "AWS::EC2::SecurityGroupIngress"
+        },
+        "SgRulesysdigcloudCollector9db8b2767db43dc8e9528bd2bc723ffa": {
+            "Properties": {
+                "CidrIp": "0.0.0.0/0",
+                "FromPort": "6443",
+                "GroupId": {
+                    "Ref": "sysdigOnpremAllInAboxSg"
+                },
+                "IpProtocol": "tcp",
+                "ToPort": "6443"
+            },
+            "Type": "AWS::EC2::SecurityGroupIngress"
+        },
+        "SgRulesysdigcloudConsolef410cf23e0bcdadfa8ebd94b6f168ab0": {
+            "Properties": {
+                "CidrIp": "0.0.0.0/0",
+                "FromPort": "443",
+                "GroupId": {
+                    "Ref": "sysdigOnpremAllInAboxSg"
+                },
+                "IpProtocol": "tcp",
+                "ToPort": "443"
+            },
+            "Type": "AWS::EC2::SecurityGroupIngress"
+        },
+        "VPCGWAttachement": {
+            "Properties": {
+                "InternetGatewayId": {
+                    "Ref": "internetGW"
+                },
+                "VpcId": {
+                    "Ref": "Vpc"
+                }
+            },
+            "Type": "AWS::EC2::VPCGatewayAttachment"
+        },
+        "Vpc": {
+            "Properties": {
+                "CidrBlock": "10.10.0.0/16",
+                "EnableDnsHostnames": "true",
+                "EnableDnsSupport": "true",
+                "InstanceTenancy": "default",
+                "Tags": [
+                    {
+                        "Key": "Infrastructure",
+                        "Value": {
+                            "Ref": "InfrastructureName"
+                        }
+                    },
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Join": [
+                                "-",
+                                [
+                                    {
+                                        "Ref": "InfrastructureName"
+                                    },
+                                    "vpc"
+                                ]
+                            ]
+                        }
+                    }
+                ]
+            },
+            "Type": "AWS::EC2::VPC"
+        },
+        "internetGW": {
+            "Type": "AWS::EC2::InternetGateway"
+        },
+        "sysdigOnpremAllInAboxConsole": {
+            "Properties": {
+                "BlockDeviceMappings": [
+                    {
+                        "DeviceName": "/dev/xvda",
+                        "Ebs": {
+                            "DeleteOnTermination": "true",
+                            "VolumeSize": {
+                                "Ref": "ServerDiskSize"
+                            },
+                            "VolumeType": "gp2"
+                        }
+                    }
+                ],
+                "IamInstanceProfile": {
+                    "Ref": "sysdigOnpremAllInAboxServerRole"
+                },
+                "ImageId": {
+                    "Fn::FindInMap": [
+                        "Image2Region",
+                        {
+                            "Ref": "AWS::Region"
+                        },
+                        "64"
+                    ]
+                },
+                "InstanceType": {
+                    "Ref": "InstanceType"
+                },
+                "KeyName": {
+                    "Ref": "SSHKey"
+                },
+                "NetworkInterfaces": [
+                    {
+                        "AssociatePublicIpAddress": "true",
+                        "DeleteOnTermination": "true",
+                        "DeviceIndex": "0",
+                        "GroupSet": [
+                            {
+                                "Ref": "sysdigOnpremAllInAboxSg"
+                            }
+                        ],
+                        "SubnetId": {
+                            "Ref": "sysdigOnpremAllInAboxSubnet0"
+                        }
+                    }
+                ],
+                "SourceDestCheck": "true",
+                "Tags": [
+                    {
+                        "Key": "Infrastructure",
+                        "Value": {
+                            "Ref": "InfrastructureName"
+                        }
+                    },
+                    {
+                        "Key": "Name",
+                        "Value": "sysdigOnpremAllInAbox-console"
+                    }
+                ],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "#!/bin/bash\n",
+                                "set -exuo pipefail\n",
+                                "curl -sSL https://s3.amazonaws.com/draios-infrastructures/onprem/start-all-in-a-box.sh | bash -s -- ",
+                                {
+                                    "Ref": "LicenseFileURL"
+                                },
+                                " ",
+                                {
+                                    "Ref": "SysdigcloudEmail"
+                                },
+                                " ",
+                                {
+                                    "Ref": "SysdigcloudPassword"
+                                },
+                                " ",
+                                {
+                                    "Ref": "AgentImageTag"
+                                },
+                                "\n",
+                                "exit 0"
+                            ]
+                        ]
+                    }
+                }
+            },
+            "Type": "AWS::EC2::Instance"
+        },
+        "sysdigOnpremAllInAboxRoutingTable": {
+            "Properties": {
+                "Tags": [
+                    {
+                        "Key": "Infrastructure",
+                        "Value": {
+                            "Ref": "InfrastructureName"
+                        }
+                    },
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Join": [
+                                "-",
+                                [
+                                    {
+                                        "Ref": "InfrastructureName"
+                                    },
+                                    "route-table"
+                                ]
+                            ]
+                        }
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "Vpc"
+                }
+            },
+            "Type": "AWS::EC2::RouteTable"
+        },
+        "sysdigOnpremAllInAboxServerIamRole": {
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Statement": [
+                        {
+                            "Action": "sts:AssumeRole",
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": "ec2.amazonaws.com"
+                            },
+                            "Sid": ""
+                        }
+                    ],
+                    "Version": "2012-10-17"
+                },
+                "Path": "/"
+            },
+            "Type": "AWS::IAM::Role"
+        },
+        "sysdigOnpremAllInAboxServerRole": {
+            "Properties": {
+                "Path": "/",
+                "Roles": [
+                    {
+                        "Ref": "sysdigOnpremAllInAboxServerIamRole"
+                    }
+                ]
+            },
+            "Type": "AWS::IAM::InstanceProfile"
+        },
+        "sysdigOnpremAllInAboxSg": {
+            "Properties": {
+                "GroupDescription": {
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {
+                                "Ref": "InfrastructureName"
+                            },
+                            "security-group"
+                        ]
+                    ]
+                },
+                "Tags": [
+                    {
+                        "Key": "Infrastructure",
+                        "Value": {
+                            "Ref": "InfrastructureName"
+                        }
+                    },
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Join": [
+                                "-",
+                                [
+                                    {
+                                        "Ref": "InfrastructureName"
+                                    },
+                                    "security-group"
+                                ]
+                            ]
+                        }
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "Vpc"
+                }
+            },
+            "Type": "AWS::EC2::SecurityGroup"
+        },
+        "sysdigOnpremAllInAboxSubnet0": {
+            "Properties": {
+                "AvailabilityZone": {
+                    "Fn::FindInMap": [
+                        "Region2AZ",
+                        {
+                            "Ref": "AWS::Region"
+                        },
+                        "AZ0"
+                    ]
+                },
+                "CidrBlock": "10.10.0.0/26",
+                "Tags": [
+                    {
+                        "Key": "Infrastructure",
+                        "Value": {
+                            "Ref": "InfrastructureName"
+                        }
+                    },
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Join": [
+                                "-",
+                                [
+                                    {
+                                        "Ref": "InfrastructureName"
+                                    },
+                                    "Subnet0"
+                                ]
+                            ]
+                        }
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "Vpc"
+                }
+            },
+            "Type": "AWS::EC2::Subnet"
+        },
+        "sysdigOnpremAllInAboxsubnet2RT0": {
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "sysdigOnpremAllInAboxRoutingTable"
+                },
+                "SubnetId": {
+                    "Ref": "sysdigOnpremAllInAboxSubnet0"
+                }
+            },
+            "Type": "AWS::EC2::SubnetRouteTableAssociation"
+        }
+    }
+}
