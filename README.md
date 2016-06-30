@@ -1,9 +1,9 @@
 # sysdig-cloud-scripts
 This repository holds various scripts and templates that may be helpful for (among other things):
 
-- Deploying the Sysdig Cloud agent in various platforms
-- Deploying Sysdig Enterprise on-premise
-- Integrating Sysdig Cloud with other platforms
+- Deploying the Sysdig Cloud agent in various platforms: [/agent_deploy/](https://github.com/draios/sysdig-cloud-scripts/tree/master/agent_deploy)
+- Deploying Sysdig Enterprise on-premise: [/onprem_deploy/](https://github.com/draios/sysdig-cloud-scripts/tree/master/onprem_deploy)
+- Integrating Sysdig Cloud with other platforms: [/integrations/](https://github.com/draios/sysdig-cloud-scripts/tree/master/integrations)
 
 Please note that this functionality is different from the core [Sysdig Cloud application checks](http://support.sysdigcloud.com/hc/en-us/articles/205147903), which automatically collect metrics from a wide variety of applications and infrastructure components - these app checks should work out of the box with minimal configuration.
 
