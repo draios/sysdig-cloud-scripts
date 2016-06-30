@@ -1,10 +1,16 @@
 # sysdig-cloud-scripts
-This repository holds various scripts and templates that may be helpful for (1) deploying the Sysdig Cloud agent and (2) integrating Sysdig Cloud with other platforms.
+This repository holds various scripts and templates that may be helpful for (among other things):
 
-For a complete list of featured content, see the Sysdig Cloud documentation article:
-http://support.sysdigcloud.com/hc/en-us/articles/208467166
+- Deploying the Sysdig Cloud agent in various platforms
+- Deploying Sysdig Enterprise on-premise
+- Integrating Sysdig Cloud with other platforms
 
-You may also be interested in the Sysdig Cloud python client, a wrapper for the Sysdig Cloud REST API, which supports a bunch of cool functionality:
-https://github.com/draios/python-sdc-client
+Please note that this functionality is different from the core [Sysdig Cloud application checks](http://support.sysdigcloud.com/hc/en-us/articles/205147903), which automatically collect metrics from a wide variety of applications and infrastructure components - these app checks should work out of the box with minimal configuration.
 
+# Sysdig Cloud APIs
+You may also be interested in the [Sysdig Cloud python client](https://github.com/draios/python-sdc-client): a wrapper for the [Sysdig Cloud REST API](https://sysdig.gitbooks.io/sysdig-cloud-api/content/), which supports a bunch of cool functionality.
 
+# Requests and Contributions
+We love contributions! If you've got some code that might be helpful or interesting to other Sysdig Cloud users, please just send us a pull request.
+
+If you're interested in any new content not available here: please contact us at support@sysdig.com, and we'll do our best to help you out! 
