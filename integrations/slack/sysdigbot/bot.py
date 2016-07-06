@@ -298,11 +298,11 @@ def LogLevelFromString(level):
 # Entry point
 ###############################################################################
 def init():
-    parser = argparse.ArgumentParser(description='Sysdig Cloud Slack bot.')
+    parser = argparse.ArgumentParser(description='Sysdigbot: the Sysdig Cloud Slack bot.')
     parser.add_argument('--sysdig-api-token', dest='sdc_token', required=True, type=str, help='Sysdig API Token')
     parser.add_argument('--slack-token', dest='slack_token', required=True, type=str, help='Slack Token')
-    parser.add_argument('--quiet', dest='quiet', action='store_true', help='Prevents the bot from printing output on channels, which is useful to avoid any kind of channel pollution')
-    parser.add_argument('--no-auto-events', dest='auto_events', action='store_false', help='By default the bot converts every message in a channel in a Sysdig Cloud event, this flag disables it')
+    parser.add_argument('--quiet', dest='quiet', action='store_true', help='Prevents Sysdigbot from printing output on channels, which is useful to avoid any kind of channel pollution')
+    parser.add_argument('--no-auto-events', dest='auto_events', action='store_false', help='By default Sysdigbot converts every message in a channel in a Sysdig Cloud event, this flag disables it')
     parser.add_argument('--log-level', dest='log_level', type=LogLevelFromString, help='Logging level, available values: debug, info, warning, error')
     args = parser.parse_args()
 
@@ -310,7 +310,7 @@ def init():
     # requests generates too noise on information level
     logging.getLogger("requests").setLevel(logging.WARNING)
     logging.getLogger("urllib3").setLevel(logging.WARNING)
-    logging.debug("Starting Bot, config=%s", repr(args))
+    logging.debug("Starting Sysdigbot, config=%s", repr(args))
 
     #
     # Instantiate the SDC client and Retrieve the SDC user information to make sure we have a valid connection
