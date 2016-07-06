@@ -3,7 +3,7 @@ Use this python script to spin up a Sysdigbot, a chat bot that allows you to int
 
 Currently Sysdigbot allows you to post custom events directly to Sysdig Cloud through chats in Slack. These chats can come from you and your teammates, or from any other app that you have integrated with Slack (think: code deploys, support tickets, marketing events, etc.) 
 
-Check out [this blog post](insert link) for more info.
+Check out the Sysdigbot [launch blog post](https://sysdig.com/blog/universal-slack-event-router/) for more info.
 
 Note, this script utilizes the [Sysdig Cloud python client](https://github.com/draios/python-sdc-client), a wrapper for the Sysdig Cloud REST API. 
 
