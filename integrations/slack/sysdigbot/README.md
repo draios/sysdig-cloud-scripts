@@ -21,8 +21,8 @@ Alternatively you can use our provided Dockerfile:
 
 # Usage
 
-Sysdigbot will automatically translate each message it hears on Slack into a Sysdig Cloud event: 
-`description [name=<eventname>] [severity=<1 to 7>] [some_tag_key=some_tag_value]*`
+Sysdigbot will automatically translate each message it hears on Slack into a Sysdig Cloud event:  
+`description [name=<eventname>] [severity=<1 to 7>] [some_tag_key=some_tag_value]`
 
 You can send messages directly to Sysdigbot, or invite Sysdigbot to any Slack channel to listen in. This channel listening behavior can be handy if there are other bots in the channel that post automatic notifications. 
 
