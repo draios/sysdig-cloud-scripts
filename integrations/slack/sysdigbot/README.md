@@ -11,9 +11,7 @@ Note, this script utilizes the Sysdig Cloud python client (https://github.com/dr
 
 Simply pull and run our container from Docker Hub:
 
-```
-docker run -d --name sysdig-bot -e SYSDIG_API_TOKEN=<sysdig_token> -e SLACK_TOKEN=<slack_token> sysdig/sysdig-bot
-```
+`docker run -d --name sysdig-bot -e SYSDIG_API_TOKEN=<sysdig_token> -e SLACK_TOKEN=<slack_token> sysdig/sysdig-bot`
 
 # Manual Installation
 
