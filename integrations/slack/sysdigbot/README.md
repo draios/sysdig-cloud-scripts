@@ -29,7 +29,7 @@ You can send messages directly to Sysdigbot, or invite Sysdigbot to any Slack ch
 ## Available commands
 
 * `!help` - Shows this message.
-* `[!post_event] *description [name=<eventname>] [severity=<1 to 7>] [some_tag_key=some_tag_value]*` - Sends a custom event to Sysdig Cloud. Note, the `!post_event` prefix is only necessary if you launch bot.py with the `--no-auto-events` parameter. 
+* `[!post_event] description [name=<eventname>] [severity=<1 to 7>] [some_tag_key=some_tag_value]` - Sends a custom event to Sysdig Cloud. Note, the `!post_event` prefix is only necessary if you launch bot.py with the `--no-auto-events` parameter. 
 
 ## Examples
 
