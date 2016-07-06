@@ -25,6 +25,7 @@ import time
 import re
 import argparse
 import logging
+import os
 
 from slackclient import SlackClient
 from sdcclient import SdcClient
@@ -305,10 +306,20 @@ def LogLevelFromString(level):
 # Entry point
 ###############################################################################
 def init():
+    sdc_token = None
+    try:
+        sdc_token = os.environ["SYSDIG_API_TOKEN"]
+    except KeyError:
+        pass
+    slack_token = None
+    try:
+        slack_token = os.environ["SLACK_TOKEN"]
+    except KeyError:
+        pass
     parser = argparse.ArgumentParser(description='Sysdigbot: the Sysdig Cloud Slack bot.')
-    parser.add_argument('--sysdig-api-token', dest='sdc_token', required=True, type=str, help='Sysdig API Token')
-    parser.add_argument('--slack-token', dest='slack_token', required=True, type=str, help='Slack Token')
-    parser.add_argument('--quiet', dest='quiet', action='store_true', help='Prevents Sysdigbot from printing output on channels, which is useful to avoid any kind of channel pollution')
+    parser.add_argument('--sysdig-api-token', dest='sdc_token', required=(sdc_token is None), default=sdc_token, type=str, help='Sysdig API Token, you can use also SYSDIG_API_TOKEN environment variable to set it')
+    parser.add_argument('--slack-token', dest='slack_token', required=(slack_token is None), default=slack_token, type=str, help='Slack Token, you can use also SLACK_TOKEN environment variable to set it')
+    parser.add_argument('--quiet', dest='quiet', action='store_true', help='Prevents the bot from printing output on channels, which is useful to avoid any kind of channel pollution')
     parser.add_argument('--no-auto-events', dest='auto_events', action='store_false', help='By default Sysdigbot converts every message in a channel in a Sysdig Cloud event, this flag disables it')
     parser.add_argument('--log-level', dest='log_level', type=LogLevelFromString, help='Logging level, available values: debug, info, warning, error')
     args = parser.parse_args()
