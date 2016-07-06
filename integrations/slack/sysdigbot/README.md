@@ -5,15 +5,15 @@ Currently Sysdigbot allows you to post custom events directly to Sysdig Cloud th
 
 Check out [this blog post](insert link) for more info.
 
-Note, this script utilizes the Sysdig Cloud python client (https://github.com/draios/python-sdc-client), a wrapper for the Sysdig Cloud REST API. 
+Note, this script utilizes the [Sysdig Cloud python client](https://github.com/draios/python-sdc-client), a wrapper for the Sysdig Cloud REST API. 
 
 # Install Instructions
 
 1. Create a [new Slack bot user](https://my.slack.com/services/new/bot) called "Sysdigbot" (or whatever you want), and note your Slack API token. 
 2. Go to the [User Settings page](https://app.sysdigcloud.com/#/settings/user) in Sysdig Cloud, and note your Sysdig Cloud API Token (which, to be clear, is different from your Access Key).
 3. Pull and run the Sysdigbot container from Docker Hub:  
-  
-`docker run -d --name sysdig-bot -e SYSDIG_API_TOKEN=<sysdig_token> -e SLACK_TOKEN=<slack_token> sysdig/sysdig-bot`
+
+`docker run [-d] --name sysdig-bot -e SYSDIG_API_TOKEN=<sysdig_token> -e SLACK_TOKEN=<slack_token> sysdig/sysdig-bot [--help] [--quiet] [--no-auto-events] [--log-level LOG_LEVEL]`
 
 ## Manual Installation
 
@@ -23,7 +23,7 @@ Note, this script utilizes the Sysdig Cloud python client (https://github.com/dr
 Alternatively you can use our provided Dockerfile:
 
 1. `docker build -t sysdig-bot .`
-2. `docker run -d --name sysdig-bot -e SYSDIG_API_TOKEN=<sysdig_token> -e SLACK_TOKEN=<slack_token> sysdig-bot`
+2. `docker run [-d] --name sysdig-bot -e SYSDIG_API_TOKEN=<sysdig_token> -e SLACK_TOKEN=<slack_token> sysdig/sysdig-bot [--help] [--quiet] [--no-auto-events] [--log-level LOG_LEVEL]`
 
 # Usage
 
