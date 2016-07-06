@@ -171,8 +171,8 @@ or add custom tags:
 _Turning down API server severity=3 name=manteinance region=us-east-1_
 
 *Available commands*:
-_!help_ - shows this message
-_[!post_event] description [name=<eventname> [severity=<1 to 7>] [some_tag_key=some_tag_value]_ - sends a custom event to Sysdig Cloud
+`!help` - Shows this message.
+`[!post_event] description [name=<eventname>] [severity=<1 to 7>] [some_tag_key=some_tag_value]` - Sends a custom event to Sysdig Cloud. Note, the `!post_event` prefix is only necessary if bot.py was launched with the `--no-auto-events` parameter. 
 
 """
 
