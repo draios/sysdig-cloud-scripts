@@ -102,8 +102,8 @@ class SlackWrapper(object):
                 time.sleep(.1)
             except KeyboardInterrupt:
                 sys.exit(0)
-            except ConnectionError as ex:
-                logging.warning("ConnectionError on Slack WebSocket: %s" % str(ex))
+            except Exception as ex:
+                logging.warning("Error on Slack WebSocket: %s" % str(ex))
                 
                 for t in [2**i for i in range(12)]:
                     logging.info("Reconnecting to Slack in %d seconds..." % t)
