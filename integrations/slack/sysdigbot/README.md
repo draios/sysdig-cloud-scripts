@@ -8,6 +8,15 @@ Check out [this blog post](insert link) for more info.
 Note, this script utilizes the Sysdig Cloud python client (https://github.com/draios/python-sdc-client), a wrapper for the Sysdig Cloud REST API. 
 
 # Install Instructions
+
+Simply pull and run our container from Docker Hub:
+
+```
+docker run -d --name sysdig-bot -e SYSDIG_API_TOKEN=<sysdig_token> -e SLACK_TOKEN=<slack_token> sysdig/sysdig-bot
+```
+
+# Manual Installation
+
 1. `pip install -r requirements.txt` 
 2. Go to this page to create a new Slack bot user: https://my.slack.com/services/new/bot
 3. Once you are done with the bot creation wizard, the Slack API token will be available under _Integration Settings_. Make a copy of it
@@ -16,8 +25,8 @@ Note, this script utilizes the Sysdig Cloud python client (https://github.com/dr
 
 Alternatively you can use our provided Dockerfile:
 
-1. `docker build -t sdc-bot .`
-2. `docker run -d --name sdc-bot -e SYSDIG_API_TOKEN=<sysdig_token> -e SLACK_TOKEN=<slack_token> sdc-bot`
+1. `docker build -t sysdig-bot .`
+2. `docker run -d --name sysdig-bot -e SYSDIG_API_TOKEN=<sysdig_token> -e SLACK_TOKEN=<slack_token> sysdig-bot`
 
 # Usage
 
