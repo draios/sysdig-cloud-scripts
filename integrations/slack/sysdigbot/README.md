@@ -41,5 +41,8 @@ You can send messages directly to Sysdigbot, or invite Sysdigbot to any Slack ch
 
 # Improvements
 
+If you like any of these ideas and want to see them, or if you have any cool ideas of your own, let us know at support@sysdig.com - thanks!
+
 - Add more commands. For example, it would be very cool to have a `!get_data` or `!get_alert_notification` that mimic the behavior of the Python client API
 - Better parsing from bot messages. For example, we can recognize when a github/jenkins bot posts a message, and automatically dissect the message into name/description/tags
+- Hosted Sysdigbot
