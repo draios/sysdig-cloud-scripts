@@ -179,7 +179,7 @@ _Turning down API server severity=3 name=manteinance region=us-east-1_
 
 class SlackBuddy(SlackWrapper):
     inputs = []
-    PARAMETER_MATCHER = re.compile(u"([a-z]+) ?= ?(?:\u201c([^\u201c]*)\u201d|\"([^\"]*)\"|([^\s]+))")
+    PARAMETER_MATCHER = re.compile(u"([a-z_]+) ?= ?(?:\u201c([^\u201c]*)\u201d|\"([^\"]*)\"|([^\s]+))")
     SLACK_LINK_MATCHER = re.compile('<http(.*?)>')
 
     def __init__(self, sdclient, slack_client, slack_id, quiet):
