@@ -278,14 +278,21 @@ class SlackBuddy(SlackWrapper):
                 elif txt.startswith('!post_event'):
                     self.handle_post_event(user, channel, txt[len("!post_event"):].strip(' \t\n\r?!.'))
                 elif self.auto_events:
+                    ch = self.resolve_channel(channel)
                     if user in self.auto_events_message_sent:
-                        # Post silently on channels, to avoid noise
-                        self.handle_post_event(user, channel, txt, silent=True)
+                        #not first message from user
+                        if ch != "Direct":
+                            # Post silently in channels after confirming once, to avoid noise
+                            self.handle_post_event(user, channel, txt, silent=True)
+                        else: 
+                            self.handle_post_event(user, channel, txt)
                     else:
+                        #first message from user
                         self.handle_post_event(user, channel, txt)
-                        ch = self.resolve_channel(channel)
-                        if ch == "Direct" or (ch != "Direct" and not self._quiet):
-                            self.say(channel, "By the way, you have the option to customize title, description, severity and other event properties. Type _!help_ to learn how to do it.")
+                        if ch == "Direct":
+                            self.say(channel, "By the way, you have the option to customize title, description, severity and other event properties. Type `!help` to learn how to do it.")
+                        elif (ch != "Direct" and not self._quiet):
+                            self.say(channel, "To reduce channel noise, Sysdigbot will now stop confirming events automatically posted on chats from this user.")
                         self.auto_events_message_sent.add(user)
                 elif channel_type == 'D':
                     self.say(channel, "Unknown command!")
