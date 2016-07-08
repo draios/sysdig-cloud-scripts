@@ -41,10 +41,6 @@ spec:
         env:
         - name: ACCESS_KEY                                  #REQUIRED - replace with your Sysdig Cloud access key
           value: 8312341g-5678-abcd-4a2b2c-33bcsd655
-#        - name: K8S_DELEGATED_NODE                         #OPTIONAL - only necessary when connecting remotely to API server
-#          value: <DELEGATED NODE IP>
-#        - name: K8S_API_URI                                #OPTIONAL - only necessary when connecting remotely to API server
-#          value: "http[s]://[username:passwd@]host[:port]"
 #        - name: TAGS                                       #OPTIONAL
 #          value: linux:ubuntu,dept:dev,local:nyc 
 #        - name: COLLECTOR                                  #OPTIONAL
@@ -54,7 +50,7 @@ spec:
 #        - name: CHECK_CERTIFICATE                          #OPTIONAL
 #          value: false
 #        - name: ADDITIONAL_CONF                            #OPTIONAL
-#          value: "app_checks:\n  - name: nginx\n    check_module: nginx\n    pattern:\n      comm: nginx\n    conf:\n      nginx_status_url: "http://localhost:{port}/nginx_status\""
+#          value: "k8s_uri: https://myacct:mypass@localhost:4430\nk8s_ca_certificate: k8s-ca.crt\nk8s_ssl_verify_certificate: true"
         volumeMounts:
         - mountPath: /host/var/run/docker.sock
           name: docker-sock
