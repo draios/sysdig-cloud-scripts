@@ -6,4 +6,4 @@ If daemon sets are not available, then the replication controller method can be 
 https://stackoverflow.com/questions/33377054/how-to-require-one-pod-per-minion-kublet-when-configuring-a-replication-controll/33381862#33381862 
 
 Please see the Sysdig Cloud support site for full documentation:
-http://support.sysdigcloud.com/hc/en-us/sections/200959909-Agent-Installation
+http://support.sysdigcloud.com/hc/en-us/sections/200959909
