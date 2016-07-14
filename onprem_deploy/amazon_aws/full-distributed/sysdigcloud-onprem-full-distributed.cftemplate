@@ -2,38 +2,35 @@
     "Mappings": {
         "Image2Region": {
             "ap-northeast-1": {
-                "64": "ami-b2c321dd"
+                "64": "ami-374db956"
             },
             "ap-southeast-1": {
-                "64": "ami-d3c022bc"
+                "64": "ami-a59b49c6"
             },
             "ap-southeast-2": {
-                "64": "ami-37dd0a54"
-            },
-            "eu-central-1": {
-                "64": "ami-1aad2469"
+                "64": "ami-dc361ebf"
             },
             "eu-west-1": {
-                "64": "ami-ac85fbcc"
+                "64": "ami-f9dd458a"
             },
             "sa-east-1": {
-                "64": "ami-5430f83a"
+                "64": "ami-6dd04501"
             },
             "us-east-1": {
-                "64": "ami-f5f41398"
+                "64": "ami-6869aa05"
             },
             "us-west-1": {
-                "64": "ami-bae80fd7"
+                "64": "ami-31490d51"
             },
             "us-west-2": {
-                "64": "ami-92f003f2"
+                "64": "ami-7172b611"
             }
         },
         "Region2AZ": {
             "ap-northeast-1": {
                 "AZ0": "ap-northeast-1a",
-                "AZ1": "ap-northeast-1b",
-                "AZ2": "ap-northeast-1c"
+                "AZ1": "ap-northeast-1c",
+                "AZ2": "ap-northeast-1a"
             },
             "ap-southeast-1": {
                 "AZ0": "ap-southeast-1a",
@@ -43,7 +40,7 @@
             "ap-southeast-2": {
                 "AZ0": "ap-southeast-2a",
                 "AZ1": "ap-southeast-2b",
-                "AZ2": "ap-southeast-2a"
+                "AZ2": "ap-southeast-2c"
             },
             "eu-west-1": {
                 "AZ0": "eu-west-1a",
@@ -53,17 +50,17 @@
             "sa-east-1": {
                 "AZ0": "sa-east-1a",
                 "AZ1": "sa-east-1b",
-                "AZ2": "sa-east-1a"
+                "AZ2": "sa-east-1c"
             },
             "us-east-1": {
-                "AZ0": "us-east-1c",
-                "AZ1": "us-east-1b",
+                "AZ0": "us-east-1a",
+                "AZ1": "us-east-1c",
                 "AZ2": "us-east-1d"
             },
             "us-west-1": {
                 "AZ0": "us-west-1a",
-                "AZ1": "us-west-1b",
-                "AZ2": "us-west-1c"
+                "AZ1": "us-west-1c",
+                "AZ2": "us-west-1a"
             },
             "us-west-2": {
                 "AZ0": "us-west-2a",
