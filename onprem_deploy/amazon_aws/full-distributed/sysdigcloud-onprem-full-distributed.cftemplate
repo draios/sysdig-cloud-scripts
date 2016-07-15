@@ -4,11 +4,20 @@
             "ap-northeast-1": {
                 "64": "ami-374db956"
             },
+            "ap-northeast-2": {
+                "64": "ami-2b408b45"
+            },
+            "ap-south-1": {
+                "64": "ami-ffbdd790"
+            },
             "ap-southeast-1": {
                 "64": "ami-a59b49c6"
             },
             "ap-southeast-2": {
                 "64": "ami-dc361ebf"
+            },
+            "eu-central-1": {
+                "64": "ami-ea26ce85"
             },
             "eu-west-1": {
                 "64": "ami-f9dd458a"
@@ -24,48 +33,6 @@
             },
             "us-west-2": {
                 "64": "ami-7172b611"
-            }
-        },
-        "Region2AZ": {
-            "ap-northeast-1": {
-                "AZ0": "ap-northeast-1a",
-                "AZ1": "ap-northeast-1c",
-                "AZ2": "ap-northeast-1a"
-            },
-            "ap-southeast-1": {
-                "AZ0": "ap-southeast-1a",
-                "AZ1": "ap-southeast-1b",
-                "AZ2": "ap-southeast-1a"
-            },
-            "ap-southeast-2": {
-                "AZ0": "ap-southeast-2a",
-                "AZ1": "ap-southeast-2b",
-                "AZ2": "ap-southeast-2c"
-            },
-            "eu-west-1": {
-                "AZ0": "eu-west-1a",
-                "AZ1": "eu-west-1b",
-                "AZ2": "eu-west-1c"
-            },
-            "sa-east-1": {
-                "AZ0": "sa-east-1a",
-                "AZ1": "sa-east-1b",
-                "AZ2": "sa-east-1c"
-            },
-            "us-east-1": {
-                "AZ0": "us-east-1a",
-                "AZ1": "us-east-1c",
-                "AZ2": "us-east-1d"
-            },
-            "us-west-1": {
-                "AZ0": "us-west-1a",
-                "AZ1": "us-west-1c",
-                "AZ2": "us-west-1a"
-            },
-            "us-west-2": {
-                "AZ0": "us-west-2a",
-                "AZ1": "us-west-2b",
-                "AZ2": "us-west-2c"
             }
         }
     },
@@ -83,7 +50,7 @@
                                 "PublicIp"
                             ]
                         },
-                        ":8800"
+                        ":8800/dashboard"
                     ]
                 ]
             }
@@ -272,30 +239,19 @@
             "Properties": {
                 "AvailabilityZones": [
                     {
-                        "Fn::FindInMap": [
-                            "Region2AZ",
+                        "Fn::Select": [
+                            "0",
                             {
-                                "Ref": "AWS::Region"
-                            },
-                            "AZ0"
+                                "Fn::GetAZs": ""
+                            }
                         ]
                     },
                     {
-                        "Fn::FindInMap": [
-                            "Region2AZ",
+                        "Fn::Select": [
+                            "1",
                             {
-                                "Ref": "AWS::Region"
-                            },
-                            "AZ1"
-                        ]
-                    },
-                    {
-                        "Fn::FindInMap": [
-                            "Region2AZ",
-                            {
-                                "Ref": "AWS::Region"
-                            },
-                            "AZ2"
+                                "Fn::GetAZs": ""
+                            }
                         ]
                     }
                 ],
@@ -346,9 +302,6 @@
                     },
                     {
                         "Ref": "sysdigOnpremFullDistributedsubnet1"
-                    },
-                    {
-                        "Ref": "sysdigOnpremFullDistributedsubnet2"
                     }
                 ]
             },
@@ -443,30 +396,19 @@
             "Properties": {
                 "AvailabilityZones": [
                     {
-                        "Fn::FindInMap": [
-                            "Region2AZ",
+                        "Fn::Select": [
+                            "0",
                             {
-                                "Ref": "AWS::Region"
-                            },
-                            "AZ0"
+                                "Fn::GetAZs": ""
+                            }
                         ]
                     },
                     {
-                        "Fn::FindInMap": [
-                            "Region2AZ",
+                        "Fn::Select": [
+                            "1",
                             {
-                                "Ref": "AWS::Region"
-                            },
-                            "AZ1"
-                        ]
-                    },
-                    {
-                        "Fn::FindInMap": [
-                            "Region2AZ",
-                            {
-                                "Ref": "AWS::Region"
-                            },
-                            "AZ2"
+                                "Fn::GetAZs": ""
+                            }
                         ]
                     }
                 ],
@@ -517,9 +459,6 @@
                     },
                     {
                         "Ref": "sysdigOnpremFullDistributedsubnet1"
-                    },
-                    {
-                        "Ref": "sysdigOnpremFullDistributedsubnet2"
                     }
                 ]
             },
@@ -614,30 +553,19 @@
             "Properties": {
                 "AvailabilityZones": [
                     {
-                        "Fn::FindInMap": [
-                            "Region2AZ",
+                        "Fn::Select": [
+                            "0",
                             {
-                                "Ref": "AWS::Region"
-                            },
-                            "AZ0"
+                                "Fn::GetAZs": ""
+                            }
                         ]
                     },
                     {
-                        "Fn::FindInMap": [
-                            "Region2AZ",
+                        "Fn::Select": [
+                            "1",
                             {
-                                "Ref": "AWS::Region"
-                            },
-                            "AZ1"
-                        ]
-                    },
-                    {
-                        "Fn::FindInMap": [
-                            "Region2AZ",
-                            {
-                                "Ref": "AWS::Region"
-                            },
-                            "AZ2"
+                                "Fn::GetAZs": ""
+                            }
                         ]
                     }
                 ],
@@ -688,9 +616,6 @@
                     },
                     {
                         "Ref": "sysdigOnpremFullDistributedsubnet1"
-                    },
-                    {
-                        "Ref": "sysdigOnpremFullDistributedsubnet2"
                     }
                 ]
             },
@@ -888,30 +813,19 @@
             "Properties": {
                 "AvailabilityZones": [
                     {
-                        "Fn::FindInMap": [
-                            "Region2AZ",
+                        "Fn::Select": [
+                            "0",
                             {
-                                "Ref": "AWS::Region"
-                            },
-                            "AZ0"
+                                "Fn::GetAZs": ""
+                            }
                         ]
                     },
                     {
-                        "Fn::FindInMap": [
-                            "Region2AZ",
+                        "Fn::Select": [
+                            "1",
                             {
-                                "Ref": "AWS::Region"
-                            },
-                            "AZ1"
-                        ]
-                    },
-                    {
-                        "Fn::FindInMap": [
-                            "Region2AZ",
-                            {
-                                "Ref": "AWS::Region"
-                            },
-                            "AZ2"
+                                "Fn::GetAZs": ""
+                            }
                         ]
                     }
                 ],
@@ -960,9 +874,6 @@
                     },
                     {
                         "Ref": "sysdigOnpremFullDistributedsubnet1"
-                    },
-                    {
-                        "Ref": "sysdigOnpremFullDistributedsubnet2"
                     }
                 ]
             },
@@ -1162,30 +1073,19 @@
             "Properties": {
                 "AvailabilityZones": [
                     {
-                        "Fn::FindInMap": [
-                            "Region2AZ",
+                        "Fn::Select": [
+                            "0",
                             {
-                                "Ref": "AWS::Region"
-                            },
-                            "AZ0"
+                                "Fn::GetAZs": ""
+                            }
                         ]
                     },
                     {
-                        "Fn::FindInMap": [
-                            "Region2AZ",
+                        "Fn::Select": [
+                            "1",
                             {
-                                "Ref": "AWS::Region"
-                            },
-                            "AZ1"
-                        ]
-                    },
-                    {
-                        "Fn::FindInMap": [
-                            "Region2AZ",
-                            {
-                                "Ref": "AWS::Region"
-                            },
-                            "AZ2"
+                                "Fn::GetAZs": ""
+                            }
                         ]
                     }
                 ],
@@ -1236,9 +1136,6 @@
                     },
                     {
                         "Ref": "sysdigOnpremFullDistributedsubnet1"
-                    },
-                    {
-                        "Ref": "sysdigOnpremFullDistributedsubnet2"
                     }
                 ]
             },
@@ -1362,12 +1259,11 @@
         "sysdigOnpremFullDistributedsubnet0": {
             "Properties": {
                 "AvailabilityZone": {
-                    "Fn::FindInMap": [
-                        "Region2AZ",
+                    "Fn::Select": [
+                        0,
                         {
-                            "Ref": "AWS::Region"
-                        },
-                        "AZ0"
+                            "Fn::GetAZs": ""
+                        }
                     ]
                 },
                 "CidrBlock": "10.10.0.0/26",
@@ -1404,12 +1300,11 @@
         "sysdigOnpremFullDistributedsubnet1": {
             "Properties": {
                 "AvailabilityZone": {
-                    "Fn::FindInMap": [
-                        "Region2AZ",
+                    "Fn::Select": [
+                        1,
                         {
-                            "Ref": "AWS::Region"
-                        },
-                        "AZ1"
+                            "Fn::GetAZs": ""
+                        }
                     ]
                 },
                 "CidrBlock": "10.10.0.64/26",
@@ -1443,48 +1338,6 @@
             },
             "Type": "AWS::EC2::Subnet"
         },
-        "sysdigOnpremFullDistributedsubnet2": {
-            "Properties": {
-                "AvailabilityZone": {
-                    "Fn::FindInMap": [
-                        "Region2AZ",
-                        {
-                            "Ref": "AWS::Region"
-                        },
-                        "AZ2"
-                    ]
-                },
-                "CidrBlock": "10.10.0.128/26",
-                "MapPublicIpOnLaunch": "true",
-                "Tags": [
-                    {
-                        "Key": "Infrastructure",
-                        "Value": {
-                            "Ref": "InfrastructureName"
-                        }
-                    },
-                    {
-                        "Key": "Name",
-                        "Value": {
-                            "Fn::Join": [
-                                "-",
-                                [
-                                    {
-                                        "Ref": "InfrastructureName"
-                                    },
-                                    "subnet",
-                                    "2"
-                                ]
-                            ]
-                        }
-                    }
-                ],
-                "VpcId": {
-                    "Ref": "Vpc"
-                }
-            },
-            "Type": "AWS::EC2::Subnet"
-        },
         "sysdigOnpremFullDistributedsubnet2RT0": {
             "Properties": {
                 "RouteTableId": {
@@ -1503,17 +1356,6 @@
                 },
                 "SubnetId": {
                     "Ref": "sysdigOnpremFullDistributedsubnet1"
-                }
-            },
-            "Type": "AWS::EC2::SubnetRouteTableAssociation"
-        },
-        "sysdigOnpremFullDistributedsubnet2RT2": {
-            "Properties": {
-                "RouteTableId": {
-                    "Ref": "sysdigOnpremFullDistributedroutingTable"
-                },
-                "SubnetId": {
-                    "Ref": "sysdigOnpremFullDistributedsubnet2"
                 }
             },
             "Type": "AWS::EC2::SubnetRouteTableAssociation"
