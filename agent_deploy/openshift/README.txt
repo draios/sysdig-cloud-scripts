@@ -4,4 +4,4 @@ See here for example sysdig.yaml files for deployment of Sysdig on Kubernetes (i
 https://github.com/draios/sysdig-cloud-scripts/tree/master/Deployment/Kubernetes
 
 Please see the Sysdig Cloud support site for full documentation on Sysdig + OpenShift:
-http://support.sysdigcloud.com/hc/en-us/sections/211421063
+http://support.sysdigcloud.com/hc/en-us/articles/211421063
