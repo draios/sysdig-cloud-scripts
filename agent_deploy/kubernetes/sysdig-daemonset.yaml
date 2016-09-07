@@ -33,6 +33,7 @@ spec:
           path: /usr
       hostNetwork: true
       hostPID: true
+      serviceAccount: sysdigcloud                          #OPTIONAL - OpenShift service account for OpenShift
       containers:
       - name: sysdig-agent
         image: sysdig/agent
