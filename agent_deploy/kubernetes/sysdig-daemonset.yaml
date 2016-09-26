@@ -33,7 +33,7 @@ spec:
           path: /usr
       hostNetwork: true
       hostPID: true
-      serviceAccount: sysdigcloud                          #OPTIONAL - OpenShift service account for OpenShift
+ #    serviceAccount: sysdigcloud                          #OPTIONAL - OpenShift service account for OpenShift
       containers:
       - name: sysdig-agent
         image: sysdig/agent
@@ -42,6 +42,8 @@ spec:
         env:
         - name: ACCESS_KEY                                  #REQUIRED - replace with your Sysdig Cloud access key
           value: 8312341g-5678-abcd-4a2b2c-33bcsd655
+#        - name: COLLECTOR_PORT                             #OPTIONAL - on-prem install only
+#          value: "6443"
 #        - name: TAGS                                       #OPTIONAL
 #          value: linux:ubuntu,dept:dev,local:nyc 
 #        - name: COLLECTOR                                  #OPTIONAL - on-prem install only
