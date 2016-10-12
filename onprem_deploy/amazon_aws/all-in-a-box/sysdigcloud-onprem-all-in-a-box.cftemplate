@@ -2,37 +2,37 @@
     "Mappings": {
         "Image2Region": {
             "ap-northeast-1": {
-                "64": "ami-374db956"
+                "64": "ami-1a15c77b"
             },
             "ap-northeast-2": {
-                "64": "ami-2b408b45"
+                "64": "ami-a04297ce"
             },
             "ap-south-1": {
-                "64": "ami-ffbdd790"
+                "64": "ami-cacbbea5"
             },
             "ap-southeast-1": {
-                "64": "ami-a59b49c6"
+                "64": "ami-7243e611"
             },
             "ap-southeast-2": {
-                "64": "ami-dc361ebf"
+                "64": "ami-55d4e436"
             },
             "eu-central-1": {
-                "64": "ami-ea26ce85"
+                "64": "ami-0044b96f"
             },
             "eu-west-1": {
-                "64": "ami-f9dd458a"
+                "64": "ami-d41d58a7"
             },
             "sa-east-1": {
-                "64": "ami-6dd04501"
+                "64": "ami-b777e4db"
             },
             "us-east-1": {
-                "64": "ami-6869aa05"
+                "64": "ami-c481fad3"
             },
             "us-west-1": {
-                "64": "ami-31490d51"
+                "64": "ami-de347abe"
             },
             "us-west-2": {
-                "64": "ami-7172b611"
+                "64": "ami-b04e92d0"
             }
         }
     },
