@@ -1,0 +1,79 @@
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  generation: 2
+  labels:
+    app: sysdig-agent
+  name: sysdig-agent
+  namespace: sysdigcloud
+spec:
+  selector:
+    matchLabels:
+      name: sysdig-agent
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        name: sysdig-agent
+    spec:
+      containers:
+      - env:
+        - name: ACCESS_KEY
+          value: <YOUR KEY GOES HERE>
+        - name: TAGS
+          value: region:infra,zone:default
+        image: sysdig/agent
+        imagePullPolicy: Always
+        name: sysdig-agent
+        resources: {}
+        securityContext:
+          privileged: true
+        terminationMessagePath: /dev/termination-log
+        volumeMounts:
+        - mountPath: /host/var/run/docker.sock
+          name: docker-sock
+        - mountPath: /host/dev
+          name: dev-vol
+        - mountPath: /host/proc
+          name: proc-vol
+          readOnly: true
+        - mountPath: /host/boot
+          name: boot-vol
+          readOnly: true
+        - mountPath: /host/lib/modules
+          name: modules-vol
+          readOnly: true
+        - mountPath: /host/usr
+          name: usr-vol
+          readOnly: true
+      dnsPolicy: ClusterFirst
+      hostNetwork: true
+      hostPID: true
+      restartPolicy: Always
+      securityContext: {}
+      serviceAccount: sysdigcloud
+      serviceAccountName: sysdigcloud
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - hostPath:
+          path: /var/run/docker.sock
+        name: docker-sock
+      - hostPath:
+          path: /dev
+        name: dev-vol
+      - hostPath:
+          path: /proc
+        name: proc-vol
+      - hostPath:
+          path: /boot
+        name: boot-vol
+      - hostPath:
+          path: /lib/modules
+        name: modules-vol
+      - hostPath:
+          path: /usr
+        name: usr-vol
+status:
+  currentNumberScheduled: 1
+  desiredNumberScheduled: 1
+  numberMisscheduled: 0
