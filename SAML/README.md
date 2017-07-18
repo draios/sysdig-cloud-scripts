@@ -1,1 +1,1 @@
-Helper scripts found here are used to enable SAML configuration in on-premises Sysdig Monitor environments. See the full documentation at (URL).
+Helper scripts found here are used to enable SAML configuration in on-premises Sysdig Monitor environments. See the full documentation at [here](https://support.sysdig.com/hc/en-us/articles/115003596326).
