@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 DEFAULT_SDC_API_URL='https://app.sysdigcloud.com'
 
 echo -n "Enter API URL [${DEFAULT_SDC_API_URL}]: "
@@ -43,7 +43,7 @@ echo $OPENID_CONFIG
 
 set -x
 
-curl -XPOST -k -s ''"${SDC_API_URL}"'/api/admin/customer/'"${CUSTOMER_ID}"'/openid/' \
+curl -XPOST -k -v ''"${SDC_API_URL}"'/api/admin/customer/'"${CUSTOMER_ID}"'/openid/' \
      -H 'Content-Type: application/json; charset=UTF-8' \
      -H 'Accept: application/json, text/javascript, */*; q=0.01' \
      -H 'Authorization: Bearer '"${API_TOKEN}"'' \
