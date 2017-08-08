@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 DEFAULT_SDC_API_URL='https://app.sysdigcloud.com'
 DEFAULT_SIGNED_ASSERTION='true'
 DEFAULT_EMAIL_PARAM='email'
@@ -15,6 +15,7 @@ while [ "z${API_TOKEN}" = "z" ] ; do
   read API_TOKEN
 done
 
+METADATA_URL=""
 while [ "z${METADATA_URL}" = "z" ] ; do
   echo -n "Enter Metadata URL from IDP (required): "
   read METADATA_URL
@@ -40,7 +41,7 @@ fi
 
 set -x
 
-curl -XPOST -k -s ''"${SDC_API_URL}"'/api/admin/customer/'"${CUSTOMER_ID}"'/saml/' \
+curl -XPOST -v -k ''"${SDC_API_URL}"'/api/admin/customer/'"${CUSTOMER_ID}"'/saml/' \
            -H 'Content-Type: application/json; charset=UTF-8' \
            -H 'Accept: application/json, text/javascript, */*; q=0.01' \
            -H 'Authorization: Bearer '"${API_TOKEN}"'' \
