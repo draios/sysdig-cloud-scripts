@@ -39,8 +39,6 @@ done
 
 OPENID_CONFIG='{"issuer":"'"${ISSUER_URL}"'","clientId":"'"${CLIENT_ID}"'","clientSecret":"'"${CLIENT_SECRET}"'","metadataDiscovery":true}'
 
-echo $OPENID_CONFIG
-
 set -x
 
 curl -XPOST -k -v ''"${SDC_API_URL}"'/api/admin/customer/'"${CUSTOMER_ID}"'/openid/' \
