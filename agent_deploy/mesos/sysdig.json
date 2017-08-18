@@ -1,0 +1,55 @@
+{
+  "id": "sysdig-agent",
+  "cpus": 1.0,
+  "constraints": [["hostname", "UNIQUE"]],
+  "mem": 850.0,
+  "instances": YOUR-NUMBER-OF-INSTANCES-HERE,
+  "labels" : {"role" : "monitoring", "name" : "sdc-agent" },
+  "container": {
+    "type": "DOCKER",
+    "docker": {
+      "image": "sysdig/agent",
+      "forcePullImage": true,
+      "network": "HOST",
+      "privileged": true,
+      "parameters": [
+        { "key": "pid", "value": "host" },
+        { "key": "env", "value": "ACCESS_KEY=YOUR-ACCESS—KEY-HERE" },
+        { "key": "env", "value": "COLLECTOR=COLLECTOR-ADDRESS-HERE" },
+        { "key": "shm-size", "value": "350m" }
+      ]
+    },
+    "volumes": [
+        {
+          "containerPath": "/host/var/run/docker.sock",
+          "hostPath": "/var/run/docker.sock",
+          "mode": "RW"
+        },
+        {
+          "containerPath": "/host/dev",
+          "hostPath": "/dev",
+          "mode": "RW"
+        },
+        {
+          "containerPath": "/host/proc",
+          "hostPath": "/proc",
+          "mode": "RO"
+        },
+        {
+          "containerPath": "/host/boot",
+          "hostPath": "/boot",
+          "mode": "RO"
+        },
+        {
+          "containerPath": "/host/lib/modules",
+          "hostPath": "/lib/modules",
+          "mode": "RO"
+        },
+        {
+          "containerPath": "/host/usr",
+          "hostPath": "/usr",
+          "mode": "RO"
+        }
+      ]
+  }
+}
