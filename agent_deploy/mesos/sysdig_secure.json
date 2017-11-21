@@ -16,7 +16,7 @@
         { "key": "pid", "value": "host" },
         { "key": "env", "value": "ACCESS_KEY=YOUR-ACCESS—KEY-HERE" },
         { "key": "env", "value": "COLLECTOR=COLLECTOR-ADDRESS-HERE" },
-        { "key": "env", "value": "ADDITIONAL_CONF=\"security: {enabled: true}\ncommandlines_capture: {enabled: true}\nmemdump: {enabled: true}\"" },
+        { "key": "env", "value": "ADDITIONAL_CONF=security: {enabled: true}\ncommandlines_capture: {enabled: true}\nmemdump: {enabled: true}" },
         { "key": "shm-size", "value": "350m" }
       ]
     },
