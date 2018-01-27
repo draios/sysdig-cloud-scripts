@@ -46,8 +46,6 @@ spec:
         env:
         - name: ACCESS_KEY                                  #REQUIRED - replace with your Sysdig Cloud access key
           value: 8312341g-5678-abcd-4a2b2c-33bcsd655
-#        - name: RUN_MODE                                   #OPTIONAL - driverless mode (limited functionality. No kernel module. Minimum agent version 0.51.0)
-#          value: "nodriver"
 #        - name: COLLECTOR_PORT                             #OPTIONAL - on-prem install only
 #          value: "6443"
 #        - name: TAGS                                       #OPTIONAL
