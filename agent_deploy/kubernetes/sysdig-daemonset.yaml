@@ -57,7 +57,7 @@ spec:
 #        - name: CHECK_CERTIFICATE                          #OPTIONAL - on-prem install only
 #          value: "false"
 #        - name: ADDITIONAL_CONF                            #OPTIONAL pass additional parameters to the agent such as authentication example provided here
-#          value: "k8s_uri: https://myacct:mypass@localhost:4430\nk8s_ca_certificate: k8s-ca.crt\nk8s_ssl_verify_certificate: true"
+#          value: "new_k8s: true\nk8s_uri: https://myacct:mypass@localhost:4430\nk8s_ca_certificate: k8s-ca.crt\nk8s_ssl_verify_certificate: true"
         volumeMounts:
         - mountPath: /host/var/run/docker.sock
           name: docker-sock
