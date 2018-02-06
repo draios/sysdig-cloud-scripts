@@ -1,9 +1,10 @@
 #Use this sysdig.yaml when Daemon Sets are enabled on Kubernetes (minimum version 1.1.1). Otherwise use the RC method.
 
 apiVersion: extensions/v1beta1
-kind: DaemonSet                     
+kind: DaemonSet
 metadata:
   name: sysdig-agent
+  namespace: kube-system
   labels:
     app: sysdig-agent
 spec:
@@ -36,11 +37,15 @@ spec:
           path: /usr
       hostNetwork: true
       hostPID: true
- #    serviceAccount: sysdigcloud                           #OPTIONAL - OpenShift service account for OpenShift
+#      serviceAccount: sysdigcloud                           #OPTIONAL - OpenShift service account for OpenShift
+#      serviceAccountName: sysdig-agent                      #OPTIONAL - For when RBAC is enabled
+#      tolerations:                                          #OPTIONAL - To enable running on masters
+#      - operator: "Exists"                                  #OPTIONAL - To enable running on masters
+#        effect: "NoSchedule"                                #OPTIONAL - To enable running on masters
       containers:
       - name: sysdig-agent
         image: sysdig/agent
-#        imagePullPolicy: Always                            #OPTIONAL - Always pull the latest container image tag 
+#        imagePullPolicy: Always                            #OPTIONAL - Always pull the latest container image tag
         securityContext:
          privileged: true
         env:
@@ -49,10 +54,10 @@ spec:
 #        - name: COLLECTOR_PORT                             #OPTIONAL - on-prem install only
 #          value: "6443"
 #        - name: TAGS                                       #OPTIONAL
-#          value: linux:ubuntu,dept:dev,local:nyc 
+#          value: linux:ubuntu,dept:dev,local:nyc
 #        - name: COLLECTOR                                  #OPTIONAL - on-prem install only
-#          value: 192.168.183.200 
-#        - name: SECURE                                     #OPTIONAL - on-prem install only       
+#          value: 192.168.183.200
+#        - name: SECURE                                     #OPTIONAL - on-prem install only
 #          value: "true"
 #        - name: CHECK_CERTIFICATE                          #OPTIONAL - on-prem install only
 #          value: "false"
