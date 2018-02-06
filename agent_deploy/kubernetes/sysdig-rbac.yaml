@@ -22,6 +22,9 @@ rules:
   - services
   - events
   - ingresses
+  - deployments
+  - daemonsets
+  - replicasets
   verbs:
   - get
   - list
