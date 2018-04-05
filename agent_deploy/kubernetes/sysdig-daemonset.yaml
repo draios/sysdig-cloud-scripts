@@ -56,6 +56,8 @@ spec:
 #          value: "true"
 #        - name: CHECK_CERTIFICATE                          #OPTIONAL - on-prem install only
 #          value: "false"
+#        - name: SYSDIG_PROBE_URL                           #OPTIONAL - on-prem install only . sysdig/agent 0.79.0 and higher 
+#          value: "http://<custom URL>" 
 #        - name: ADDITIONAL_CONF                            #OPTIONAL pass additional parameters to the agent such as authentication example provided here
 #          value: |
 #              k8s_uri: https://myacct:mypass@localhost:4430
