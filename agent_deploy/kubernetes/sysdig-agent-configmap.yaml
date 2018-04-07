@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sysdig-agent
+data:
+  dragent.yaml: |
+    ### Agent tags
+    # tags: linux:ubuntu,dept:dev,local:nyc
+
+    #### Sysdig Software related config ####
+
+    # Sysdig collector address
+    # collector: 192.168.1.1
+
+    # Collector TCP port
+    # collector_port: 6666
+
+    # Weather collector accepts ssl
+    # ssl: true
+
+    # collector certificate validation
+    # ssl_verify_certificate: true
+
+    #######################################
+    # new_k8s: true
+    # k8s_cluster_name: production
