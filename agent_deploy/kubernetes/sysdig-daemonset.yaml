@@ -63,6 +63,7 @@ spec:
 #              k8s_uri: https://myacct:mypass@localhost:4430
 #              k8s_ca_certificate: k8s-ca.crt\nk8s_ssl_verify_certificate: true
 #              dev_new_k8s: true
+#              k8s_cluster_name: default                    #OPTIONAL - put the name of your k8s cluster
         volumeMounts:
         - mountPath: /host/var/run/docker.sock
           name: docker-sock
