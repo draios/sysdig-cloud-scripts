@@ -1,0 +1,142 @@
+#!/bin/bash
+set -euo pipefail
+
+OPTS=`getopt -o s:frdh --long set:,forcesync,report,delete,help -n 'parse-options' -- "$@"`
+ENV="./env.sh"
+
+HELP=false
+SET=false
+SETTINGS_JSON=""
+FORCESYNC=false
+REPORT=false
+DELETE=false
+HELP=false
+
+if [ $? != 0 ] ; then echo "Failed parsing options." >&2 ; exit 1 ; fi
+
+eval set -- "$OPTS"
+
+function print_usage() {
+  echo "Usage: ./mapping_config [OPTION]"
+  echo
+  echo "Affect LDAP mapping settings for your Sysdig software platform installation"
+  echo
+  echo "If no OPTION is specified, the current mapping config settings are printed"
+  echo
+  echo "Options:"
+  echo "  -s | --set  JSON_FILE   Set the current LDAP mapping config to the contents of JSON_FILE"
+  echo "  -f | --forcesync        Force an immediate sync"
+  echo "  -r | --report           Print the report of the most recent sync operation"
+  echo "  -d | --delete           Delete the current LDAP mapping config"
+  echo "  -h | --help             Print this Usage output"
+  exit 1
+}
+
+while true; do
+  case "$1" in
+    -s | --set ) SET=true; SETTINGS_JSON="$2"; shift; shift ;;
+    -f | --forcesync ) FORCESYNC=true; shift ;;
+    -r | --report ) REPORT=true; shift ;;
+    -d | --delete ) DELETE=true; shift ;;
+    -h | --help ) HELP=true; shift ;;
+    -- ) shift; break ;;
+    * ) break ;;
+  esac
+done
+
+if [ $# -gt 0 ] ; then
+  echo "Excess command-line arguments detected. Exiting."
+  echo
+  print_usage
+fi
+
+source $ENV
+
+function force_sync() {
+  echo
+  echo "Forcing sync"
+  curl -s $CURL_VERBOSITY $CURL_INS \
+    -H "Authorization: Bearer $API_TOKEN" \
+    -X PUT \
+    $URL/api/admin/ldap/syncLdap
+  exit $?
+}
+
+if [ $HELP = true ] ; then
+  print_usage
+
+elif [ $SET = true ] ; then
+  if [ $DELETE = true -o $REPORT = true ] ; then
+    print_usage
+  else
+    if [ ! -e $SETTINGS_JSON ] ; then
+      echo "Settings file \"$SETTINGS_JSON\" does not exist. No settings were changed."
+      exit 1
+    fi
+    cat $SETTINGS_JSON | ${JSON_FILTER} > /dev/null 2>&1
+    if [ $? -eq 0 ]; then
+      curl -s $CURL_VERBOSITY $CURL_INS \
+        -H "Content-Type: application/json" \
+        -H "Authorization: Bearer $API_TOKEN" \
+        -X POST \
+        -d @$SETTINGS_JSON \
+        $URL/api/admin/ldap/settings/sync
+      if [ $? -eq 0 ] ; then
+        if [ $FORCESYNC = true ] ; then
+          force_sync
+        else
+          exit 0
+        fi
+      else
+        exit $?
+      fi
+    else
+      echo "\"$SETTINGS_JSON\" contains invalid JSON. No settings were changed."
+      exit 1
+    fi
+  fi
+
+elif [ $DELETE = true ] ; then
+  if [ $SET = true -o $REPORT = true ] ; then
+    print_usage
+  else
+    curl -s $CURL_VERBOSITY $CURL_INS \
+      -H "Authorization: Bearer $API_TOKEN" \
+      -X DELETE \
+      $URL/api/admin/ldap/settings/sync
+    if [ $? -eq 0 ] ; then
+      if [ $FORCESYNC = true ] ; then
+        force_sync
+      else
+        exit 0
+      fi
+    else
+      exit $?
+    fi
+  fi
+
+elif [ $REPORT = true ] ; then
+  if [ $SET = true -o $DELETE = true -o $FORCESYNC = true ] ; then
+    print_usage
+  else
+    curl -s $CURL_VERBOSITY $CURL_INS \
+      -H "Authorization: Bearer $API_TOKEN" \
+      -X GET \
+      $URL/api/admin/ldap/syncReport | ${JSON_FILTER}
+    exit $?
+  fi
+
+elif [ $FORCESYNC = true ] ; then
+  if [ $SET = true -o $DELETE = true -o $REPORT = true ] ; then
+    print_usage
+  else
+    force_sync
+  fi
+
+else
+  curl -s $CURL_VERBOSITY $CURL_INS \
+    -H "Authorization: Bearer $API_TOKEN" \
+    -X GET \
+    $URL/api/admin/ldap/settings/sync | ${JSON_FILTER}
+  exit $?
+fi
