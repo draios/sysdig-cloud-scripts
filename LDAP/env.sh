@@ -23,8 +23,9 @@ export CURL_INS="-k"
 
 #
 # Change this to "-v" if you want curl to print verbose output, such as for debugging.
+# The "-s" keeps curl in silent mode to make outputs brief.
 #
-export CURL_VERBOSITY=""
+export CURL_VERBOSITY="-s"
 #export CURL_VERBOSITY="-v"
 
 #

@@ -1,14 +1,15 @@
 #!/bin/bash
-set -euo pipefail
+set -uo pipefail
 
 OPTS=`getopt -o u:h --long user:,help -n 'parse-options' -- "$@"`
+if [ $? != 0 ] ; then echo "Failed parsing options." >&2 ; exit 1 ; fi
+
 ENV="./env.sh"
 
 USER_SPECIFIED=false
 USERNAME=""
 HELP=false
 
-if [ $? != 0 ] ; then echo "Failed parsing options." >&2 ; exit 1 ; fi
 
 eval set -- "$OPTS"
 
@@ -44,10 +45,16 @@ if [ $HELP = true ] ; then
   print_usage
 
 elif [ $USER_SPECIFIED = true ] ; then
-  curl -s $CURL_VERBOSITY $CURL_INS \
+  curl -f $CURL_VERBOSITY $CURL_INS \
     -H "Authorization: Bearer $API_TOKEN" \
     $URL/api/admin/ldap/settings/verify/"${USERNAME}"
-  exit $?
+  RET=$?
+  if [ ${RET} -ne 0 ] ; then
+    echo "Could not verify user \"${USERNAME}\". Check LDAP login config settings and/or system log."
+    exit $RET
+  else
+    exit 0
+  fi
 
 else
   print_usage

@@ -1,7 +1,9 @@
 #!/bin/bash
-set -euo pipefail
+set -uo pipefail
 
 OPTS=`getopt -o s:frdh --long set:,forcesync,report,delete,help -n 'parse-options' -- "$@"`
+if [ $? != 0 ] ; then echo "Failed parsing options." >&2 ; exit 1 ; fi
+
 ENV="./env.sh"
 
 SET=false
@@ -11,7 +13,6 @@ REPORT=false
 DELETE=false
 HELP=false
 
-if [ $? != 0 ] ; then echo "Failed parsing options." >&2 ; exit 1 ; fi
 
 eval set -- "$OPTS"
 
@@ -54,7 +55,7 @@ source $ENV
 function force_sync() {
   echo
   echo "Forcing sync"
-  curl -s $CURL_VERBOSITY $CURL_INS \
+  curl $CURL_VERBOSITY $CURL_INS \
     -H "Authorization: Bearer $API_TOKEN" \
     -X PUT \
     $URL/api/admin/ldap/syncLdap
@@ -74,7 +75,7 @@ elif [ $SET = true ] ; then
     fi
     cat $SETTINGS_JSON | ${JSON_FILTER} > /dev/null 2>&1
     if [ $? -eq 0 ]; then
-      curl -s $CURL_VERBOSITY $CURL_INS \
+      curl $CURL_VERBOSITY $CURL_INS \
         -H "Content-Type: application/json" \
         -H "Authorization: Bearer $API_TOKEN" \
         -X POST \
@@ -99,7 +100,7 @@ elif [ $DELETE = true ] ; then
   if [ $SET = true -o $REPORT = true ] ; then
     print_usage
   else
-    curl -s $CURL_VERBOSITY $CURL_INS \
+    curl $CURL_VERBOSITY $CURL_INS \
       -H "Authorization: Bearer $API_TOKEN" \
       -X DELETE \
       $URL/api/admin/ldap/settings/sync
@@ -118,7 +119,7 @@ elif [ $REPORT = true ] ; then
   if [ $SET = true -o $DELETE = true -o $FORCESYNC = true ] ; then
     print_usage
   else
-    curl -s $CURL_VERBOSITY $CURL_INS \
+    curl $CURL_VERBOSITY $CURL_INS \
       -H "Authorization: Bearer $API_TOKEN" \
       -X GET \
       $URL/api/admin/ldap/syncReport | ${JSON_FILTER}
@@ -133,7 +134,7 @@ elif [ $FORCESYNC = true ] ; then
   fi
 
 else
-  curl -s $CURL_VERBOSITY $CURL_INS \
+  curl $CURL_VERBOSITY $CURL_INS \
     -H "Authorization: Bearer $API_TOKEN" \
     -X GET \
     $URL/api/admin/ldap/settings/sync | ${JSON_FILTER}
