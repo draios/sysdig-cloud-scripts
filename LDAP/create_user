@@ -1,10 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
-OPTS=`getopt -o s: --long set: -n 'parse-options' -- "$@"`
+OPTS=`getopt -o s:h --long set:,help -n 'parse-options' -- "$@"`
 ENV="./env.sh"
 
-HELP=false
 SET=false
 SETTINGS_JSON=""
 HELP=false
@@ -14,7 +13,7 @@ if [ $? != 0 ] ; then echo "Failed parsing options." >&2 ; exit 1 ; fi
 eval set -- "$OPTS"
 
 function print_usage() {
-  echo "Usage: ./user_create [OPTION]"
+  echo "Usage: ./create_user [OPTION]"
   echo
   echo "Create a user record in advance of their possible login via LDAP"
   echo

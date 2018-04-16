@@ -4,7 +4,6 @@ set -euo pipefail
 OPTS=`getopt -o s:dh --long set:,delete,help -n 'parse-options' -- "$@"`
 ENV="./env.sh"
 
-HELP=false
 SET=false
 SETTINGS_JSON=""
 DELETE=false

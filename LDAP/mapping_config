@@ -4,7 +4,6 @@ set -euo pipefail
 OPTS=`getopt -o s:frdh --long set:,forcesync,report,delete,help -n 'parse-options' -- "$@"`
 ENV="./env.sh"
 
-HELP=false
 SET=false
 SETTINGS_JSON=""
 FORCESYNC=false

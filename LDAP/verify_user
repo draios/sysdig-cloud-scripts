@@ -1,0 +1,54 @@
+#!/bin/bash
+set -euo pipefail
+
+OPTS=`getopt -o u:h --long user:,help -n 'parse-options' -- "$@"`
+ENV="./env.sh"
+
+USER_SPECIFIED=false
+USERNAME=""
+HELP=false
+
+if [ $? != 0 ] ; then echo "Failed parsing options." >&2 ; exit 1 ; fi
+
+eval set -- "$OPTS"
+
+function print_usage() {
+  echo "Usage: ./verify_user -u USERNAME"
+  echo
+  echo "Verify a user could login via current LDAP Authentication configuration"
+  echo
+  echo "Options:"
+  echo "  -u | --user  USERNAME   Name of the directory user to query via LDAP"
+  echo "  -h | --help             Print this Usage output"
+  exit 1
+}
+
+while true; do
+  case "$1" in
+    -u | --user ) USER_SPECIFIED=true; USERNAME="$2"; shift; shift;;
+    -h | --help ) HELP=true; shift ;;
+    -- ) shift; break ;;
+    * ) break ;;
+  esac
+done
+
+if [ $# -gt 0 ] ; then
+  echo "Excess command-line arguments detected. Exiting."
+  echo
+  print_usage
+fi
+
+source $ENV
+
+if [ $HELP = true ] ; then
+  print_usage
+
+elif [ $USER_SPECIFIED = true ] ; then
+  curl -s $CURL_VERBOSITY $CURL_INS \
+    -H "Authorization: Bearer $API_TOKEN" \
+    $URL/api/admin/ldap/settings/verify/"${USERNAME}"
+  exit $?
+
+else
+  print_usage
+fi
