@@ -53,9 +53,8 @@ fi
 source $ENV
 
 function force_sync() {
-  echo
   echo "Forcing sync"
-  curl $CURL_VERBOSITY $CURL_INS \
+  curl $CURL_OPTS \
     -H "Authorization: Bearer $API_TOKEN" \
     -X PUT \
     $URL/api/admin/ldap/syncLdap
@@ -75,7 +74,7 @@ elif [ $SET = true ] ; then
     fi
     cat $SETTINGS_JSON | ${JSON_FILTER} > /dev/null 2>&1
     if [ $? -eq 0 ]; then
-      curl $CURL_VERBOSITY $CURL_INS \
+      curl $CURL_OPTS \
         -H "Content-Type: application/json" \
         -H "Authorization: Bearer $API_TOKEN" \
         -X POST \
@@ -100,7 +99,7 @@ elif [ $DELETE = true ] ; then
   if [ $SET = true -o $REPORT = true ] ; then
     print_usage
   else
-    curl $CURL_VERBOSITY $CURL_INS \
+    curl $CURL_OPTS \
       -H "Authorization: Bearer $API_TOKEN" \
       -X DELETE \
       $URL/api/admin/ldap/settings/sync
@@ -119,7 +118,7 @@ elif [ $REPORT = true ] ; then
   if [ $SET = true -o $DELETE = true -o $FORCESYNC = true ] ; then
     print_usage
   else
-    curl $CURL_VERBOSITY $CURL_INS \
+    curl $CURL_OPTS \
       -H "Authorization: Bearer $API_TOKEN" \
       -X GET \
       $URL/api/admin/ldap/syncReport | ${JSON_FILTER}
@@ -134,7 +133,7 @@ elif [ $FORCESYNC = true ] ; then
   fi
 
 else
-  curl $CURL_VERBOSITY $CURL_INS \
+  curl $CURL_OPTS \
     -H "Authorization: Bearer $API_TOKEN" \
     -X GET \
     $URL/api/admin/ldap/settings/sync | ${JSON_FILTER}

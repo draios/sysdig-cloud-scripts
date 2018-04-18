@@ -15,18 +15,22 @@ export API_TOKEN="aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
 export URL="https://10.0.0.1"
 
 #
-# Leave this set to "-k" to allow curl to connect to your Sysdig API even if a self-
-# signed certificate is in use (the default in a Sysdig software platform install).
+# Set options used in other scripts that invoke curl. We've set these to what we think
+# are sensible defaults:
 #
-export CURL_INS="-k"
-#export CURL_SEC=""
-
+# -s
+#    Silent mode, to make outputs brief. If you're debugging and want verbose outputs,
+#    you might want to change this to -v.
 #
-# Change this to "-v" if you want curl to print verbose output, such as for debugging.
-# The "-s" keeps curl in silent mode to make outputs brief.
+# -k
+#    Leave this set to "-k" to allow curl to connect to your Sysdig API even if a self-
+#    signed certificate is in use (the default in a Sysdig software platform install).
 #
-export CURL_VERBOSITY="-s"
-#export CURL_VERBOSITY="-v"
+# -w \n
+#    Print a newline after curl prints responses. This will make the Sysdig platform's
+#    JSON responses easier to read.
+#
+export CURL_OPTS="-s -k -w \n"
 
 #
 # If Python is installed on the host where you're running these helper scripts, this

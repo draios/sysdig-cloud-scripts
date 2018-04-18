@@ -45,7 +45,7 @@ if [ $HELP = true ] ; then
   print_usage
 
 elif [ $USER_SPECIFIED = true ] ; then
-  curl -f $CURL_VERBOSITY $CURL_INS \
+  curl -f $CURL_OPTS \
     -H "Authorization: Bearer $API_TOKEN" \
     $URL/api/admin/ldap/settings/verify/"${USERNAME}"
   RET=$?
