@@ -1,4 +1,4 @@
-### WARNING: this file is supported from Sysdig Agent 0.80.0 
+### WARNING: this file is supported from Sysdig Agent 0.80.0
 apiVersion: extensions/v1beta1
 kind: DaemonSet
 metadata:
@@ -44,6 +44,9 @@ spec:
           secretName: sysdig-agent
       hostNetwork: true
       hostPID: true
+      tolerations:
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/master
       ### OPTIONAL: If using OpenShift or Kubernetes RBAC you need to uncomment the following line
       # serviceAccount: sysdig-agent
       containers:
