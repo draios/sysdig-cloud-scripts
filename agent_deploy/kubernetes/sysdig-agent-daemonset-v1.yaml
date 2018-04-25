@@ -41,6 +41,9 @@ spec:
           path: /usr
       hostNetwork: true
       hostPID: true
+      tolerations:
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/master
       ### OPTIONAL: If using OpenShift or Kubernetes RBAC you need to uncomment the following line
       # serviceAccount: sysdig-agent
       containers:
