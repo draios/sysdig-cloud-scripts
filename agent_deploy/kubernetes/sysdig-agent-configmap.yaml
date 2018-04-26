@@ -15,7 +15,7 @@ data:
     # Collector TCP port
     # collector_port: 6666
 
-    # Weather collector accepts ssl
+    # Whether collector accepts ssl
     # ssl: true
 
     # collector certificate validation
