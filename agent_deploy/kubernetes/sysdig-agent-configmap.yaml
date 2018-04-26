@@ -8,6 +8,9 @@ data:
     # tags: linux:ubuntu,dept:dev,local:nyc
 
     #### Sysdig Software related config ####
+    
+    # Access key https://app.sysdigcloud.com/#/settings/agentInstallation
+    # customerid: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 
     # Sysdig collector address
     # collector: 192.168.1.1
