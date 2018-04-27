@@ -19,19 +19,19 @@ spec:
           medium: Memory
       - name: docker-sock
         hostPath:
-         path: /var/run/docker.sock
+          path: /var/run/docker.sock
       - name: dev-vol
         hostPath:
-         path: /dev
+          path: /dev
       - name: proc-vol
         hostPath:
-         path: /proc
+          path: /proc
       - name: boot-vol
         hostPath:
-         path: /boot
+          path: /boot
       - name: modules-vol
         hostPath:
-         path: /lib/modules
+          path: /lib/modules
       - name: usr-vol
         hostPath:
           path: /usr
