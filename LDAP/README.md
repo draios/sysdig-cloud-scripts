@@ -1,0 +1,1 @@
+Helper scripts found here are for use with a new Sysdig platform feature available in [on-premises release](https://support.sysdig.com/hc/en-us/articles/206519903-On-Premises-Install-Guide-Replicated-) #890 and newer. See [this article](https://sysdigdocs.atlassian.net/wiki/spaces/LDAP/pages/203620377/LDAP+Authentication+Configuration) for guidance on their use.
