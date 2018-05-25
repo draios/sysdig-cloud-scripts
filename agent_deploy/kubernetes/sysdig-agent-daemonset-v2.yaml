@@ -43,6 +43,7 @@ spec:
         secret:
           secretName: sysdig-agent
       hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
       hostPID: true
       tolerations:
         - effect: NoSchedule
