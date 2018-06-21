@@ -11,5 +11,6 @@
     "groupSearchBase": "ou=Planets",
     "groupSearchFilter": "(&(cn=Mars)(objectclass=group))",
     "groupMembershipFilter": ""
-  }
+  },
+  "enableLdapAuthentication": true
 }
