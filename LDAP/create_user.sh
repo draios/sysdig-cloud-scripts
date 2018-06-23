@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -uo pipefail
 
 OPTS=`getopt -o s:h --long set:,help -n 'parse-options' -- "$@"`

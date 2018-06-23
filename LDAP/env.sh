@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 #
 # Set this to the Sysdig Monitor API Token value shown in the Sysdig UI under
