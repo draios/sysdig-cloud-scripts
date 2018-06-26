@@ -1,12 +1,12 @@
 {
   "loginConnectionSettings": {
     "server": "ldap://172.16.0.1",
-    "rootDn": "dc=example,dc=local",
     "managerDn": "cn=Administrator,cn=Users,dc=example,dc=local",
-    "managerPassword": "myMgrPassword"
+    "managerPassword": "myMgrPassword",
+    "referral": "FOLLOW"
   },
   "loginFilter": {
-    "searchBase": "cn=Users",
+    "searchBase": "dc=example,dc=local",
     "searchFilter": "(&(objectClass=organizationalPerson)(sAMAccountName={0}))"
   },
   "enableLdapAuthentication": true

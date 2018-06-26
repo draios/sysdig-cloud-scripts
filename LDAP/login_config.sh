@@ -1,16 +1,17 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -uo pipefail
 
 OPTS=`getopt -o s:dh --long set:,delete,help -n 'parse-options' -- "$@"`
-if [ $? != 0 ] ; then echo "Failed parsing options." >&2 ; exit 1 ; fi
+if [ $? != 0 ] ; then
+  echo "Failed parsing options." >&2
+  exit 1
+fi
 
 ENV="./env.sh"
-
 SET=false
 SETTINGS_JSON=""
 DELETE=false
 HELP=false
-
 
 eval set -- "$OPTS"
 
@@ -38,18 +39,25 @@ while true; do
   esac
 done
 
+if [ $HELP = true ] ; then
+  print_usage
+fi
+ 
 if [ $# -gt 0 ] ; then
   echo "Excess command-line arguments detected. Exiting."
   echo
   print_usage
 fi
 
-source $ENV
+if [ -e "$ENV" ] ; then
+  source "$ENV"
+else
+  echo "File not found: $ENV"
+  echo "See the LDAP documentation for details on populating this file with your settings"
+  exit 1
+fi
 
-if [ $HELP = true ] ; then
-  print_usage
-
-elif [ $SET = true ] ; then
+if [ $SET = true ] ; then
   if [ $DELETE = true ] ; then
     print_usage
   else

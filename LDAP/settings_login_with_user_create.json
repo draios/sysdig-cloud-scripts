@@ -9,5 +9,6 @@
     "searchBase": "cn=Users",
     "searchFilter": "(&(objectClass=organizationalPerson)(sAMAccountName={0}))"
   },
-  "allowApiUserCreation": true
+  "allowApiUserCreation": true,
+  "enableLdapAuthentication": true
 }
