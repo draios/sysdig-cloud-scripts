@@ -1,0 +1,109 @@
+### WARNING: this file is supported from Sysdig Agent 0.80.0
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  name: sysdig-agent
+  labels:
+    app: sysdig-agent
+spec:
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: sysdig-agent
+    spec:
+      volumes:
+      - name: dshm
+        emptyDir:
+          medium: Memory
+      - name: docker-sock
+        hostPath:
+          path: /var/run/docker.sock
+      - name: dev-vol
+        hostPath:
+          path: /dev
+      - name: proc-vol
+        hostPath:
+          path: /proc
+      - name: boot-vol
+        hostPath:
+          path: /boot
+      - name: modules-vol
+        hostPath:
+          path: /lib/modules
+      - name: usr-vol
+        hostPath:
+          path: /usr
+      - name: sysdig-agent-config
+        configMap:
+          name: sysdig-agent
+          optional: true
+      - name: sysdig-agent-secrets
+        secret:
+          secretName: sysdig-agent
+      hostNetwork: true
+      hostPID: true
+      tolerations:
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/master
+      ### OPTIONAL: If using OpenShift or Kubernetes RBAC you need to uncomment the following line
+      # serviceAccount: sysdig-agent
+      initContainers:
+      - name: sysdig-agent-kmodule
+        image: sysdig/agent-kmodule
+        imagePullPolicy: Always
+        securityContext:
+          privileged: true
+        resources:
+          # Resources needed are subjective on the actual workload
+          # please refer to Sysdig Support for more info about it
+          requests:
+            cpu: 100m
+            memory: 512Mi
+          limits:
+            memory: 1024Mi
+        volumeMounts:
+        - mountPath: /host/boot
+          name: boot-vol
+          readOnly: true
+        - mountPath: /host/lib/modules
+          name: modules-vol
+          readOnly: true
+        - mountPath: /host/usr
+          name: usr-vol
+          readOnly: true
+      containers:
+      - name: sysdig-agent
+        image: sysdig/agent-slim
+        imagePullPolicy: Always
+        securityContext:
+          privileged: true
+        resources:
+          # Resources needed are subjective on the actual workload
+          # please refer to Sysdig Support for more info about it
+          requests:
+            cpu: 100m
+            memory: 512Mi
+          limits:
+            memory: 1024Mi
+        readinessProbe:
+          exec:
+            command: [ "test", "-e", "/opt/draios/logs/draios.log" ]
+          initialDelaySeconds: 10
+        volumeMounts:
+        - mountPath: /host/var/run/docker.sock
+          name: docker-sock
+          readOnly: false
+        - mountPath: /host/dev
+          name: dev-vol
+          readOnly: false
+        - mountPath: /host/proc
+          name: proc-vol
+          readOnly: true
+        - mountPath: /dev/shm
+          name: dshm
+        - mountPath: /opt/draios/etc/kubernetes/config
+          name: sysdig-agent-config
+        - mountPath: /opt/draios/etc/kubernetes/secrets
+          name: sysdig-agent-secrets
