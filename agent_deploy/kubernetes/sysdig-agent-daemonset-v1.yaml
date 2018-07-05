@@ -67,7 +67,7 @@ spec:
         env:
         ### REQUIRED: replace with your Sysdig Platform access key
         - name: ACCESS_KEY
-           value: key
+          value: key
         ### OPTIONAL: add tags for this host
         # - name: TAGS
         #   value: linux:ubuntu,dept:dev,local:nyc
