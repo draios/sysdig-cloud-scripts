@@ -1,1 +1,1 @@
-Helper scripts found here are used to enable OpenID Connect configuration in on-premises Sysdig Monitor environments. See the full documentation at [here](https://support.sysdig.com/hc/en-us/articles/115003893703).
+Helper scripts found here are used to enable OpenID Connect configuration in on-premises Sysdig software environments. See the full documentation [here](https://sysdigdocs.atlassian.net/wiki/spaces/Platform/pages/206372965/OpenID+Connect+On-Prem).
