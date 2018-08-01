@@ -59,10 +59,10 @@ spec:
           # Resources needed are subjective on the actual workload
           # please refer to Sysdig Support for more info about it
           requests:
-            cpu: 100m
-            memory: 512Mi
+            cpu: 1
+            memory: 384Mi
           limits:
-            memory: 1024Mi
+            memory: 512Mi
         volumeMounts:
         - mountPath: /host/boot
           name: boot-vol
