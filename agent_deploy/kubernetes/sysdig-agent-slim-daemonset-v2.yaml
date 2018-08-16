@@ -1,8 +1,4 @@
-############################ DEPRECATION NOTICE ##########################
-# This daemonset yaml configures everything as an environment variable.
-# We recommend to use v2 daemonset which instead leverages Kubernetes
-# best practices like Secrets and ConfigMaps
-##########################################################################
+### WARNING: this file is supported from Sysdig Agent 0.80.0
 apiVersion: extensions/v1beta1
 kind: DaemonSet
 metadata:
@@ -39,6 +35,13 @@ spec:
       - name: usr-vol
         hostPath:
           path: /usr
+      - name: sysdig-agent-config
+        configMap:
+          name: sysdig-agent
+          optional: true
+      - name: sysdig-agent-secrets
+        secret:
+          secretName: sysdig-agent
       hostNetwork: true
       hostPID: true
       tolerations:
@@ -46,9 +49,33 @@ spec:
           key: node-role.kubernetes.io/master
       ### OPTIONAL: If using OpenShift or Kubernetes RBAC you need to uncomment the following line
       # serviceAccount: sysdig-agent
+      initContainers:
+      - name: sysdig-agent-kmodule
+        image: sysdig/agent-kmodule
+        imagePullPolicy: Always
+        securityContext:
+          privileged: true
+        resources:
+          # Resources needed are subjective on the actual workload
+          # please refer to Sysdig Support for more info about it
+          requests:
+            cpu: 1
+            memory: 384Mi
+          limits:
+            memory: 512Mi
+        volumeMounts:
+        - mountPath: /host/boot
+          name: boot-vol
+          readOnly: true
+        - mountPath: /host/lib/modules
+          name: modules-vol
+          readOnly: true
+        - mountPath: /host/usr
+          name: usr-vol
+          readOnly: true
       containers:
       - name: sysdig-agent
-        image: sysdig/agent
+        image: sysdig/agent-slim
         imagePullPolicy: Always
         securityContext:
           privileged: true
@@ -64,29 +91,6 @@ spec:
           exec:
             command: [ "test", "-e", "/opt/draios/logs/draios.log" ]
           initialDelaySeconds: 10
-        env:
-        ### REQUIRED: replace with your Sysdig Platform access key
-        - name: ACCESS_KEY
-          value: key
-        ### OPTIONAL: add tags for this host
-        # - name: TAGS
-        #   value: linux:ubuntu,dept:dev,local:nyc
-        ### OPTIONAL: Needed to connect to a Sysdig On-Premises backend
-        # - name: COLLECTOR
-        #   value: collector-staging.sysdigcloud.com
-        # - name: COLLECTOR_PORT
-        #   value: "6443"
-        # - name: COLLECTOR
-        #   value: 192.168.183.200
-        # - name: SECURE
-        #   value: "true"
-        # - name: CHECK_CERTIFICATE
-        #   value: "false"
-        ### OPTIONAL: Add additional parameters to the agent, refer to our Docs to know all options available
-        # - name: ADDITIONAL_CONF
-        #   value: |
-        #     new_k8s: true
-        #     k8s_cluster_name: production
         volumeMounts:
         - mountPath: /host/var/run/docker.sock
           name: docker-sock
@@ -97,14 +101,9 @@ spec:
         - mountPath: /host/proc
           name: proc-vol
           readOnly: true
-        - mountPath: /host/boot
-          name: boot-vol
-          readOnly: true
-        - mountPath: /host/lib/modules
-          name: modules-vol
-          readOnly: true
-        - mountPath: /host/usr
-          name: usr-vol
-          readOnly: true
         - mountPath: /dev/shm
           name: dshm
+        - mountPath: /opt/draios/etc/kubernetes/config
+          name: sysdig-agent-config
+        - mountPath: /opt/draios/etc/kubernetes/secrets
+          name: sysdig-agent-secrets
