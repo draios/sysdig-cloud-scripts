@@ -46,6 +46,7 @@ spec:
       dnsPolicy: ClusterFirstWithHostNet
       hostPID: true
       serviceAccount: sysdig-agent
+      terminationGracePeriodSeconds: 5
       containers:
       - name: sysdig-agent
         image: registry.connect.redhat.com/sysdig/agent:latest
