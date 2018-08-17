@@ -50,6 +50,7 @@ spec:
           key: node-role.kubernetes.io/master
       ### OPTIONAL: If using OpenShift or Kubernetes RBAC you need to uncomment the following line
       # serviceAccount: sysdig-agent
+      terminationGracePeriodSeconds: 5
       containers:
       - name: sysdig-agent
         image: sysdig/agent
