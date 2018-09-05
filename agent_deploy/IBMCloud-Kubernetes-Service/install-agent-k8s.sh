@@ -37,9 +37,9 @@ function unsupported {
 
 function help {
 	echo "Usage: $(basename ${0}) -a | --access_key <value> [-t | --tags <value>] [-c | --collector <value>] \ "
-    echo "                [-cp | --collector_port <value>] [-s | --secure <value>] [-cc | --check_certificate] \ "
-    echo "                [-ac | --additional_conf <value>] [-h | --help]"
-    echo "  access_key: Secret access key, as shown in Sysdig Monitor"
+	echo "                [-cp | --collector_port <value>] [-s | --secure <value>] [-cc | --check_certificate] \ "
+	echo "                [-ac | --additional_conf <value>] [-h | --help]"
+	echo "  access_key: Secret access key, as shown in Sysdig Monitor"
 	echo "  tags: List of tags for this host."
 	echo "        The syntax can be a comma-separated list of"
 	echo "        TAG_NAME:TAG_VALUE or a single TAG_VALUE (in which case the tag"
