@@ -1,9 +1,0 @@
-{
-  "username": "msmith",
-  "firstName": "Mary",
-  "lastName": "Smith",
-  "password": "notUsed",
-  "customer": {
-    "id": 1
-  }
-}
