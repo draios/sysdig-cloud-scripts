@@ -67,33 +67,42 @@ function is_valid_value {
 }
 
 function create_sysdig_serviceaccount {
-    out=$(kubectl create serviceaccount sysdig-agent 2>&1) || echo "kubectl create serviceaccount failed!"
-    if [[ "$out" =~ "AlreadyExists" ]]; then
-        echo "$out. Continuing..."
-    else
-        echo "$out"
-        exit 1
+    fail=0
+    out=$(kubectl create serviceaccount sysdig-agent 2>&1) || { fail=1 && echo "kubectl create serviceaccount failed!"; }
+    if [ $fail -eq 1 ]; then
+        if [[ "$out" =~ "AlreadyExists" ]]; then
+            echo "$out. Continuing..."
+        else
+            echo "$out"
+            exit 1
+        fi
     fi
 }
 
 function install_k8s_agent {
     echo "* Creating sysdig-agent clusterrole and binding"
     kubectl apply -f /tmp/sysdig-agent-clusterrole.yaml
-    outbinding=$(kubectl create clusterrolebinding sysdig-agent --clusterrole=sysdig-agent --serviceaccount=default:sysdig-agent 2>&1) || echo "kubectl create serviceaccount failed!"
-    if [[ "$outbinding" =~ "AlreadyExists" ]]; then
-        echo "$outbinding. Continuing..."
-    else
-        echo "$outbinding"
-        exit 1
+    fail=0
+    outbinding=$(kubectl create clusterrolebinding sysdig-agent --clusterrole=sysdig-agent --serviceaccount=default:sysdig-agent 2>&1) || { fail=1 && echo "kubectl create serviceaccount failed!"; }
+    if [ $fail -eq 1 ]; then
+        if [[ "$outbinding" =~ "AlreadyExists" ]]; then
+            echo "$outbinding. Continuing..."
+        else
+            echo "$outbinding"
+            exit 1
+        fi
     fi
 
     echo "* Creating sysdig-agent secret using the ACCESS-KEY provided"
-    outsecret=$(kubectl create secret generic sysdig-agent --from-literal=access-key=$ACCESS-KEY 2>&1) || echo "kubectl create serviceaccount failed!"
-    if [[ "$outsecret" =~ "AlreadyExists" ]]; then
-        echo "$outsecret. Continuing..."
-    else
-        echo "$outsecret"
-        exit 1
+    fail=0
+    outsecret=$(kubectl create secret generic sysdig-agent --from-literal=access-key=$ACCESS-KEY 2>&1) || { fail=1 && echo "kubectl create serviceaccount failed!"; }
+    if [ $fail -eq 1 ]; then
+        if [[ "$outsecret" =~ "AlreadyExists" ]]; then
+            echo "$outsecret. Continuing..."
+        else
+            echo "$outsecret"
+            exit 1
+        fi
     fi
 
     CONFIG_FILE=/tmp/sysdig-agent-configmap.yaml
