@@ -47,7 +47,7 @@ To see whether user creation is currently enabled/disabled, invoke with no optio
 }
 ```
 
-To create a user record, at minimum, you must specify a username and password. The username should be a valid email address, unless you have LDAP authentication enabled in which case a simple username is also permitted. If successful, the call to the API will echo back a JSON record for the successfully-created user.
+To create a user record, at minimum, you must specify a username and password. The username should be a valid email address, unless you have LDAP authentication enabled in which case a simple username is also permitted. If successful, the call to the API will echo back a JSON object for the successfully-created user.
 
 ```
 # ./create_user.sh -u jdoe@example.local -p JoeInitPasswd
@@ -76,7 +76,7 @@ To disable the ability to create users via the API:
 {"errors":[{"reason":"Cannot add user","message":"User API creation is not enabled"}]}
 ```
 
-To enable the ability to create users via the API:
+To re-enable the ability to create users via the API:
 
 ```
 # ./create_user.sh -e
