@@ -23,6 +23,8 @@ function print_usage() {
   echo
   echo "Create a user record, or change permissions for API-based user creation"
   echo
+  echo "If no OPTION is specified, the current API User Creation settings are printed"
+  echo
   echo "General options:"
   echo "  -h | --help             Print this Usage output"
   echo
@@ -71,18 +73,6 @@ else
   exit 1
 fi
 
-# Check for HTTP response code on the app_attributes endpoint. If we get a 404, we'll
-# need to know that later because it means it's never been set and hence is at its
-# default.
-HTTP_RESP=`curl ${CURL_OPTS} -o /dev/null -w "%{http_code}\n" \
-  -H "Authorization: Bearer $API_TOKEN" \
-  -X GET \
-  $URL/api/admin/appAttribute/apiUserCreation`
-if [ $? != 0 ] ; then
-  echo "Unable to access $URL. Review settings in env.sh and try again."
-  exit 1
-fi
-
 if [ $ENABLE = true -o $DISABLE = true ] ; then
   if [ -n "$USERNAME" -o -n "$PASSWORD" -o -n "$FIRSTNAME" -o -n "$LASTNAME" ] ; then
     print_usage
@@ -94,28 +84,13 @@ if [ $ENABLE = true -o $DISABLE = true ] ; then
     else
       VALUE="false"
     fi
-
-    if [ "$HTTP_RESP" = "404" ] ; then
-      echo "No prior setting found. Attempting to set for the first time."
-      curl ${CURL_OPTS} \
-        -H "Authorization: Bearer $API_TOKEN" \
-	-H "Content-Type: application/json; charset=UTF-8" \
-	-X POST \
-	--data-binary '{"id": "apiUserCreation", "value": "'"${VALUE}"'"}' \
-	$URL/api/admin/appAttribute | ${JSON_FILTER}
-    else
-      CURRENT_CONFIG=`curl ${CURL_OPTS} \
-        -H "Authorization: Bearer $API_TOKEN" \
-        -X GET \
-        $URL/api/admin/appAttribute/apiUserCreation`
-      VERSION=`echo ${CURRENT_CONFIG} | sed 's/^.*,"version"://' | sed 's/,".*$//'`
-      curl ${CURL_OPTS} \
-        -H "Authorization: Bearer $API_TOKEN" \
-        -H "Content-Type: application/json; charset=UTF-8" \
-        -X PUT \
-        --data-binary '{"id": "apiUserCreation", "value": "'"${VALUE}"'","version":"'"${VERSION}"'"}' \
-	$URL/api/admin/appAttribute/apiUserCreation | ${JSON_FILTER}
-    fi
+    curl ${CURL_OPTS} \
+      -H "Authorization: Bearer $API_TOKEN" \
+      -H "Content-Type: application/json; charset=UTF-8" \
+      -X POST \
+      --data-binary  '{"allowApiUserCreation":"'"${VALUE}"'"}' \
+      $URL/api/admin/customer/${CUSTOMER_ID}/apiPermissionSettings  | ${JSON_FILTER}
+    exit $?
   fi
 
 elif [ -n "$USERNAME" ] ; then
@@ -138,12 +113,13 @@ elif [ -n "$USERNAME" ] ; then
       $URL/api/admin/user
   fi
 
-elif [ "$HTTP_RESP" = "404" ] ; then
-  echo "Settings are at initial defaults (creation of users via API is enabled)"
+elif [ -n "$PASSWORD" -o -n "$FIRSTNAME" -o -n "$LASTNAME" ] ; then
+  print_usage
 
 else
   curl $CURL_OPTS \
     -H "Authorization: Bearer $API_TOKEN" \
     -X GET \
-    $URL/api/admin/appAttribute/apiUserCreation | ${JSON_FILTER}
+    $URL/api/admin/customer/${CUSTOMER_ID}/apiPermissionSettings | ${JSON_FILTER}
+    exit $?
 fi
