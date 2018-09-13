@@ -1,7 +1,5 @@
 # User creation via API
 
-# Summary
-
 The typical workflow for creating users in the Sysdig platform is via [email invite](https://sysdigdocs.atlassian.net/wiki/spaces/Platform/pages/206405831/Manage+Users). However, [on-premises deployments](https://sysdigdocs.atlassian.net/wiki/spaces/Platform/pages/13598894/On-Premises+Deployments) may also choose to use the Sysdig platform API to directly create user records and set an initial password.
 
 The `create_user.sh` helper script in this directory will assist you in hitting the correct API endpoints to:
