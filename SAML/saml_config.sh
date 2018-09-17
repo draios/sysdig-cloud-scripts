@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -uo pipefail
 
-OPTS=`getopt -o si:a:m:dh --long set,idp:,app:,meta:,delete,help -n 'parse-options' -- "$@"`
+OPTS=`getopt -o si:a:m:dnh --long set,idp:,app:,meta:,nocreate,delete,help -n 'parse-options' -- "$@"`
 if [ $? != 0 ] ; then
   echo "Failed parsing options." >&2
   exit 1
@@ -13,6 +13,7 @@ DELETE=false
 HELP=false
 IDP=""
 APP=""
+AUTOCREATE=true
 METADATA_URL=""
 
 eval set -- "$OPTS"
@@ -30,6 +31,7 @@ function print_usage() {
   echo "  -i | --idp okta|onelogin   Use SAML config options based on a supported IDP"
   echo "  -a | --app monitor|secure  Set SAML config for the given Sysdig application"
   echo "  -m | --meta 'URL'          Metadata URL (provided from IDP-side configuration)"
+  echo "  -n | --nocreate            Disable auto-creation of user records upon first successful auth"
   echo "  -d | --delete              Delete the current SAML login config"
   echo "  -h | --help                Print this Usage output"
   exit 1
@@ -41,6 +43,7 @@ while true; do
     -i | --idp ) IDP="$2"; shift; shift ;;
     -a | --app ) APP="$2"; shift; shift ;;
     -m | --meta ) METADATA_URL="$2"; shift; shift ;;
+    -n | --nocreate ) AUTOCREATE="false"; shift ;;
     -d | --delete ) DELETE=true; shift ;;
     -h | --help ) HELP=true; shift ;;
     -- ) shift; break ;;
@@ -103,7 +106,7 @@ if [ $SET = true ] ; then
         -H "Content-Type: application/json" \
         -H "Authorization: Bearer $API_TOKEN" \
         -X POST \
-        -d '{"metadataUrl": "'"${METADATA_URL}"'", "signedAssertion": "'"${SIGNED_ASSERTION}"'", "validateSignature": "'"${VALIDATE_SIGNATURE}"'", "emailParameter": "'"${EMAIL_PARAM}"'" }' \
+        -d '{"metadataUrl": "'"${METADATA_URL}"'", "signedAssertion": "'"${SIGNED_ASSERTION}"'", "validateSignature": "'"${VALIDATE_SIGNATURE}"'", "emailParameter": "'"${EMAIL_PARAM}"'", "createUserOnLogin": "'"${AUTOCREATE}"'" }' \
         "$APP_URL" | ${JSON_FILTER}
     exit $?
   fi
