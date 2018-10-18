@@ -95,7 +95,7 @@ function install_k8s_agent {
 
     echo "* Creating sysdig-agent secret using the ACCESS-KEY provided"
     fail=0
-    outsecret=$(kubectl create secret generic sysdig-agent --from-literal=access-key=$ACCESS-KEY 2>&1) || { fail=1 && echo "kubectl create serviceaccount failed!"; }
+    outsecret=$(kubectl create secret generic sysdig-agent --from-literal=access-key=$ACCESS_KEY 2>&1) || { fail=1 && echo "kubectl create serviceaccount failed!"; }
     if [ $fail -eq 1 ]; then
         if [[ "$outsecret" =~ "AlreadyExists" ]]; then
             echo "$outsecret. Continuing..."
@@ -141,6 +141,8 @@ function install_k8s_agent {
         echo "* Adding additional configuration to dragent.yaml"
         echo -e "    $ADDITIONAL_CONF" >> $CONFIG_FILE
     fi
+
+    sed -i "" "s|# serviceAccount: sysdig-agent|serviceAccount: sysdig-agent|" /tmp/sysdig-agent-daemonset-v2.yaml
 
     echo -e "    new_k8s: true" >> $CONFIG_FILE
     kubectl apply -f $CONFIG_FILE
