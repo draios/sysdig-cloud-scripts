@@ -142,11 +142,7 @@ function install_k8s_agent {
         echo -e "    $ADDITIONAL_CONF" >> $CONFIG_FILE
     fi
 
-    if [[ $PLATFORM ==  "Darwin" ]]; then
-        sed -i "" "s|# serviceAccount: sysdig-agent|serviceAccount: sysdig-agent|" /tmp/sysdig-agent-daemonset-v2.yaml
-    else
-        sed -i "s|# serviceAccount: sysdig-agent|serviceAccount: sysdig-agent|" /tmp/sysdig-agent-daemonset-v2.yaml
-    fi
+    sed -i -e "s|# serviceAccount: sysdig-agent|serviceAccount: sysdig-agent|" /tmp/sysdig-agent-daemonset-v2.yaml
 
     echo -e "    new_k8s: true" >> $CONFIG_FILE
     kubectl apply -f $CONFIG_FILE
