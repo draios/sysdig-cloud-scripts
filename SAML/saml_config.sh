@@ -27,7 +27,7 @@ function print_usage() {
   echo
   echo "Options:"
 
-  echo "  -s | --set                 Set the current SAML login config"
+  echo "  -s | --set                 Set the specified SAML login config"
   echo "  -i | --idp okta|onelogin   Use SAML config options based on a supported IDP"
   echo "  -a | --app monitor|secure  Set SAML config for the given Sysdig application"
   echo "  -m | --meta 'URL'          Metadata URL (provided from IDP-side configuration)"
@@ -106,7 +106,13 @@ if [ $SET = true ] ; then
         -H "Content-Type: application/json" \
         -H "Authorization: Bearer $API_TOKEN" \
         -X POST \
-        -d '{"metadataUrl": "'"${METADATA_URL}"'", "signedAssertion": "'"${SIGNED_ASSERTION}"'", "validateSignature": "'"${VALIDATE_SIGNATURE}"'", "emailParameter": "'"${EMAIL_PARAM}"'", "createUserOnLogin": "'"${AUTOCREATE}"'" }' \
+        -d '{"metadataUrl": "'"${METADATA_URL}"'",
+        "enabled": "'"true"'",
+        "signedAssertion": "'"${SIGNED_ASSERTION}"'",
+        "validateSignature": "'"${VALIDATE_SIGNATURE}"'",
+        "verifyDestination": "'"${VERIFY_DESTINATION}"'",
+        "emailParameter": "'"${EMAIL_PARAM}"'",
+        "createUserOnLogin": "'"${AUTOCREATE}"'" }' \
         "$APP_URL" | ${JSON_FILTER}
     exit $?
   fi
