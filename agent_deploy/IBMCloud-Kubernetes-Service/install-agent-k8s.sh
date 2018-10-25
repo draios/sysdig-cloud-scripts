@@ -93,12 +93,14 @@ function install_k8s_agent {
         fi
     fi
 
-    echo "* Creating sysdig-agent secret using the ACCESS-KEY provided"
+    echo "* Creating sysdig-agent secret using the ACCESS_KEY provided"
     fail=0
     outsecret=$(kubectl create secret generic sysdig-agent --from-literal=access-key=$ACCESS_KEY 2>&1) || { fail=1 && echo "kubectl create serviceaccount failed!"; }
     if [ $fail -eq 1 ]; then
         if [[ "$outsecret" =~ "AlreadyExists" ]]; then
-            echo "$outsecret. Continuing..."
+            echo "$outsecret. Re-creating secret..."
+            kubectl delete secrets sysdig-agent 2>&1
+            kubectl create secret generic sysdig-agent --from-literal=access-key=$ACCESS_KEY 2>&1
         else
             echo "$outsecret"
             exit 1
