@@ -123,6 +123,8 @@ function install_k8s_agent {
     if [ ! -z "$COLLECTOR_PORT" ]; then
         echo "* Setting collector port"
         echo "    collector_port: $COLLECTOR_PORT" >> $CONFIG_FILE
+    else
+        echo "    collector_port: 6443" >> $CONFIG_FILE
     fi
 
     if [ ! -z "$SECURE" ]; then
@@ -136,7 +138,7 @@ function install_k8s_agent {
         echo "* Setting SSL certificate check level"
         echo "    ssl_verify_certificate: $CHECK_CERT" >> $CONFIG_FILE
     else
-        echo "    ssl_verify_certificate: false" >> $CONFIG_FILE
+        echo "    ssl_verify_certificate: true" >> $CONFIG_FILE
     fi
 
     if [ ! -z "$ADDITIONAL_CONF" ]; then
