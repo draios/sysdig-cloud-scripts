@@ -63,7 +63,7 @@ spec:
             memory: 1024Mi
         readinessProbe:
           exec:
-            command: [ "test", "-e", "/opt/draios/logs/draios.log" ]
+            command: [ "test", "-e", "/opt/draios/logs/running" ]
           initialDelaySeconds: 10
         volumeMounts:
         - mountPath: /host/var/run/docker.sock
