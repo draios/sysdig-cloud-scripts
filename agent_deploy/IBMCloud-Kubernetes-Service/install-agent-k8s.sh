@@ -93,12 +93,14 @@ function install_k8s_agent {
         fi
     fi
 
-    echo "* Creating sysdig-agent secret using the ACCESS-KEY provided"
+    echo "* Creating sysdig-agent secret using the ACCESS_KEY provided"
     fail=0
-    outsecret=$(kubectl create secret generic sysdig-agent --from-literal=access-key=$ACCESS-KEY 2>&1) || { fail=1 && echo "kubectl create serviceaccount failed!"; }
+    outsecret=$(kubectl create secret generic sysdig-agent --from-literal=access-key=$ACCESS_KEY 2>&1) || { fail=1 && echo "kubectl create serviceaccount failed!"; }
     if [ $fail -eq 1 ]; then
         if [[ "$outsecret" =~ "AlreadyExists" ]]; then
-            echo "$outsecret. Continuing..."
+            echo "$outsecret. Re-creating secret..."
+            kubectl delete secrets sysdig-agent 2>&1
+            kubectl create secret generic sysdig-agent --from-literal=access-key=$ACCESS_KEY 2>&1
         else
             echo "$outsecret"
             exit 1
@@ -121,6 +123,8 @@ function install_k8s_agent {
     if [ ! -z "$COLLECTOR_PORT" ]; then
         echo "* Setting collector port"
         echo "    collector_port: $COLLECTOR_PORT" >> $CONFIG_FILE
+    else
+        echo "    collector_port: 6443" >> $CONFIG_FILE
     fi
 
     if [ ! -z "$SECURE" ]; then
@@ -134,13 +138,15 @@ function install_k8s_agent {
         echo "* Setting SSL certificate check level"
         echo "    ssl_verify_certificate: $CHECK_CERT" >> $CONFIG_FILE
     else
-        echo "    ssl_verify_certificate: false" >> $CONFIG_FILE
+        echo "    ssl_verify_certificate: true" >> $CONFIG_FILE
     fi
 
     if [ ! -z "$ADDITIONAL_CONF" ]; then
         echo "* Adding additional configuration to dragent.yaml"
         echo -e "    $ADDITIONAL_CONF" >> $CONFIG_FILE
     fi
+
+    sed -i -e "s|# serviceAccount: sysdig-agent|serviceAccount: sysdig-agent|" /tmp/sysdig-agent-daemonset-v2.yaml
 
     echo -e "    new_k8s: true" >> $CONFIG_FILE
     kubectl apply -f $CONFIG_FILE
