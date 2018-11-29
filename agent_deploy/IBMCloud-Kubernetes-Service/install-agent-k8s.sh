@@ -109,6 +109,24 @@ function install_k8s_agent {
 
     CONFIG_FILE=/tmp/sysdig-agent-configmap.yaml
 
+    echo "* Retreiving the IKS Cluster ID and Cluster Name"
+    IKS_CLUSTER_ID=$(kubectl get cm -n kube-system cluster-info -o yaml | grep ' "cluster_id": ' | cut -d'"' -f4)
+    CLUSTER_NAME=$(ic ks clusters -s | grep $IKS_CLUSTER_ID | cut -d' ' -f1)
+
+    if [ ! -z "$CLUSTER_NAME" ]; then
+        echo "* Setting cluster name as $CLUSTER_NAME"
+        echo -e "    k8s_cluster_name: $CLUSTER_NAME" >> $CONFIG_FILE
+    fi
+
+    if [ ! -z "$IKS_CLUSTER_ID" ]; then
+        echo "* Setting ibm.containers-kubernetes.cluster.id $IKS_CLUSTER_ID"
+        if [ -z "$TAGS" ]; then
+            TAGS="ibm.containers-kubernetes.cluster.id:$IKS_CLUSTER_ID"
+        else
+            TAGS="$TAGS,ibm.containers-kubernetes.cluster.id:$IKS_CLUSTER_ID"
+        fi
+    fi
+
     echo "* Updating agent configmap and applying to cluster"
     if [ ! -z "$TAGS" ]; then
         echo "* Setting tags"
