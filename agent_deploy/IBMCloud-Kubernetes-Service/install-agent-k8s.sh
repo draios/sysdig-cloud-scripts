@@ -111,7 +111,7 @@ function install_k8s_agent {
 
     echo "* Retreiving the IKS Cluster ID and Cluster Name"
     IKS_CLUSTER_ID=$(kubectl get cm -n kube-system cluster-info -o yaml | grep ' "cluster_id": ' | cut -d'"' -f4)
-    CLUSTER_NAME=$(ic ks clusters -s | grep $IKS_CLUSTER_ID | cut -d' ' -f1)
+    CLUSTER_NAME=$(cat $KUBECONFIG | grep "    cluster:" | head -n 1 |  cut -d' ' -f6)
 
     if [ ! -z "$CLUSTER_NAME" ]; then
         echo "* Setting cluster name as $CLUSTER_NAME"
