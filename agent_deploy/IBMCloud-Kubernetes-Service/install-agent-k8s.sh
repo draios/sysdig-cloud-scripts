@@ -83,7 +83,8 @@ function install_k8s_agent {
     echo "* Creating sysdig-agent clusterrole and binding"
     kubectl apply -f /tmp/sysdig-agent-clusterrole.yaml
     fail=0
-    outbinding=$(kubectl create clusterrolebinding sysdig-agent --clusterrole=sysdig-agent --serviceaccount=default:sysdig-agent 2>&1) || { fail=1 && echo "kubectl create serviceaccount failed!"; }
+    namespace=$(kubectl get serviceaccount sysdig-agent -o yaml | grep namespace: | cut -d':' -f2 | awk '{$1=$1};1')
+    outbinding=$(kubectl create clusterrolebinding sysdig-agent --clusterrole=sysdig-agent --serviceaccount=$namespace:sysdig-agent 2>&1) || { fail=1 && echo "kubectl create clusterrolebinding failed!"; }
     if [ $fail -eq 1 ]; then
         if [[ "$outbinding" =~ "AlreadyExists" ]]; then
             echo "$outbinding. Continuing..."
@@ -95,7 +96,7 @@ function install_k8s_agent {
 
     echo "* Creating sysdig-agent secret using the ACCESS_KEY provided"
     fail=0
-    outsecret=$(kubectl create secret generic sysdig-agent --from-literal=access-key=$ACCESS_KEY 2>&1) || { fail=1 && echo "kubectl create serviceaccount failed!"; }
+    outsecret=$(kubectl create secret generic sysdig-agent --from-literal=access-key=$ACCESS_KEY 2>&1) || { fail=1 && echo "kubectl create secret failed!"; }
     if [ $fail -eq 1 ]; then
         if [[ "$outsecret" =~ "AlreadyExists" ]]; then
             echo "$outsecret. Re-creating secret..."
