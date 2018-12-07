@@ -53,7 +53,7 @@ function help {
 	echo "  check_certificate: disable strong SSL certificate check for Sysdig Monitor on-premises installation"
 	echo "          accepted values: true or false [default true]"
 	echo "  additional_conf: If provided, will be appended to agent configuration file"
-	echo "  namespace: If provided, will be the namespace used to deploy the agent. Defaults so ibm-observe"
+	echo "  namespace: If provided, will be the namespace used to deploy the agent. Defaults yo ibm-observe"
 	echo "  help: print this usage and exit"
 	echo
 	exit 1
