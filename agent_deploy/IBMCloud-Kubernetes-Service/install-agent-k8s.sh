@@ -38,7 +38,7 @@ function unsupported {
 function help {
 	echo "Usage: $(basename ${0}) -a | --access_key <value> [-t | --tags <value>] [-c | --collector <value>] \ "
 	echo "                [-cp | --collector_port <value>] [-s | --secure <value>] [-cc | --check_certificate] \ "
-	echo "                [-ac | --additional_conf <value>] [-h | --help]"
+	echo "                [-ns | --namespace <value>] [-ac | --additional_conf <value>] [-h | --help]"
 	echo "  access_key: Secret access key, as shown in Sysdig Monitor"
 	echo "  tags: List of tags for this host."
 	echo "        The syntax can be a comma-separated list of"
@@ -53,6 +53,7 @@ function help {
 	echo "  check_certificate: disable strong SSL certificate check for Sysdig Monitor on-premises installation"
 	echo "          accepted values: true or false [default true]"
 	echo "  additional_conf: If provided, will be appended to agent configuration file"
+    echo "  namespace: If provided, will be the namespace used to deploy the agent. Defaults so ibm-observe"
 	echo "  help: print this usage and exit"
 	echo
 	exit 1
@@ -66,9 +67,25 @@ function is_valid_value {
 	fi
 }
 
+function create_namespace {
+    fail=0
+    echo "* Creating namespace: $NAMESPACE"
+    out=$(kubectl create namespace $NAMESPACE 2>&1) || { fail=1 && echo "kubectl create namespace failed!"; }
+    if [ $fail -eq 1 ]; then
+        if [[ "$out" =~ "AlreadyExists" ]]; then
+            echo "$out. Continuing..."
+        else
+            echo "$out"
+            exit 1
+        fi
+    fi
+}
+
+
 function create_sysdig_serviceaccount {
     fail=0
-    out=$(kubectl create serviceaccount sysdig-agent 2>&1) || { fail=1 && echo "kubectl create serviceaccount failed!"; }
+    echo "* Creating sysdig-agent serviceaccount in namespace: $NAMESPACE"
+    out=$(kubectl create serviceaccount sysdig-agent --namespace=$NAMESPACE 2>&1) || { fail=1 && echo "kubectl create serviceaccount failed!"; }
     if [ $fail -eq 1 ]; then
         if [[ "$out" =~ "AlreadyExists" ]]; then
             echo "$out. Continuing..."
@@ -83,8 +100,7 @@ function install_k8s_agent {
     echo "* Creating sysdig-agent clusterrole and binding"
     kubectl apply -f /tmp/sysdig-agent-clusterrole.yaml
     fail=0
-    namespace=$(kubectl get serviceaccount sysdig-agent -o yaml | grep namespace: | cut -d':' -f2 | awk '{$1=$1};1')
-    outbinding=$(kubectl create clusterrolebinding sysdig-agent --clusterrole=sysdig-agent --serviceaccount=$namespace:sysdig-agent 2>&1) || { fail=1 && echo "kubectl create clusterrolebinding failed!"; }
+    outbinding=$(kubectl create clusterrolebinding sysdig-agent --clusterrole=sysdig-agent --serviceaccount=$NAMESPACE:sysdig-agent --namespace=$NAMESPACE 2>&1) || { fail=1 && echo "kubectl create clusterrolebinding failed!"; }
     if [ $fail -eq 1 ]; then
         if [[ "$outbinding" =~ "AlreadyExists" ]]; then
             echo "$outbinding. Continuing..."
@@ -96,12 +112,12 @@ function install_k8s_agent {
 
     echo "* Creating sysdig-agent secret using the ACCESS_KEY provided"
     fail=0
-    outsecret=$(kubectl create secret generic sysdig-agent --from-literal=access-key=$ACCESS_KEY 2>&1) || { fail=1 && echo "kubectl create secret failed!"; }
+    outsecret=$(kubectl create secret generic sysdig-agent --from-literal=access-key=$ACCESS_KEY --namespace=$NAMESPACE 2>&1) || { fail=1 && echo "kubectl create secret failed!"; }
     if [ $fail -eq 1 ]; then
         if [[ "$outsecret" =~ "AlreadyExists" ]]; then
             echo "$outsecret. Re-creating secret..."
-            kubectl delete secrets sysdig-agent 2>&1
-            kubectl create secret generic sysdig-agent --from-literal=access-key=$ACCESS_KEY 2>&1
+            kubectl delete secrets sysdig-agent --namespace=$NAMESPACE 2>&1
+            kubectl create secret generic sysdig-agent --from-literal=access-key=$ACCESS_KEY --namespace=$NAMESPACE 2>&1
         else
             echo "$outsecret"
             exit 1
@@ -168,16 +184,20 @@ function install_k8s_agent {
     sed -i -e "s|# serviceAccount: sysdig-agent|serviceAccount: sysdig-agent|" /tmp/sysdig-agent-daemonset-v2.yaml
 
     echo -e "    new_k8s: true" >> $CONFIG_FILE
-    kubectl apply -f $CONFIG_FILE
+    kubectl apply -f $CONFIG_FILE --namespace=$NAMESPACE
 
     echo "* Deploying the sysdig agent"
-    kubectl apply -f /tmp/sysdig-agent-daemonset-v2.yaml
+    kubectl apply -f /tmp/sysdig-agent-daemonset-v2.yaml --namespace=$NAMESPACE
 }
 
 if [[ ${#} -eq 0 ]]; then
 	echo "ERROR: Sysdig Access Key & Collector are mandatory, use -h | --help for $(basename ${0}) Usage"
 	exit 1
 fi
+
+# Setting the default value for NAMESPACE to be ibm-observe
+# Will be over-ridden if the -ns|--namespace flag is provided
+NAMESPACE="ibm-observe"
 
 while [[ ${#} > 0 ]]
 do
@@ -234,6 +254,15 @@ case ${key} in
             CHECK_CERT="${2}"
         else
             echo "ERROR: no value provided for SSL check certificate option, use -h | --help for $(basename ${0}) Usage"
+            exit 1
+        fi
+        shift
+        ;;
+    -ns|--namespace)
+        if is_valid_value "${2}"; then
+            NAMESPACE="${2}"
+        else
+            echo "ERROR: no value provided for namespace, use -h | --help for $(basename ${0}) Usage"
             exit 1
         fi
         shift
@@ -367,5 +396,6 @@ else
 fi
 
 download_yamls
+create_namespace
 create_sysdig_serviceaccount
 install_k8s_agent
