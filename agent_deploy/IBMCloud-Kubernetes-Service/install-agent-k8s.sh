@@ -22,7 +22,7 @@ function install_curl_rpm {
 }
 
 function download_yamls {
-    echo "* Downloading Sysdig cluster role yaml"
+	echo "* Downloading Sysdig cluster role yaml"
 	curl -s -o /tmp/sysdig-agent-clusterrole.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/master/agent_deploy/kubernetes/sysdig-agent-clusterrole.yaml
 	echo "* Downloading Sysdig config map yaml"
 	curl -s -o /tmp/sysdig-agent-configmap.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/master/agent_deploy/kubernetes/sysdig-agent-configmap.yaml
@@ -39,7 +39,7 @@ function help {
 	echo "Usage: $(basename ${0}) -a | --access_key <value> [-t | --tags <value>] [-c | --collector <value>] \ "
 	echo "                [-cp | --collector_port <value>] [-s | --secure <value>] [-cc | --check_certificate] \ "
 	echo "                [-ns | --namespace <value>] [-ac | --additional_conf <value>] [-h | --help]"
-    echo ""
+	echo ""
 	echo " -a  : secret access key, as shown in Sysdig Monitor"
 	echo " -t  : list of tags for this host (ie. \"role:webserver,location:europe\", \"role:webserver\" or \"webserver\")"
 	echo " -c  : collector IP for Sysdig Monitor"
