@@ -122,9 +122,12 @@ elif [ $DELETE = true ] ; then
     print_usage
   else
     curl $CURL_OPTS \
-      -H "Authorization: Bearer $API_TOKEN" \
-      -X DELETE \
-      "$APP_URL"
+        -H "Content-Type: application/json" \
+        -H "Authorization: Bearer $API_TOKEN" \
+        -X POST \
+        -d '{"metadataUrl": "'"${METADATA_URL}"'",
+        "enabled": "'"false"'" }' \
+        "$APP_URL" | ${JSON_FILTER}
     exit $?
   fi
 
