@@ -2,10 +2,7 @@
 
 #
 # Set this to the Sysdig Monitor API Token value shown in the Sysdig UI under
-# Settings->User Profile when logged in as the "Super" Admin User. For
-# information on locating this user, see the following article:
-#
-# https://support.sysdig.com/hc/en-us/articles/115004951443-Locating-the-Super-Admin-User
+# Settings->User Profile when logged in as the "Super" Admin User.
 #
 export API_TOKEN="aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
 
@@ -33,14 +30,16 @@ export URL="https://10.0.0.1"
 export CURL_OPTS="-s -k -w \n"
 
 #
-# If Python is installed on the host where you're running these helper scripts, this
-# will enable some extra features like pretty printing of JSON output and checking if
-# JSON inputs are syntactically valid. If Python is not installed, it uses a no-op
-# "cat" instead and you'll get unformatted output and you'll get HTTP error codes
-# if you try to POST invalid JSON.
+# Install jq command line tool to run the script. This should be achieved by running:
+# sudo apt install jq
+# Or similar command, depending your OS
 #
-if hash python 2>/dev/null ; then
-  export JSON_FILTER="python -m json.tool"
+
+if hash jq 2>/dev/null ; then
+  export JSON_FILTER="jq"
 else
-  export JSON_FILTER="cat"
+  echo "Please install jq tool to run this command"
+  echo "This should be achieved by running 'sudo apt install jq' or similar command"
+  echo
+  exit 1
 fi
