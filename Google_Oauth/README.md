@@ -1,0 +1,1 @@
+Helper scripts found here are used to enable Google Oauth configuration in on-premises Sysdig software environments. See the full documentation [here](https://sysdigdocs.atlassian.net/wiki/spaces/Platform/pages/206405732/Google+OAuth+On-Prem).
