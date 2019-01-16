@@ -100,12 +100,10 @@ spec:
         # - name: TAGS
         #   value: linux:ubuntu,dept:dev,local:nyc
         ### OPTIONAL: Needed to connect to a Sysdig On-Premises backend
-        # - name: COLLECTOR
-        #   value: collector-staging.sysdigcloud.com
         # - name: COLLECTOR_PORT
         #   value: "6443"
         # - name: COLLECTOR
-        #   value: 192.168.183.200
+        #   value: 192.168.1.200
         # - name: SECURE
         #   value: "true"
         # - name: CHECK_CERTIFICATE
