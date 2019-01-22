@@ -7,16 +7,20 @@ if [ $? != 0 ] ; then
   exit 1
 fi
 
-ENV="./env.sh"
+ENV="../env.sh"
+UTILS="../utils.sh"
+
 SET=false
 SETTINGS_JSON=""
 DELETE=false
 HELP=false
+SSO_KEYWORD="ldap"
+SCRIPT_NAME=`basename "$0"`
 
 eval set -- "$OPTS"
 
 function print_usage() {
-  echo "Usage: ./login_config [OPTION]"
+  echo "Usage: ./${SCRIPT_NAME} [OPTION]"
   echo
   echo "Affect LDAP login settings for your Sysdig software platform installation"
   echo
@@ -27,6 +31,30 @@ function print_usage() {
   echo "  -d | --delete           Delete the current LDAP login config"
   echo "  -h | --help             Print this Usage output"
   exit 1
+}
+
+function set_settings() {
+  get_settings_id
+  if [ -z "$SETTINGS_ID" ] ; then
+    sed -i "s/\"version\".*$/\"version\": 1,/" ${SETTINGS_JSON}
+    curl $CURL_OPTS \
+      -H "Authorization: Bearer $API_TOKEN" \
+      -H "Content-Type: application/json" \
+      -X POST \
+      -d @$SETTINGS_JSON \
+      $SETTINGS_ENDPOINT | ${JSON_FILTER}
+  else
+    get_settings_version
+    sed -i "s/\"version\".*$/\"version\": ${VERSION},/" ${SETTINGS_JSON}
+    cat ${SETTINGS_JSON}
+    curl $CURL_OPTS \
+      -H "Authorization: Bearer $API_TOKEN" \
+      -H "Content-Type: application/json" \
+      -X PUT \
+      -d @$SETTINGS_JSON \
+      $SETTINGS_ENDPOINT/$SETTINGS_ID | ${JSON_FILTER}
+  fi
+  set_as_active_setting
 }
 
 while true; do
@@ -57,44 +85,29 @@ else
   exit 1
 fi
 
+if [ -e "$UTILS" ] ; then
+  source "$UTILS"
+else
+  echo "File not found: $UTILS"
+  echo "See the LDAP documentation for details on populating this file with your settings"
+  exit 1
+fi
+
+SETTINGS_ENDPOINT="${URL}/api/admin/auth/settings"
+ACTIVE_ENDPOINT="${URL}/api/auth/settings/active"
+
 if [ $SET = true ] ; then
   if [ $DELETE = true ] ; then
     print_usage
-  else
-    if [ ! -e $SETTINGS_JSON ] ; then
-      echo "Settings file \"$SETTINGS_JSON\" does not exist. No settings were changed."
-      exit 1
-    fi
-    cat $SETTINGS_JSON | ${JSON_FILTER} > /dev/null 2>&1
-    if [ $? -eq 0 ]; then
-      curl $CURL_OPTS \
-        -H "Content-Type: application/json" \
-        -H "Authorization: Bearer $API_TOKEN" \
-        -X POST \
-        -d @$SETTINGS_JSON \
-        $URL/api/admin/ldap/settings
-      exit $?
-    else
-      echo "\"$SETTINGS_JSON\" contains invalid JSON. No settings were changed."
-      exit 1
-    fi
   fi
-
+  set_settings
 elif [ $DELETE = true ] ; then
   if [ $SET = true ] ; then
     print_usage
-  else
-    curl $CURL_OPTS \
-      -H "Authorization: Bearer $API_TOKEN" \
-      -X DELETE \
-      $URL/api/admin/ldap/settings
-    exit $?
   fi
-
+  delete_settings
 else
-  curl $CURL_OPTS \
-    -H "Authorization: Bearer $API_TOKEN" \
-    -X GET \
-    $URL/api/admin/ldap/settings | ${JSON_FILTER}
-  exit $?
+  get_settings
 fi
+
+exit $?
