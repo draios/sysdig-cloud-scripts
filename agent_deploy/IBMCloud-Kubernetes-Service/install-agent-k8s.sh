@@ -213,6 +213,8 @@ function remove_agent {
 
     echo "* Deleting the sysdig-agent secret"
     kubectl delete secret sysdig-agent --namespace=$NAMESPACE
+
+    set -e
 }
 
 
