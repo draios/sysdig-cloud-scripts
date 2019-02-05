@@ -304,6 +304,9 @@ case ${key} in
         fi
         shift
         ;;
+    -np|--no-prometheus)
+        ENABLE_PROMETHEUS=0
+        ;;
     -r|--remove)
         REMOVE_AGENT=1
         ;;
