@@ -5,60 +5,64 @@
 set -e
 
 function install_curl_deb {
-	export DEBIAN_FRONTEND=noninteractive
+    export DEBIAN_FRONTEND=noninteractive
 
-	if ! hash curl > /dev/null 2>&1; then
-		echo "* Installing curl"
+    if ! hash curl > /dev/null 2>&1; then
+        echo "* Installing curl"
         $CMD_PREF apt-get update
-		$CMD_PREF apt-get -qq -y install curl < /dev/null
-	fi
+        $CMD_PREF apt-get -qq -y install curl < /dev/null
+    fi
 }
 
 function install_curl_rpm {
-	if ! hash curl > /dev/null 2>&1; then
-		echo "* Installing curl"
-		$CMD_PREF yum -q -y install curl
-	fi
+    if ! hash curl > /dev/null 2>&1; then
+        echo "* Installing curl"
+        $CMD_PREF yum -q -y install curl
+    fi
 }
 
 function download_yamls {
-	echo "* Downloading Sysdig cluster role yaml"
-	curl -s -o /tmp/sysdig-agent-clusterrole.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/master/agent_deploy/kubernetes/sysdig-agent-clusterrole.yaml
-	echo "* Downloading Sysdig config map yaml"
-	curl -s -o /tmp/sysdig-agent-configmap.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/master/agent_deploy/kubernetes/sysdig-agent-configmap.yaml
-	echo "* Downloading Sysdig daemonset v2 yaml"
-	curl -s -o /tmp/sysdig-agent-daemonset-v2.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/master/agent_deploy/kubernetes/sysdig-agent-daemonset-v2.yaml
+    echo "* Downloading Sysdig cluster role yaml"
+    curl -s -o /tmp/sysdig-agent-clusterrole.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/master/agent_deploy/kubernetes/sysdig-agent-clusterrole.yaml
+    echo "* Downloading Sysdig config map yaml"
+    curl -s -o /tmp/sysdig-agent-configmap.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/master/agent_deploy/kubernetes/sysdig-agent-configmap.yaml
+    echo "* Downloading Sysdig daemonset v2 yaml"
+    curl -s -o /tmp/sysdig-agent-daemonset-v2.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/master/agent_deploy/kubernetes/sysdig-agent-daemonset-v2.yaml
 }
 
 function unsupported {
-	echo "Unsupported operating system. Try using the the manual installation instructions"
-	exit 1	
+    echo "Unsupported operating system. Try using the the manual installation instructions"
+    exit 1	
 }
 
 function help {
-	echo "Usage: $(basename ${0}) -a | --access_key <value> [-t | --tags <value>] [-c | --collector <value>] \ "
-	echo "                [-cp | --collector_port <value>] [-s | --secure <value>] [-cc | --check_certificate] \ "
-	echo "                [-ns | --namespace <value>] [-ac | --additional_conf <value>] [-h | --help]"
-	echo ""
-	echo " -a  : secret access key, as shown in Sysdig Monitor"
-	echo " -t  : list of tags for this host (ie. \"role:webserver,location:europe\", \"role:webserver\" or \"webserver\")"
-	echo " -c  : collector IP for Sysdig Monitor"
-	echo " -cp : collector port [default 6443]"
-	echo " -s  : use a secure SSL/TLS connection to send metrics to the collector (default: true)"
-	echo " -cc : disable strong SSL certificate check (default: true)"
-	echo " -ac : if provided, the additional configuration will be appended to agent configuration file"
-	echo " -ns : If provided, will be the namespace used to deploy the agent. Defaults to ibm-observe"
-	echo " -h  : print this usage and exit"
-	echo
-	exit 1
+    echo "Usage: $(basename ${0}) -a | --access_key <value> [-t | --tags <value>] [-c | --collector <value>] \ "
+    echo "                [-cp | --collector_port <value>] [-s | --secure <value>] [-cc | --check_certificate] \ "
+    echo "                [-ns | --namespace <value>] [-ac | --additional_conf <value>] [-np | --no-prometheus] \ "
+    echo "                [ -r | --remove ] [-h | --help]"
+    echo ""
+    echo " -a  : secret access key, as shown in Sysdig Monitor"
+    echo " -t  : list of tags for this host (ie. \"role:webserver,location:europe\", \"role:webserver\" or \"webserver\")"
+    echo " -c  : collector IP for Sysdig Monitor"
+    echo " -cp : collector port [default 6443]"
+    echo " -s  : use a secure SSL/TLS connection to send metrics to the collector (default: true)"
+    echo " -cc : disable strong SSL certificate check (default: true)"
+    echo " -ac : if provided, the additional configuration will be appended to agent configuration file"
+    echo " -ns : If provided, will be the namespace used to deploy the agent. Defaults to ibm-observe"
+    echo " -np : If provided, do not enable the Prometheus collector.  Defaults to enabling Prometheus collector"
+    echo " -r  : If provided, will remove the sysdig agent's daemonset, configmap, clusterrolebinding,"
+    echo "       serviceacccount and secret from the specified namespace"
+    echo " -h  : print this usage and exit"
+    echo
+    exit 1
 }
 
 function is_valid_value {
-	if [[ ${1} == -* ]] || [[ ${1} == --* ]] || [[ -z ${1} ]]; then
-		return 1
-	else
-		return 0
-	fi
+    if [[ ${1} == -* ]] || [[ ${1} == --* ]] || [[ -z ${1} ]]; then
+        return 1
+    else
+        return 0
+    fi
 }
 
 function create_namespace {
@@ -175,6 +179,12 @@ function install_k8s_agent {
         echo -e "    $ADDITIONAL_CONF" >> $CONFIG_FILE
     fi
 
+    if [ $ENABLE_PROMETHEUS -eq 1 ]; then
+        echo "* Enabling Prometheus"
+        echo -e "    prometheus:" >> $CONFIG_FILE
+        echo -e "        enabled: true" >> $CONFIG_FILE
+    fi
+
     sed -i -e "s|# serviceAccount: sysdig-agent|serviceAccount: sysdig-agent|" /tmp/sysdig-agent-daemonset-v2.yaml
 
     echo -e "    new_k8s: true" >> $CONFIG_FILE
@@ -184,14 +194,40 @@ function install_k8s_agent {
     kubectl apply -f /tmp/sysdig-agent-daemonset-v2.yaml --namespace=$NAMESPACE
 }
 
+function remove_agent {
+    set +e
+
+    echo "* Deleting the Sysdig agent and configurings from namespace $NAMESPACE"
+
+    echo "* Deleting the sysdig-agent daemonset"
+    kubectl delete daemonset sysdig-agent --namespace=$NAMESPACE
+
+    echo "* Deleting the sysdig-agent configmap"
+    kubectl delete configmap sysdig-agent --namespace=$NAMESPACE
+
+    echo "* Deleting the sysdig-agent serviceacccount"
+    kubectl delete serviceaccount -n default sysdig-agent --namespace=$NAMESPACE
+
+    echo "* deleting the sysdig-agent clusterrolebinding"
+    kubectl delete clusterrolebinding sysdig-agent --namespace=$NAMESPACE
+
+    echo "* Deleting the sysdig-agent secret"
+    kubectl delete secret sysdig-agent --namespace=$NAMESPACE
+
+    set -e
+}
+
+
 if [[ ${#} -eq 0 ]]; then
-	echo "ERROR: Sysdig Access Key & Collector are mandatory, use -h | --help for $(basename ${0}) Usage"
-	exit 1
+    echo "ERROR: Sysdig Access Key & Collector are mandatory, use -h | --help for $(basename ${0}) Usage"
+    exit 1
 fi
 
 # Setting the default value for NAMESPACE to be ibm-observe
 # Will be over-ridden if the -ns|--namespace flag is provided
 NAMESPACE="ibm-observe"
+REMOVE_AGENT=0
+ENABLE_PROMETHEUS=1
 
 while [[ ${#} > 0 ]]
 do
@@ -270,6 +306,12 @@ case ${key} in
         fi
         shift
         ;;
+    -np|--no-prometheus)
+        ENABLE_PROMETHEUS=0
+        ;;
+    -r|--remove)
+        REMOVE_AGENT=1
+        ;;
     -h|--help)
         help
         exit 1
@@ -292,15 +334,20 @@ if [ $(id -u) != 0 ]; then
     fi
 fi
 
+if [ $REMOVE_AGENT -eq 1 ]; then
+    remove_agent
+    exit 0
+fi
+
 if [ -z $ACCESS_KEY  ]; then
     echo "ERROR: Sysdig Access Key argument is mandatory, use -h | --help for $(basename ${0}) Usage"
-	exit 1
+    exit 1
 fi
 
 
 if [ -z $COLLECTOR ]; then
     echo "ERROR: Sysdig Collector argument is mandatory, use -h | --help for $(basename ${0}) Usage"
-	exit 1
+    exit 1
 fi
 
 echo "* Detecting operating system"
@@ -308,85 +355,85 @@ echo "* Detecting operating system"
 ARCH=$(uname -m)
 PLATFORM=$(uname)
 if [[ ! $ARCH = *86 ]] && [ ! $ARCH = "x86_64" ] && [ ! $ARCH = "s390x" ]; then
-	unsupported
+    unsupported
 fi
 
 if [ -f /etc/debian_version ]; then
-	if [ -f /etc/lsb-release ]; then
-		. /etc/lsb-release
-		DISTRO=$DISTRIB_ID
-		VERSION=${DISTRIB_RELEASE%%.*}
-	else
-		DISTRO="Debian"
-		VERSION=$(cat /etc/debian_version | cut -d'.' -f1)
-	fi
+    if [ -f /etc/lsb-release ]; then
+        . /etc/lsb-release
+        DISTRO=$DISTRIB_ID
+        VERSION=${DISTRIB_RELEASE%%.*}
+    else
+        DISTRO="Debian"
+        VERSION=$(cat /etc/debian_version | cut -d'.' -f1)
+    fi
 
-	case "$DISTRO" in
+    case "$DISTRO" in
 
-		"Ubuntu")
-			if [ $VERSION -ge 10 ]; then
-				install_curl_deb
-			else
-				unsupported
-			fi
-			;;
+        "Ubuntu")
+            if [ $VERSION -ge 10 ]; then
+                install_curl_deb
+            else
+                unsupported
+            fi
+            ;;
 
-		"LinuxMint")
-			if [ $VERSION -ge 9 ]; then
-				install_curl_deb
-			else
-				unsupported
-			fi
-			;;
+        "LinuxMint")
+            if [ $VERSION -ge 9 ]; then
+                install_curl_deb
+            else
+                unsupported
+            fi
+            ;;
 
-		"Debian")
-			if [ $VERSION -ge 6 ]; then
-				install_curl_deb
-			elif [[ $VERSION == *sid* ]]; then
-				install_curl_deb
-			else
-				unsupported
-			fi
-			;;
+        "Debian")
+            if [ $VERSION -ge 6 ]; then
+                install_curl_deb
+            elif [[ $VERSION == *sid* ]]; then
+                install_curl_deb
+            else
+                unsupported
+            fi
+            ;;
 
-		*)
-			unsupported
-			;;
+        *)
+            unsupported
+            ;;
 
-	esac
+    esac
 
 elif [ -f /etc/system-release-cpe ]; then
-	DISTRO=$(cat /etc/system-release-cpe | cut -d':' -f3)
+    DISTRO=$(cat /etc/system-release-cpe | cut -d':' -f3)
 
-	VERSION=$(cat /etc/system-release-cpe | cut -d':' -f5 | cut -d'.' -f1 | sed 's/[^0-9]*//g')
+    VERSION=$(cat /etc/system-release-cpe | cut -d':' -f5 | cut -d'.' -f1 | sed 's/[^0-9]*//g')
 
-	case "$DISTRO" in
+    case "$DISTRO" in
 
-		"oracle" | "centos" | "redhat")
-			if [ $VERSION -ge 6 ]; then
-				install_curl_rpm
-			else
-				unsupported
-			fi
-			;;
+        "oracle" | "centos" | "redhat")
+            if [ $VERSION -ge 6 ]; then
+                install_curl_rpm
+            else
+                unsupported
+            fi
+            ;;
 
-		"fedoraproject")
-			if [ $VERSION -ge 13 ]; then
-				install_curl_rpm
-			else
-				unsupported
-			fi
-			;;
+        "fedoraproject")
+            if [ $VERSION -ge 13 ]; then
+                install_curl_rpm
+            else
+                unsupported
+            fi
+            ;;
 
-		*)
-			unsupported
-			;;
-	esac
+        *)
+            unsupported
+            ;;
+    esac
 
 elif [[ $uname -eq "Darwin" ]]; then
     install_curl_deb
 else
-	unsupported
+    unsupported
 fi
 
 download_yamls
