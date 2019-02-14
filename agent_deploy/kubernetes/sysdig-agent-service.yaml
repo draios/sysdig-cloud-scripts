@@ -1,0 +1,13 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: sysdig-agent
+  labels:
+    app: sysdig-agent
+spec:
+  selector:
+     app: sysdig-agent
+  ports:
+  - protocol: TCP
+    port: 8765
+    targetPort: 7765

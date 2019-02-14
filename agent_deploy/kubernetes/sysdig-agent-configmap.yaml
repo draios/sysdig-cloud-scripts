@@ -24,3 +24,6 @@ data:
     #######################################
     # new_k8s: true
     # k8s_cluster_name: production
+    security:
+      k8s_audit_server_url: 0.0.0.0
+      k8s_audit_server_port: 7765
