@@ -14,6 +14,10 @@ spec:
         app: sysdig-agent
     spec:
       volumes:
+      - name: osrel
+        hostPath:
+          path: /etc/os-release
+          type: FileOrCreate
       - name: dshm
         emptyDir:
           medium: Memory
@@ -51,8 +55,8 @@ spec:
       tolerations:
         - effect: NoSchedule
           key: node-role.kubernetes.io/master
-      ### OPTIONAL: If using OpenShift or Kubernetes RBAC you need to uncomment the following line
-      # serviceAccount: sysdig-agent
+      # The following line is necessary for RBAC
+      serviceAccount: sysdig-agent
       terminationGracePeriodSeconds: 5
       containers:
       - name: sysdig-agent
@@ -72,6 +76,11 @@ spec:
           exec:
             command: [ "test", "-e", "/opt/draios/logs/running" ]
           initialDelaySeconds: 10
+        # This section is for eBPF support. Please refer to Sysdig Support before
+        # uncommenting, as eBPF is recommended for only a few configurations.
+        #env:
+        #  - name: SYSDIG_BPF_PROBE
+        #    value: ""
         volumeMounts:
         - mountPath: /host/dev
           name: dev-vol
@@ -98,3 +107,6 @@ spec:
           name: sysdig-agent-config
         - mountPath: /opt/draios/etc/kubernetes/secrets
           name: sysdig-agent-secrets
+        - mountPath: /host/etc/os-release
+          name: osrel
+          readOnly: true
