@@ -7,7 +7,7 @@ Remember to fill out your environment URL and the Monitor or Secure API token at
 Show command help
 
 ```
-./oidc_config.sh --help
+./oidc_config.sh -h
 ```
 
 Get current configuration
@@ -19,12 +19,12 @@ Get current configuration
 Configure some settings
 
 ```
-./oidc_config.sh --set --issuerurl https://foo.oktapreview.com --clientid foobar --clientsecret foobar
+./oidc_config.sh -s -u https://foo.oktapreview.com -i foobar -e foobar
 
 ```
 
 Delete current settings:
 
 ```
-./oidc_config.sh --delete
+./oidc_config.sh -d
 ```

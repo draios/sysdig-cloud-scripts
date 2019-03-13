@@ -7,7 +7,7 @@ Remember to fill out your environment URL and the Monitor or Secure API token at
 Show command help
 
 ```
-./saml_config.sh --help
+./saml_config.sh -h
 ```
 
 Get current SAML configuration
@@ -19,17 +19,17 @@ Get current SAML configuration
 Set some OKTA settings
 
 ```
-./saml_config.sh --set --idp okta --meta 'https://foo.oktapreview.com/app/bar/sso/saml/metadata'
+./saml_config.sh -s -i okta -m 'https://foo.oktapreview.com/app/bar/sso/saml/metadata'
 ```
 
 Disable user autocreation after login succeeds at IDP
 
 ```
-./saml_config.sh --set --nocreate --idp okta --meta 'https://foo.oktapreview.com/app/bar/sso/saml/metadata'
+./saml_config.sh -s -n -i okta -m 'https://foo.oktapreview.com/app/bar/sso/saml/metadata'
 ```
 
 Delete current settings:
 
 ```
-./saml_config.sh --delete
+./saml_config.sh -d
 ```

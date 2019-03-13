@@ -17,5 +17,5 @@ Probably you reached this repo coming from our documentation. If not, [this link
 
 ```
 cd SAML
-./saml_config.sh --help
+./saml_config.sh -h
 ```
