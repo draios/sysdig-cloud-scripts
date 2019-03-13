@@ -36,7 +36,9 @@ AGENT_SERVICE_CLUSTERIP=$(kubectl get service sysdig-agent -o=jsonpath={.spec.cl
 
 ## Restart the API Server to enable Audit Logging
 
-A script [enable-k8s-audit.sh](./enable-k8s-audit.sh) performs the necessary steps of enabling audit log support for the apiserver, including copying the audit policy/webhook files to the apiserver machine, modifying the apiserver command line to add `--audit-log-path`, `--audit-policy-file`, etc. arguments, etc. (For minikube, ideally you'd be able to pass all these options directly on the `minikube start` command line, but manual patching is necessary. See [this issue](https://github.com/kubernetes/minikube/issues/2741) for more details.)
+A script [enable-k8s-audit.sh](./enable-k8s-audit.sh) performs the necessary steps of enabling audit log support for the apiserver, including copying the audit policy/webhook files to the apiserver machine, modifying the apiserver command line to add `--audit-log-path`, `--audit-policy-file`, etc. arguments, etc. This will result in the API Server restarting, as any change to kube-apiserver.yaml triggers a restart.
+
+For minikube, ideally you'd be able to pass options like `--audit-log-path`, etc. directly on the `minikube start` command line, but manual patching is necessary. See [this issue](https://github.com/kubernetes/minikube/issues/2741) for more details.
 
 It is run as `bash ./enable-k8s-audit.sh <variant>`. `<variant>` can be one of the following:
 
