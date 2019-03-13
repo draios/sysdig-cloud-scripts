@@ -1,12 +1,6 @@
 #!/usr/bin/env bash
 set -uo pipefail
 
-OPTS=`getopt -o su:i:e:m:dh --long set,issuerurl:,clientid:,clientsecret:,delete,help -n 'parse-options' -- "$@"`
-if [ $? != 0 ] ; then
-  echo "Failed parsing options." >&2
-  exit 1
-fi
-
 ENV="../env.sh"
 UTILS="../utils.sh"
 
@@ -19,8 +13,6 @@ CLIENT_SECRET=""
 SSO_KEYWORD="openid"
 SCRIPT_NAME=`basename "$0"`
 
-eval set -- "$OPTS"
-
 function print_usage() {
   echo "Usage: ./${SCRIPT_NAME} [OPTIONS]"
   echo
@@ -30,12 +22,12 @@ function print_usage() {
   echo
   echo "Options:"
 
-  echo "  -s | --set                 Set the current OpenID Connect login config"
-  echo "  -u | --issuerurl           Issuer URL from your OpenID Provider config"
-  echo "  -i | --clientid            Client ID from your OpenID Provider config"
-  echo "  -e | --clientsecret        Client Secret from your OpenID Provider config"
-  echo "  -d | --delete              Delete the current OpenID Connect login config"
-  echo "  -h | --help                Print this Usage output"
+  echo "  -s    Set the current OpenID Connect login config"
+  echo "  -u    Issuer URL from your OpenID Provider config"
+  echo "  -i    Client ID from your OpenID Provider config"
+  echo "  -e    Client Secret from your OpenID Provider config"
+  echo "  -d    Delete the current OpenID Connect login config"
+  echo "  -h    Print this Usage output"
   exit 1
 }
 
@@ -84,17 +76,21 @@ function set_settings() {
   set_as_active_setting
 }
 
-while true; do
-  case "$1" in
-    -s | --set ) SET=true; shift ;;
-    -u | --issuerurl ) ISSUER_URL="$2"; shift; shift ;;
-    -i | --clientid ) CLIENT_ID="$2"; shift; shift ;;
-    -e | --clientsecret ) CLIENT_SECRET="$2"; shift; shift ;;
-    -d | --delete ) DELETE=true; shift ;;
-    -h | --help ) HELP=true; shift ;;
-    -- ) shift; break ;;
-    * ) break ;;
-  esac
+eval "set -- $(getopt sdhu:i:e: "$@")"
+while [ $# -gt 0 ]
+do
+    case "$1" in
+      (-s) SET=true ;;
+      (-d) DELETE=true ;;
+      (-h) HELP=true ;;
+      (-u) ISSUER_URL="$ISSUER_URL$2"; shift;;
+      (-i) CLIENT_ID="$CLIENT_ID$2"; shift;;
+      (-e) CLIENT_SECRET="$CLIENT_SECRET$2"; shift;;
+      (--) shift; break;;
+      (-*) echo "$0: error - unrecognized option $1" 1>&2; exit 1;;
+      (*)  break;;
+    esac
+    shift
 done
 
 if [ $HELP = true ] ; then

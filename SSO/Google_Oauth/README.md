@@ -7,7 +7,7 @@ Remember to fill out your environment URL and the Monitor or Secure API token at
 Show command help
 
 ```
-./google_oauth_config.sh --help
+./google_oauth_config.sh -h
 ```
 
 Get current configuration
@@ -19,12 +19,12 @@ Get current configuration
 Configure some settings
 
 ```
-./google_oauth_config.sh --set --clientid "foobar.apps.googleusercontent.com" --clientsecret "foobar" -r "https://sysdig.example.org:443/api/oauth/google/auth" --alloweddomains "[\"yourdomain.com\"]"
+./google_oauth_config.sh -s -i foobar.apps.googleusercontent.com -e foobar -r https://sysdig.example.org:443/api/oauth/google/auth -a yourdomain.com,yourdomain.org
 
 ```
 
 Delete current settings:
 
 ```
-./google_oauth_config.sh --delete
+./google_oauth_config.sh -d
 ```

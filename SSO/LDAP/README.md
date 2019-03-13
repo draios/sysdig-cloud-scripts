@@ -7,7 +7,7 @@ Remember to fill out your environment URL and the Monitor or Secure API token at
 Show command help
 
 ```
-./login_config.sh --help
+./login_config.sh -h
 ```
 
 Get current configuration
@@ -19,12 +19,12 @@ Get current configuration
 Configure some default LDAP login following existing example
 
 ```
-./login_config.sh --set settings_login_simple.json
+./login_config.sh -s settings_login_simple.json
 
 ```
 
 Delete current settings:
 
 ```
-./login_config.sh --delete
+./login_config.sh -d
 ```

@@ -1,12 +1,6 @@
 #!/usr/bin/env bash
 set -uo pipefail
 
-OPTS=`getopt -o su:i:e:r:a:m:dh --long set,issuerurl:,clientid:,clientsecret:,redirecturl:,alloweddomains:,delete,help -n 'parse-options' -- "$@"`
-if [ $? != 0 ] ; then
-  echo "Failed parsing options." >&2
-  exit 1
-fi
-
 ENV="../env.sh"
 UTILS="../utils.sh"
 
@@ -15,12 +9,10 @@ DELETE=false
 HELP=false
 CLIENT_ID=""
 CLIENT_SECRET=""
-ALLOWED_DOMAINS="[]"
+ALLOWED_DOMAINS=""
 REDIRECT_URL=""
 SSO_KEYWORD="google-oauth"
 SCRIPT_NAME=`basename "$0"`
-
-eval set -- "$OPTS"
 
 function print_usage() {
   echo "Usage: ./${SCRIPT_NAME} [OPTIONS]"
@@ -31,13 +23,13 @@ function print_usage() {
   echo
   echo "Options:"
 
-  echo "  -s | --set                 Set the current Google Oauth configuration"
-  echo "  -i | --clientid            Client ID from Google config"
-  echo "  -e | --clientsecret        Client Secret from Google config"
-  echo "  -a | --alloweddomains      [\"Comma\", \"separated\", \"list\"] of allowed domains"
-  echo "  -r | --redirecturl         Allowed redirect URL"
-  echo "  -d | --delete              Delete the current Google Oauth login config"
-  echo "  -h | --help                Print this Usage output"
+  echo "  -s    Set the current Google Oauth configuration"
+  echo "  -i    Client ID from Google config"
+  echo "  -e    Client Secret from Google config"
+  echo "  -a    [\"Comma\", \"separated\", \"list\"] of allowed domains"
+  echo "  -r    Allowed redirect URL"
+  echo "  -d    Delete the current Google Oauth login config"
+  echo "  -h    Print this Usage output"
   exit 1
 }
 
@@ -52,6 +44,13 @@ function check_provider_variables() {
 function set_settings() {
   check_provider_variables
   get_settings_id
+  PARSED_DOMAINS="["
+  for i in $(echo $ALLOWED_DOMAINS | tr "," "\n")
+  do
+      PARSED_DOMAINS="$PARSED_DOMAINS\"$i\","
+  done
+  ALLOWED_DOMAINS="${PARSED_DOMAINS%?}]"
+
   if [ -z "$SETTINGS_ID" ] ; then
     curl $CURL_OPTS \
       -H "Authorization: Bearer $API_TOKEN" \
@@ -86,18 +85,22 @@ function set_settings() {
   set_as_active_setting
 }
 
-while true; do
-  case "$1" in
-    -s | --set ) SET=true; shift ;;
-    -i | --clientid ) CLIENT_ID="$2"; shift; shift ;;
-    -e | --clientsecret ) CLIENT_SECRET="$2"; shift; shift ;;
-    -a | --alloweddomains ) ALLOWED_DOMAINS="$2"; shift; shift ;;
-    -r | --redirecturl ) REDIRECT_URL="$2"; shift; shift ;;
-    -d | --delete ) DELETE=true; shift ;;
-    -h | --help ) HELP=true; shift ;;
-    -- ) shift; break ;;
-    * ) break ;;
-  esac
+eval "set -- $(getopt sdhi:e:a:r: "$@")"
+while [ $# -gt 0 ]
+do
+    case "$1" in
+      (-s) SET=true ;;
+      (-d) DELETE=true ;;
+      (-h) HELP=true ;;
+      (-i) CLIENT_ID="$CLIENT_ID$2"; shift;;
+      (-e) CLIENT_SECRET="$CLIENT_SECRET$2"; shift;;
+      (-a) ALLOWED_DOMAINS="$ALLOWED_DOMAINS$2"; shift;;
+      (-r) REDIRECT_URL="$REDIRECT_URL$2"; shift;;
+      (--) shift; break;;
+      (-*) echo "$0: error - unrecognized option $1" 1>&2; exit 1;;
+      (*)  break;;
+    esac
+    shift
 done
 
 if [ $HELP = true ] ; then
