@@ -9,7 +9,7 @@ SETTINGS_JSON=""
 DELETE=false
 HELP=false
 SSO_KEYWORD="ldap"
-SCRIPT_NAME=`basename "$0"`
+SCRIPT_NAME=`basename "${0}"`
 
 function print_usage() {
   echo "Usage: ./${SCRIPT_NAME} [OPTION]"
@@ -27,64 +27,63 @@ function print_usage() {
 
 function set_settings() {
   get_settings_id
-  if [ -z "$SETTINGS_ID" ] ; then
+  if [[ -z "${SETTINGS_ID}" ]] ; then
     sed -i "s/\"version\".*$/\"version\": 1,/" ${SETTINGS_JSON}
-    curl $CURL_OPTS \
-      -H "Authorization: Bearer $API_TOKEN" \
+    curl ${CURL_OPTS} \
+      -H "Authorization: Bearer ${API_TOKEN}" \
       -H "Content-Type: application/json" \
       -X POST \
-      -d @$SETTINGS_JSON \
-      $SETTINGS_ENDPOINT | ${JSON_FILTER}
+      -d @${SETTINGS_JSON} \
+      ${SETTINGS_ENDPOINT} | ${JSON_FILTER}
   else
     get_settings_version
     sed -i "s/\"version\".*$/\"version\": ${VERSION},/" ${SETTINGS_JSON}
     cat ${SETTINGS_JSON}
-    curl $CURL_OPTS \
-      -H "Authorization: Bearer $API_TOKEN" \
+    curl ${CURL_OPTS} \
+      -H "Authorization: Bearer ${API_TOKEN}" \
       -H "Content-Type: application/json" \
       -X PUT \
-      -d @$SETTINGS_JSON \
-      $SETTINGS_ENDPOINT/$SETTINGS_ID | ${JSON_FILTER}
+      -d @${SETTINGS_JSON} \
+      ${SETTINGS_ENDPOINT}/${SETTINGS_ID} | ${JSON_FILTER}
   fi
   set_as_active_setting
 }
 
 eval "set -- $(getopt dhs: "$@")"
-while [ $# -gt 0 ]
-do
-    case "$1" in
+while [[ $# -gt 0 ]] ; do
+    case "${1}" in
       (-d) DELETE=true ;;
       (-h) HELP=true ;;
-      (-s) SET=true; SETTINGS_JSON="$SETTINGS_JSON$2"; shift;;
+      (-s) SET=true; SETTINGS_JSON="${SETTINGS_JSON}${2}"; shift;;
       (--) shift; break;;
-      (-*) echo "$0: error - unrecognized option $1" 1>&2; exit 1;;
+      (-*) echo "${0}: error - unrecognized option ${1}" 1>&2; exit 1;;
       (*)  break;;
     esac
     shift
 done
 
-if [ $HELP = true ] ; then
+if [[ ${HELP} = true ]] ; then
   print_usage
 fi
  
-if [ $# -gt 0 ] ; then
+if [[ $# -gt 0 ]] ; then
   echo "Excess command-line arguments detected. Exiting."
   echo
   print_usage
 fi
 
-if [ -e "$ENV" ] ; then
-  source "$ENV"
+if [[ -e "${ENV}" ]] ; then
+  source "${ENV}"
 else
-  echo "File not found: $ENV"
+  echo "File not found: ${ENV}"
   echo "See the LDAP documentation for details on populating this file with your settings"
   exit 1
 fi
 
-if [ -e "$UTILS" ] ; then
-  source "$UTILS"
+if [[ -e "${UTILS}" ]] ; then
+  source "${UTILS}"
 else
-  echo "File not found: $UTILS"
+  echo "File not found: ${UTILS}"
   echo "See the LDAP documentation for details on populating this file with your settings"
   exit 1
 fi
@@ -92,13 +91,13 @@ fi
 SETTINGS_ENDPOINT="${URL}/api/admin/auth/settings"
 ACTIVE_ENDPOINT="${URL}/api/auth/settings/active"
 
-if [ $SET = true ] ; then
-  if [ $DELETE = true ] ; then
+if [[ ${SET} = true ]] ; then
+  if [[ ${DELETE} = true ]] ; then
     print_usage
   fi
   set_settings
-elif [ $DELETE = true ] ; then
-  if [ $SET = true ] ; then
+elif [[ ${DELETE} = true ]] ; then
+  if [[ ${SET} = true ]] ; then
     print_usage
   fi
   delete_settings
