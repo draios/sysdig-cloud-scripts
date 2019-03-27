@@ -2,6 +2,8 @@
 
 This page describes how to get K8s Audit Logging working with the Sysdig Agent. For now, we'll describe how to enable audit logging in k8s 1.11, where the audit configuration needs to be directly provided to the api server. In 1.13 there is a different mechanism that allows audit confguration to be managed like other k8s objects, but these instructions are for 1.11.
 
+These instructions assume that the K8s cluster has *no* audit configuration or logging in place, and are adding configuration to route audit log messages only to the sysdig agent.
+
 The main steps are:
 
 1. Determine if your K8s variant supports audit logging
