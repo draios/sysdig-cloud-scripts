@@ -37,7 +37,7 @@ function unsupported {
 
 function help {
     echo "Usage: $(basename ${0}) -a | --access_key <value> [-t | --tags <value>] [-c | --collector <value>] \ "
-    echo "                [-cp | --collector_port <value>] [-s | --secure <value>] [-cc | --check_certificate] \ "
+    echo "                [-cp | --collector_port <value>] [-s | --secure <value>] [-cc | --check_certificate <value>] \ "
     echo "                [-ns | --namespace <value>] [-ac | --additional_conf <value>] [-np | --no-prometheus] \ "
     echo "                [ -r | --remove ] [-h | --help]"
     echo ""
@@ -46,7 +46,7 @@ function help {
     echo " -c  : collector IP for Sysdig Monitor"
     echo " -cp : collector port [default 6443]"
     echo " -s  : use a secure SSL/TLS connection to send metrics to the collector (default: true)"
-    echo " -cc : disable strong SSL certificate check (default: true)"
+    echo " -cc : enable strong SSL certificate check (default: true)"
     echo " -ac : if provided, the additional configuration will be appended to agent configuration file"
     echo " -ns : If provided, will be the namespace used to deploy the agent. Defaults to ibm-observe"
     echo " -np : If provided, do not enable the Prometheus collector.  Defaults to enabling Prometheus collector"
