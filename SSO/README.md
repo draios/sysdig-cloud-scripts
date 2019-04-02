@@ -12,7 +12,7 @@ Probably you reached this repo coming from our documentation. If not, [this link
 ## How to run the scripts
 
 * Edit `env.sh` file with your onprem instance URL and the API_TOKEN of the "super user" obtained from Sysdig Monitor or Sysdig Secure product. Depending on which token you take, the auth settings will be applied to Monitor or Secure (the exception is LDAP, as its configuration affects both products in the same way).
-* Enter the auth type you want folder
+* Use the auth type of interest as the folder name (and take a look at the README file there)
 * Run the script
 
 ```
