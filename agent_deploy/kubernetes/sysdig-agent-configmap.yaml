@@ -4,6 +4,7 @@ metadata:
   name: sysdig-agent
 data:
   dragent.yaml: |
+    configmap: true
     ### Agent tags
     # tags: linux:ubuntu,dept:dev,local:nyc
 
