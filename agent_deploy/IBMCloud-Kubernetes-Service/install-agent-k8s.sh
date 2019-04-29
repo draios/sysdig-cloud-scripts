@@ -315,7 +315,7 @@ case ${key} in
         fi
         shift
         ;;
-        rometheus)
+    -np|--no-prometheus)
         ENABLE_PROMETHEUS=0
         ;;
     -sn|--sysdig_instance_name)
