@@ -39,17 +39,18 @@ function help {
     echo "Usage: $(basename ${0}) -a | --access_key <value> [-t | --tags <value>] [-c | --collector <value>] \ "
     echo "                [-cp | --collector_port <value>] [-s | --secure <value>] [-cc | --check_certificate <value>] \ "
     echo "                [-ns | --namespace <value>] [-ac | --additional_conf <value>] [-np | --no-prometheus] \ "
-    echo "                [ -r | --remove ] [-h | --help]"
+    echo "                [-sn | --sysdig_instance_name <value>] [ -r | --remove ] [-h | --help]"
     echo ""
     echo " -a  : secret access key, as shown in Sysdig Monitor"
     echo " -t  : list of tags for this host (ie. \"role:webserver,location:europe\", \"role:webserver\" or \"webserver\")"
     echo " -c  : collector IP for Sysdig Monitor"
     echo " -cp : collector port [default 6443]"
     echo " -s  : use a secure SSL/TLS connection to send metrics to the collector (default: true)"
-    echo " -cc : enable strong SSL certificate check (default: true)"
+    echo " -cc : enable strong SSL certificate check (default: true)"    
     echo " -ac : if provided, the additional configuration will be appended to agent configuration file"
     echo " -ns : If provided, will be the namespace used to deploy the agent. Defaults to ibm-observe"
     echo " -np : If provided, do not enable the Prometheus collector.  Defaults to enabling Prometheus collector"
+    echo " -sn : if provided, name of the sysdig instance (optional)"
     echo " -r  : If provided, will remove the sysdig agent's daemonset, configmap, clusterrolebinding,"
     echo "       serviceacccount and secret from the specified namespace"
     echo " -h  : print this usage and exit"
@@ -186,6 +187,14 @@ function install_k8s_agent {
     fi
 
     sed -i -e "s|# serviceAccount: sysdig-agent|serviceAccount: sysdig-agent|" /tmp/sysdig-agent-daemonset-v2.yaml
+    # add label for Sysdig instance
+    # -i.bak argument used for compatibility between mac (-i '') and linux (simply -i) 
+     if [ ! -z "$SYSDIG_INSTANCE_NAME" ]; then
+        sed -i.bak -e "7s/^//p; 7s/^.*/    sysdig-instance: $SYSDIG_INSTANCE_NAME/" /tmp/sysdig-agent-daemonset-v2.yaml
+        sed -i.bak -e "15s/^//p; 15s/^.*/        sysdig-instance: $SYSDIG_INSTANCE_NAME/" /tmp/sysdig-agent-daemonset-v2.yaml
+        # remove backup
+        rm /tmp/sysdig-agent-daemonset-v2.yaml.bak
+    fi
 
     echo -e "    new_k8s: true" >> $CONFIG_FILE
     kubectl apply -f $CONFIG_FILE --namespace=$NAMESPACE
@@ -306,8 +315,17 @@ case ${key} in
         fi
         shift
         ;;
-    -np|--no-prometheus)
+        rometheus)
         ENABLE_PROMETHEUS=0
+        ;;
+    -sn|--sysdig_instance_name)
+    if is_valid_value "${2}"; then
+            SYSDIG_INSTANCE_NAME="${2}"
+        else
+            echo "ERROR: no value provided for sysdig instance name use -h | --help for $(basename ${0}) Usage"
+            exit 1
+        fi
+        shift
         ;;
     -r|--remove)
         REMOVE_AGENT=1
@@ -436,7 +454,7 @@ else
     unsupported
 fi
 
-download_yamls
+#download_yamls
 create_namespace
 create_sysdig_serviceaccount
 install_k8s_agent
