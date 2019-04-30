@@ -189,7 +189,7 @@ function install_k8s_agent {
     sed -i -e "s|# serviceAccount: sysdig-agent|serviceAccount: sysdig-agent|" /tmp/sysdig-agent-daemonset-v2.yaml
     # add label for Sysdig instance
     # -i.bak argument used for compatibility between mac (-i '') and linux (simply -i) 
-     if [ ! -z "$SYSDIG_INSTANCE_NAME" ]; then
+    if [ ! -z "$SYSDIG_INSTANCE_NAME" ]; then
         sed -i.bak -e "7s/^//p; 7s/^.*/    sysdig-instance: $SYSDIG_INSTANCE_NAME/" /tmp/sysdig-agent-daemonset-v2.yaml
         sed -i.bak -e "15s/^//p; 15s/^.*/        sysdig-instance: $SYSDIG_INSTANCE_NAME/" /tmp/sysdig-agent-daemonset-v2.yaml
         # remove backup
@@ -454,7 +454,7 @@ else
     unsupported
 fi
 
-#download_yamls
+download_yamls
 create_namespace
 create_sysdig_serviceaccount
 install_k8s_agent
