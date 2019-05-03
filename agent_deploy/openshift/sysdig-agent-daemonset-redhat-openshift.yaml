@@ -54,13 +54,14 @@ spec:
         securityContext:
           privileged: true
         resources:
-          # Resources needed are subjective on the actual workload
-          # please refer to Sysdig Support for more info about it
+          # Resources needed are subjective to the actual workload.
+          # Please refer to Sysdig Support for more info.
           requests:
-            cpu: 100m
+            cpu: 600m
             memory: 512Mi
           limits:
-            memory: 1024Mi
+            cpu: 2000m
+            memory: 1536Mi
         readinessProbe:
           exec:
             command: [ "test", "-e", "/opt/draios/logs/running" ]
