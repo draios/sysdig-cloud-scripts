@@ -65,8 +65,8 @@ spec:
         securityContext:
           privileged: true
         resources:
-          # Resources needed are subjective on the actual workload,
-          # please contact Sysdig Support for tuning these numbers.
+          # Resources needed are subjective to the actual workload.
+          # Please refer to Sysdig Support for more info.
           requests:
             cpu: 600m
             memory: 512Mi
