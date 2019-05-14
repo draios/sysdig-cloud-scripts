@@ -25,3 +25,7 @@ data:
     #######################################
     # new_k8s: true
     # k8s_cluster_name: production
+
+    # To enable prometheus scraping
+    # prometheus:
+    #     enabled: true

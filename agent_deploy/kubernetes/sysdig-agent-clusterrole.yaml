@@ -61,3 +61,11 @@ rules:
   - get
   - list
   - watch
+- apiGroups:
+  - extensions
+  resourceNames:
+  - sysdig-agent
+  resources:
+  - podsecuritypolicies
+  verbs:
+  - use
