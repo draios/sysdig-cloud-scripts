@@ -50,8 +50,8 @@ spec:
       tolerations:
         - effect: NoSchedule
           key: node-role.kubernetes.io/master
-      ### OPTIONAL: If using OpenShift or Kubernetes RBAC you need to uncomment the following line
-      # serviceAccount: sysdig-agent
+      # The following line is necessary for RBAC
+      serviceAccount: sysdig-agent
       terminationGracePeriodSeconds: 5
       initContainers:
       - name: sysdig-agent-kmodule
@@ -60,10 +60,8 @@ spec:
         securityContext:
           privileged: true
         resources:
-          # Resources needed are subjective on the actual workload
-          # please refer to Sysdig Support for more info about it
           requests:
-            cpu: 1
+            cpu: 1000m
             memory: 384Mi
           limits:
             memory: 512Mi
@@ -84,13 +82,14 @@ spec:
         securityContext:
           privileged: true
         resources:
-          # Resources needed are subjective on the actual workload
-          # please refer to Sysdig Support for more info about it
+          # Resources needed are subjective to the actual workload.
+          # Please refer to Sysdig Support for more info.
           requests:
-            cpu: 100m
+            cpu: 600m
             memory: 512Mi
           limits:
-            memory: 1024Mi
+            cpu: 2000m
+            memory: 1536Mi
         readinessProbe:
           exec:
             command: [ "test", "-e", "/opt/draios/logs/running" ]
