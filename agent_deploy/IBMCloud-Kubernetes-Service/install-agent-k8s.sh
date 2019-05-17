@@ -46,7 +46,7 @@ function help {
     echo " -c  : collector IP for Sysdig Monitor"
     echo " -cp : collector port [default 6443]"
     echo " -s  : use a secure SSL/TLS connection to send metrics to the collector (default: true)"
-    echo " -cc : enable strong SSL certificate check (default: true)"    
+    echo " -cc : enable strong SSL certificate check (default: true)"
     echo " -ac : if provided, the additional configuration will be appended to agent configuration file"
     echo " -ns : If provided, will be the namespace used to deploy the agent. Defaults to ibm-observe"
     echo " -np : If provided, do not enable the Prometheus collector.  Defaults to enabling Prometheus collector"
@@ -190,9 +190,8 @@ function install_k8s_agent {
     # add label for Sysdig instance
     # -i.bak argument used for compatibility between mac (-i '') and linux (simply -i) 
     if [ ! -z "$SYSDIG_INSTANCE_NAME" ]; then
-        sed -i.bak -e "7s/^//p; 7s/^.*/    sysdig-instance: $SYSDIG_INSTANCE_NAME/" /tmp/sysdig-agent-daemonset-v2.yaml
-        sed -i.bak -e "15s/^//p; 15s/^.*/        sysdig-instance: $SYSDIG_INSTANCE_NAME/" /tmp/sysdig-agent-daemonset-v2.yaml
-        # remove backup
+       sed -i.bak -e 's/^\( *\)labels:$/&\
+\1  sysdig-instance: '$SYSDIG_INSTANCE_NAME'/' /tmp/sysdig-agent-daemonset-v2.yaml    
         rm /tmp/sysdig-agent-daemonset-v2.yaml.bak
     fi
 
@@ -315,7 +314,7 @@ case ${key} in
         fi
         shift
         ;;
-    -np|--no-prometheus)
+        rometheus)
         ENABLE_PROMETHEUS=0
         ;;
     -sn|--sysdig_instance_name)
