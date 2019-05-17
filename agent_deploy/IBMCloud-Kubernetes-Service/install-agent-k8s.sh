@@ -318,7 +318,7 @@ case ${key} in
         ENABLE_PROMETHEUS=0
         ;;
     -sn|--sysdig_instance_name)
-    if is_valid_value "${2}"; then
+        if is_valid_value "${2}"; then
             SYSDIG_INSTANCE_NAME="${2}"
         else
             echo "ERROR: no value provided for sysdig instance name use -h | --help for $(basename ${0}) Usage"
