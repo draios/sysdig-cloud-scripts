@@ -77,6 +77,8 @@ spec:
           readOnly: true
       containers:
       - name: sysdig-agent
+        # WARNING: the agent-slim release currently must be run within
+        # a kubernetes cluster to properly function
         image: sysdig/agent-slim
         imagePullPolicy: Always
         securityContext:
