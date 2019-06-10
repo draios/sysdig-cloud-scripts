@@ -118,9 +118,9 @@ function install_k8s_agent {
     else
         echo "* Creating sysdig-agent access policies"
         fail=0
-        outbinding=$(oc adm policy add-scc-to-user privileged -n ibm-observe -z sysdig-agent 2>&1) || { fail=1 && echo "oc adm policy add-scc-to-user failed!"; }
+        outbinding=$(oc adm policy add-scc-to-user privileged -n $NAMESPACE -z sysdig-agent 2>&1) || { fail=1 && echo "oc adm policy add-scc-to-user failed!"; }
         if [ $fail -eq 0 ]; then
-            outbinding=$(oc adm policy add-cluster-role-to-user cluster-reader -n ibm-observe -z sysdig-agent 2>&1) || { fail=1 && echo "oc adm policy add-cluster-role-to-user failed!"; }
+            outbinding=$(oc adm policy add-cluster-role-to-user cluster-reader -n $NAMESPACE -z sysdig-agent 2>&1) || { fail=1 && echo "oc adm policy add-cluster-role-to-user failed!"; }
         fi
     fi
     if [ $fail -eq 1 ]; then
