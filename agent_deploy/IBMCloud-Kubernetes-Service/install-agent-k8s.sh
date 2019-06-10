@@ -39,7 +39,8 @@ function help {
     echo "Usage: $(basename ${0}) -a | --access_key <value> [-t | --tags <value>] [-c | --collector <value>] \ "
     echo "                [-cp | --collector_port <value>] [-s | --secure <value>] [-cc | --check_certificate <value>] \ "
     echo "                [-ns | --namespace <value>] [-ac | --additional_conf <value>] [-np | --no-prometheus] \ "
-    echo "                [-sn | --sysdig_instance_name <value>] [ -r | --remove ] [-h | --help]"
+    echo "                [-sn | --sysdig_instance_name <value>] [-op | --openshift ] \ "
+    echo "                [ -r | --remove ] [-h | --help]"
     echo ""
     echo " -a  : secret access key, as shown in Sysdig Monitor"
     echo " -t  : list of tags for this host (ie. \"role:webserver,location:europe\", \"role:webserver\" or \"webserver\")"
@@ -48,10 +49,11 @@ function help {
     echo " -s  : use a secure SSL/TLS connection to send metrics to the collector (default: true)"
     echo " -cc : enable strong SSL certificate check (default: true)"
     echo " -ac : if provided, the additional configuration will be appended to agent configuration file"
-    echo " -ns : If provided, will be the namespace used to deploy the agent. Defaults to ibm-observe"
-    echo " -np : If provided, do not enable the Prometheus collector.  Defaults to enabling Prometheus collector"
+    echo " -ns : if provided, will be the namespace used to deploy the agent. Defaults to ibm-observe"
+    echo " -np : if provided, do not enable the Prometheus collector.  Defaults to enabling Prometheus collector"
     echo " -sn : if provided, name of the sysdig instance (optional)"
-    echo " -r  : If provided, will remove the sysdig agent's daemonset, configmap, clusterrolebinding,"
+    echo " -op : if provided, perform the installation using the OpenShift command line"
+    echo " -r  : if provided, will remove the sysdig agent's daemonset, configmap, clusterrolebinding,"
     echo "       serviceacccount and secret from the specified namespace"
     echo " -h  : print this usage and exit"
     echo
@@ -68,10 +70,17 @@ function is_valid_value {
 
 function create_namespace {
     fail=0
-    echo "* Creating namespace: $NAMESPACE"
-    out=$(kubectl create namespace $NAMESPACE 2>&1) || { fail=1 && echo "kubectl create namespace failed!"; }
+    if [ $OPENSHIFT -eq 0 ]; then
+        echo "* Creating namespace: $NAMESPACE"
+        out=$(kubectl create namespace $NAMESPACE 2>&1) || { fail=1 && echo "kubectl create namespace failed!"; }
+    else
+        echo "* Creating project: $NAMESPACE"
+        out=$(oc adm new-project $NAMESPACE --node-selector='app=sysdig-agent' 2>&1) || { fail=1 && echo "oc adm new-project failed!"; }
+        # Set the project to the namespace
+        switch=$(oc project $NAMESPACE 2>&1)
+    fi
     if [ $fail -eq 1 ]; then
-        if [[ "$out" =~ "AlreadyExists" ]]; then
+        if [[ "$out" =~ "AlreadyExists" || "$out" =~ "already exists" ]]; then
             echo "$out. Continuing..."
         else
             echo "$out"
@@ -83,10 +92,15 @@ function create_namespace {
 
 function create_sysdig_serviceaccount {
     fail=0
-    echo "* Creating sysdig-agent serviceaccount in namespace: $NAMESPACE"
-    out=$(kubectl create serviceaccount sysdig-agent --namespace=$NAMESPACE 2>&1) || { fail=1 && echo "kubectl create serviceaccount failed!"; }
+    if [ $OPENSHIFT -eq 0 ]; then
+        echo "* Creating sysdig-agent serviceaccount in namespace: $NAMESPACE"
+        out=$(kubectl create serviceaccount sysdig-agent --namespace=$NAMESPACE 2>&1) || { fail=1 && echo "kubectl create serviceaccount failed!"; }
+    else
+        echo "* Creating sysdig-agent serviceaccount in project: $NAMESPACE"
+        out=$(oc create serviceaccount sysdig-agent -n $NAMESPACE 2>&1) || { fail=1 && echo "oc create serviceaccount failed!"; }
+    fi
     if [ $fail -eq 1 ]; then
-        if [[ "$out" =~ "AlreadyExists" ]]; then
+        if [[ "$out" =~ "AlreadyExists" || "$out" =~ "already exists" ]]; then
             echo "$out. Continuing..."
         else
             echo "$out"
@@ -96,10 +110,19 @@ function create_sysdig_serviceaccount {
 }
 
 function install_k8s_agent {
-    echo "* Creating sysdig-agent clusterrole and binding"
-    kubectl apply -f /tmp/sysdig-agent-clusterrole.yaml
-    fail=0
-    outbinding=$(kubectl create clusterrolebinding sysdig-agent --clusterrole=sysdig-agent --serviceaccount=$NAMESPACE:sysdig-agent --namespace=$NAMESPACE 2>&1) || { fail=1 && echo "kubectl create clusterrolebinding failed!"; }
+    if [ $OPENSHIFT -eq 0 ]; then
+        echo "* Creating sysdig-agent clusterrole and binding"
+        kubectl apply -f /tmp/sysdig-agent-clusterrole.yaml
+        fail=0
+        outbinding=$(kubectl create clusterrolebinding sysdig-agent --clusterrole=sysdig-agent --serviceaccount=$NAMESPACE:sysdig-agent --namespace=$NAMESPACE 2>&1) || { fail=1 && echo "kubectl create clusterrolebinding failed!"; }
+    else
+        echo "* Creating sysdig-agent access policies"
+        fail=0
+        outbinding=$(oc adm policy add-scc-to-user privileged -n ibm-observe -z sysdig-agent 2>&1) || { fail=1 && echo "oc adm policy add-scc-to-user failed!"; }
+        if [ $fail -eq 0 ]; then
+            outbinding=$(oc adm policy add-cluster-role-to-user cluster-reader -n ibm-observe -z sysdig-agent 2>&1) || { fail=1 && echo "oc adm policy add-cluster-role-to-user failed!"; }
+        fi
+    fi
     if [ $fail -eq 1 ]; then
         if [[ "$outbinding" =~ "AlreadyExists" ]]; then
             echo "$outbinding. Continuing..."
@@ -127,7 +150,20 @@ function install_k8s_agent {
 
     echo "* Retreiving the IKS Cluster ID and Cluster Name"
     IKS_CLUSTER_ID=$(kubectl get cm -n kube-system cluster-info -o yaml | grep ' "cluster_id": ' | cut -d'"' -f4)
-    CLUSTER_NAME=$(kubectl config current-context)
+    if [ $OPENSHIFT -eq 0 ]; then
+        CLUSTER_NAME=$(kubectl config current-context)
+    else
+        # Pull the cluster name using the cluster ID using ibmcloud ks
+        # since the current-context is not a user-friendly value
+        fail=0
+        CLUSTER_NAME=$(ibmcloud ks cluster-get "$IKS_CLUSTER_ID" --json | jq .name | tr -d '"') || { fail=1 && echo "Failed to get the cluster name"; }
+        if [ $fail -eq 1 ]; then
+            echo "Failed to get the cluster name from the Cluster ID using ibmcloud ks - $CLUSTER_ID "
+            echo "Attempting to retrieve the current-context for the cluster name"
+            # Get a default cluster name
+            CLUSTER_NAME=$(kubectl config current-context)
+        fi
+    fi
 
     if [ ! -z "$CLUSTER_NAME" ]; then
         echo "* Setting cluster name as $CLUSTER_NAME"
@@ -216,8 +252,14 @@ function remove_agent {
     echo "* Deleting the sysdig-agent serviceacccount"
     kubectl delete serviceaccount -n default sysdig-agent --namespace=$NAMESPACE
 
-    echo "* deleting the sysdig-agent clusterrolebinding"
-    kubectl delete clusterrolebinding sysdig-agent --namespace=$NAMESPACE
+    if [ $OPENSHIFT -eq 0 ]; then
+        echo "* deleting the sysdig-agent clusterrolebinding"
+        kubectl delete clusterrolebinding sysdig-agent --namespace=$NAMESPACE
+    else
+        echo "* Removing cluster role and security constraints"
+        oc adm policy remove-cluster-role-from-user cluster-reader -n $NAMESPACE -z sysdig-agent
+        oc adm policy remove-scc-from-user privileged -n $NAMESPACE -z sysdig-agent
+    fi
 
     echo "* Deleting the sysdig-agent secret"
     kubectl delete secret sysdig-agent --namespace=$NAMESPACE
@@ -236,6 +278,7 @@ fi
 NAMESPACE="ibm-observe"
 REMOVE_AGENT=0
 ENABLE_PROMETHEUS=1
+OPENSHIFT=0
 
 while [[ ${#} > 0 ]]
 do
@@ -296,7 +339,7 @@ case ${key} in
         fi
         shift
         ;;
-    -ns|--namespace)
+    -ns|--namespace|--project)
         if is_valid_value "${2}"; then
             NAMESPACE="${2}"
         else
@@ -325,6 +368,9 @@ case ${key} in
             exit 1
         fi
         shift
+        ;;
+    -op|--openshift)
+        OPENSHIFT=1
         ;;
     -r|--remove)
         REMOVE_AGENT=1
