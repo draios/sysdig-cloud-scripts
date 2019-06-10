@@ -38,7 +38,7 @@ function unsupported {
 function help {
     echo "Usage: $(basename ${0}) -a | --access_key <value> [-t | --tags <value>] [-c | --collector <value>] \ "
     echo "                [-cp | --collector_port <value>] [-s | --secure <value>] [-cc | --check_certificate <value>] \ "
-    echo "                [-ns | --namespace <value>] [-ac | --additional_conf <value>] [-np | --no-prometheus] \ "
+    echo "                [-ns | --namespace | --project <value>] [-ac | --additional_conf <value>] [-np | --no-prometheus] \ "
     echo "                [-sn | --sysdig_instance_name <value>] [-op | --openshift ] \ "
     echo "                [ -r | --remove ] [-h | --help]"
     echo ""
