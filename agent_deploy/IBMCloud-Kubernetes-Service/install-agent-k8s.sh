@@ -75,7 +75,7 @@ function create_namespace {
         out=$(kubectl create namespace $NAMESPACE 2>&1) || { fail=1 && echo "kubectl create namespace failed!"; }
     else
         echo "* Creating project: $NAMESPACE"
-        out=$(oc adm new-project $NAMESPACE --node-selector='app=sysdig-agent' 2>&1) || { fail=1 && echo "oc adm new-project failed!"; }
+        out=$(oc adm new-project $NAMESPACE --node-selector='' 2>&1) || { fail=1 && echo "oc adm new-project failed!"; }
         # Set the project to the namespace
         switch=$(oc project $NAMESPACE 2>&1)
     fi
