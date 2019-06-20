@@ -5,7 +5,7 @@ metadata:
 data:
   dragent.yaml: |
     app_checks:
-      ## Uncomment and update the block below if running TLS/auth enabled Elasticsearch inside the k8s cluster
+      ## If enabling elasticsearch auth, uncomment and update the block below
       # - name: elasticsearch
       #   check_module: elastic
       #   pattern:
