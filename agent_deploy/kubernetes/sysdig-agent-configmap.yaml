@@ -4,6 +4,18 @@ metadata:
   name: sysdig-agent
 data:
   dragent.yaml: |
+    app_checks:
+      ## Uncomment and update the block below if running TLS/auth enabled Elasticsearch inside the k8s cluster
+      # - name: elasticsearch
+      #   check_module: elastic
+      #   pattern:
+      #     port: 9200
+      #     comm: java
+      #   conf:
+      #     url: https://sysdigcloud-elasticsearch:9200
+      #     username: readonly
+      #     password: <change_me>
+      #     ssl_verify: false
     configmap: true
     ### Agent tags
     # tags: linux:ubuntu,dept:dev,local:nyc
