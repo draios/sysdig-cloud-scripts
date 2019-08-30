@@ -40,6 +40,7 @@ function help {
     echo "                [-cp | --collector_port <value>] [-s | --secure <value>] [-cc | --check_certificate <value>] \ "
     echo "                [-ns | --namespace | --project <value>] [-ac | --additional_conf <value>] [-np | --no-prometheus] \ "
     echo "                [-sn | --sysdig_instance_name <value>] [-op | --openshift ] \ "
+    echo "                [-sr | --sysdig_repo <value> ] \ "
     echo "                [ -r | --remove ] [-h | --help]"
     echo ""
     echo " -a  : secret access key, as shown in Sysdig Monitor"
@@ -53,6 +54,7 @@ function help {
     echo " -np : if provided, do not enable the Prometheus collector.  Defaults to enabling Prometheus collector"
     echo " -sn : if provided, name of the sysdig instance (optional)"
     echo " -op : if provided, perform the installation using the OpenShift command line"
+    echo " -sr : if provided, change the default IBM docker repo to desired repo"
     echo " -r  : if provided, will remove the sysdig agent's daemonset, configmap, clusterrolebinding,"
     echo "       serviceacccount and secret from the specified namespace"
     echo " -h  : print this usage and exit"
@@ -231,6 +233,11 @@ function install_k8s_agent {
         rm /tmp/sysdig-agent-daemonset-v2.yaml.bak
     fi
 
+    if [ ! -z "$SYSDIG_REPO" ]; then
+        sed -i.bak -e 's|\(.*image: icr.io/ext/sysdig/agent\)|        image: '$SYSDIG_REPO'|g' /tmp/sysdig-agent-daemonset-v2.yaml
+        rm /tmp/sysdig-agent-daemonset-v2.yaml.bak
+    fi
+
     echo -e "    new_k8s: true" >> $CONFIG_FILE
     kubectl apply -f $CONFIG_FILE --namespace=$NAMESPACE
 
@@ -369,6 +376,17 @@ case ${key} in
         fi
         shift
         ;;
+
+    -sr|--sysdig_repo)
+        if is_valid_value "${2}"; then
+            SYSDIG_REPO="${2}"
+        else
+            echo "ERROR: no value provided for sysdig repo name use -h | --help for $(basename ${0}) Usage"
+            exit 1
+        fi
+        shift
+        ;;
+
     -op|--openshift)
         OPENSHIFT=1
         ;;
