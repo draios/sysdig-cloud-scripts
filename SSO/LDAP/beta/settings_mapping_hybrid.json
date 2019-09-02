@@ -1,0 +1,80 @@
+{
+    "ldapTeamMapping": [
+      {
+        "ldapFilterSettings": {
+          "searchFilter": "(&(objectClass=organizationalPerson)(memberOf=CN=Sysdig Viewers,CN=Users,DC=example,DC=local)(sAMAccountName=*))",
+          "searchBase": "cn=Users"
+        },
+        "teams": [
+          "Viewers"
+        ],
+        "teamRole": "ROLE_TEAM_READ",
+        "usernameAttribute": "mail"
+      },
+      {
+        "ldapFilterSettings": {
+          "searchFilter": "(&(objectClass=organizationalPerson)(memberOf=CN=Sysdig Editors,CN=Users,DC=example,DC=local)(sAMAccountName=*))",
+          "searchBase": "cn=Users"
+        },
+        "teams": [
+          "Editors1",
+          "Editors2"
+        ],
+        "teamRole": "ROLE_TEAM_EDIT",
+        "usernameAttribute": "mail"
+      },
+      {
+        "ldapFilterSettings": {
+          "searchFilter": "(&(objectClass=organizationalPerson)(givenName=Mary))",
+          "searchBase": "cn=Users"
+        },
+        "teams": [
+          "Mixed"
+        ],
+        "teamRole": "ROLE_TEAM_EDIT",
+        "usernameAttribute": "mail"
+      },
+      {
+        "ldapFilterSettings": {
+          "searchFilter": "(&(objectClass=organizationalPerson)(sAMAccountName=jdoe))",
+          "searchBase": "cn=Users"
+        },
+        "teams": [
+          "Mixed"
+        ],
+        "teamRole": "ROLE_TEAM_READ",
+        "usernameAttribute": "mail"
+      }
+    ],
+    "teamDefinitions": [
+      {
+        "name": "Mixed",
+        "show": "host",
+        "products": ["SDC"]
+      },
+      {
+        "name": "Viewers",
+        "show": "host",
+        "products": ["SDC"]
+      },
+      {
+        "name": "Editors1",
+        "show": "host",
+        "products": ["SDC"]
+      },
+      {
+        "name": "Editors2",
+        "theme": "#FF5C49",
+        "show": "container",
+        "filter": "container.image contains \"mysql\"",
+        "canUseSysdigCapture": false,
+        "canUseCustomEvents": false,
+        "canUseAwsMetrics": false,
+        "entryPoint": {
+          "module": "Dashboards"
+        },
+        "products": ["SDC"]
+      }
+    ],
+    "dryRun": true
+}
