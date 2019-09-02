@@ -28,3 +28,17 @@ Delete current settings:
 ```
 ./login_config.sh -d
 ```
+
+Once settings have been set, information existing at LDAP tree regarding an existing user can be retrieved:
+
+Show command help
+
+```
+./ verify_user.sh -h
+```
+
+Get user information (test LDAP configuration)
+
+```
+./verify_user.sh -u john.doe
+```
