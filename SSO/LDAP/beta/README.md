@@ -4,6 +4,8 @@ Remember to fill out your environment URL and the Monitor or Secure API token at
 
 ## Examples
 
+### LDAP users/teams mapping
+
 Show command help
 
 ```
@@ -46,4 +48,26 @@ Delete current settings:
 
 ```
 ./mapping_config.sh -d
+```
+
+### API user creation allowing configuration
+
+After enabling this LDAP feature disabling API user creation might be desired.
+
+Get current API user creation status
+
+```
+./api_user_creation.sh
+```
+
+Disable user creation via API
+
+```
+./api_user_creation.sh -d
+```
+
+Enable API user creation
+
+```
+./api_user_creation.sh -e
 ```
