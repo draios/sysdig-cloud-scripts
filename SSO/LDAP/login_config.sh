@@ -38,7 +38,6 @@ function set_settings() {
   else
     get_settings_version
     sed -i "s/\"version\".*$/\"version\": ${VERSION},/" ${SETTINGS_JSON}
-    cat ${SETTINGS_JSON}
     curl ${CURL_OPTS} \
       -H "Authorization: Bearer ${API_TOKEN}" \
       -H "Content-Type: application/json" \
