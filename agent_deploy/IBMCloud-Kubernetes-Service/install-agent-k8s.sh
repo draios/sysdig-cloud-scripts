@@ -28,6 +28,8 @@ function download_yamls {
     curl -s -o /tmp/sysdig-agent-configmap.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/master/agent_deploy/kubernetes/sysdig-agent-configmap.yaml
     echo "* Downloading Sysdig daemonset v2 yaml"
     curl -s -o /tmp/sysdig-agent-daemonset-v2.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/master/agent_deploy/kubernetes/sysdig-agent-daemonset-v2.yaml
+    echo "* Downloading Sysdig agent-slim daemonset v2 yaml"
+    curl -s -o /tmp/sysdig-agent-slim-daemonset-v2.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/master/agent_deploy/kubernetes/sysdig-agent-slim-daemonset-v2.yaml
 }
 
 function unsupported {
@@ -39,7 +41,7 @@ function help {
     echo "Usage: $(basename ${0}) -a | --access_key <value> [-t | --tags <value>] [-c | --collector <value>] \ "
     echo "                [-cp | --collector_port <value>] [-s | --secure <value>] [-cc | --check_certificate <value>] \ "
     echo "                [-ns | --namespace | --project <value>] [-ac | --additional_conf <value>] [-np | --no-prometheus] \ "
-    echo "                [-sn | --sysdig_instance_name <value>] [-op | --openshift ] \ "
+    echo "                [-sn | --sysdig_instance_name <value>] [-op | --openshift] [-as | --agent-slim] \ "
     echo "                [ -r | --remove ] [-h | --help]"
     echo ""
     echo " -a  : secret access key, as shown in Sysdig Monitor"
@@ -53,6 +55,7 @@ function help {
     echo " -np : if provided, do not enable the Prometheus collector.  Defaults to enabling Prometheus collector"
     echo " -sn : if provided, name of the sysdig instance (optional)"
     echo " -op : if provided, perform the installation using the OpenShift command line"
+    echo " -as : if provided, use agent-slim and agent-kmodule with the daemonset"
     echo " -r  : if provided, will remove the sysdig agent's daemonset, configmap, clusterrolebinding,"
     echo "       serviceacccount and secret from the specified namespace"
     echo " -h  : print this usage and exit"
@@ -222,20 +225,26 @@ function install_k8s_agent {
         echo -e "        enabled: true" >> $CONFIG_FILE
     fi
 
-    sed -i -e "s|# serviceAccount: sysdig-agent|serviceAccount: sysdig-agent|" /tmp/sysdig-agent-daemonset-v2.yaml
+    if [ ! -z "$AGENT_SLIM" ]; then
+        DAEMONSET_FILE=/tmp/sysdig-agent-slim-daemonset-v2.yaml
+    else
+        DAEMONSET_FILE=/tmp/sysdig-agent-daemonset-v2.yaml
+    fi
+
+    sed -i -e "s|# serviceAccount: sysdig-agent|serviceAccount: sysdig-agent|" $DAEMONSET_FILE
     # add label for Sysdig instance
     # -i.bak argument used for compatibility between mac (-i '') and linux (simply -i) 
     if [ ! -z "$SYSDIG_INSTANCE_NAME" ]; then
        sed -i.bak -e 's/^\( *\)labels:$/&\
-\1  sysdig-instance: '$SYSDIG_INSTANCE_NAME'/' /tmp/sysdig-agent-daemonset-v2.yaml    
-        rm /tmp/sysdig-agent-daemonset-v2.yaml.bak
+\1  sysdig-instance: '$SYSDIG_INSTANCE_NAME'/' $DAEMONSET_FILE
+        rm $DAEMONSET_FILE.bak
     fi
 
     echo -e "    new_k8s: true" >> $CONFIG_FILE
     kubectl apply -f $CONFIG_FILE --namespace=$NAMESPACE
 
     echo "* Deploying the sysdig agent"
-    kubectl apply -f /tmp/sysdig-agent-daemonset-v2.yaml --namespace=$NAMESPACE
+    kubectl apply -f $DAEMONSET_FILE --namespace=$NAMESPACE
 }
 
 function remove_agent {
@@ -371,6 +380,9 @@ case ${key} in
         ;;
     -op|--openshift)
         OPENSHIFT=1
+        ;;
+    -as|--agent-slim)
+        AGENT_SLIM=1
         ;;
     -r|--remove)
         REMOVE_AGENT=1
