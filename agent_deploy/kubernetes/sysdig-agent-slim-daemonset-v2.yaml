@@ -1,11 +1,15 @@
 ### WARNING: this file is supported from Sysdig Agent 0.80.0
-apiVersion: extensions/v1beta1
+# apiVersion: extensions/v1beta1  # If you are in Kubernetes version 1.8 or less please use this line instead of the following one
+apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: sysdig-agent
   labels:
     app: sysdig-agent
 spec:
+  selector:
+    matchLabels:
+      app: sysdig-agent
   updateStrategy:
     type: RollingUpdate
   template:
