@@ -5,6 +5,8 @@
 set -e
 
 function install_curl_deb {
+    [ ! -z $NO_INTERNET ] && return 0
+    echo DEBUG
     export DEBIAN_FRONTEND=noninteractive
 
     if ! hash curl > /dev/null 2>&1; then
@@ -15,6 +17,7 @@ function install_curl_deb {
 }
 
 function install_curl_rpm {
+    [ ! -z $NO_INTERNET ] && return 0
     if ! hash curl > /dev/null 2>&1; then
         echo "* Installing curl"
         $CMD_PREF yum -q -y install curl
@@ -22,6 +25,7 @@ function install_curl_rpm {
 }
 
 function download_yamls {
+    [ ! -z $NO_INTERNET ] && return 0
     echo "* Downloading Sysdig cluster role yaml"
     curl -s -o /tmp/sysdig-agent-clusterrole.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/master/agent_deploy/kubernetes/sysdig-agent-clusterrole.yaml
     echo "* Downloading Sysdig config map yaml"
@@ -32,7 +36,7 @@ function download_yamls {
 
 function unsupported {
     echo "Unsupported operating system. Try using the the manual installation instructions"
-    exit 1	
+    exit 1
 }
 
 function help {
@@ -40,7 +44,7 @@ function help {
     echo "                [-cp | --collector_port <value>] [-s | --secure <value>] [-cc | --check_certificate <value>] \ "
     echo "                [-ns | --namespace | --project <value>] [-ac | --additional_conf <value>] [-np | --no-prometheus] \ "
     echo "                [-sn | --sysdig_instance_name <value>] [-op | --openshift ] \ "
-    echo "                [ -r | --remove ] [-h | --help]"
+    echo "                [-ni | --no-internet] [-r | --remove] [-h | --help]"
     echo ""
     echo " -a  : secret access key, as shown in Sysdig Monitor"
     echo " -t  : list of tags for this host (ie. \"role:webserver,location:europe\", \"role:webserver\" or \"webserver\")"
@@ -53,6 +57,7 @@ function help {
     echo " -np : if provided, do not enable the Prometheus collector.  Defaults to enabling Prometheus collector"
     echo " -sn : if provided, name of the sysdig instance (optional)"
     echo " -op : if provided, perform the installation using the OpenShift command line"
+    echo " -ni : if provided, will not download YAML files"
     echo " -r  : if provided, will remove the sysdig agent's daemonset, configmap, clusterrolebinding,"
     echo "       serviceacccount and secret from the specified namespace"
     echo " -h  : print this usage and exit"
@@ -224,10 +229,10 @@ function install_k8s_agent {
 
     sed -i -e "s|# serviceAccount: sysdig-agent|serviceAccount: sysdig-agent|" /tmp/sysdig-agent-daemonset-v2.yaml
     # add label for Sysdig instance
-    # -i.bak argument used for compatibility between mac (-i '') and linux (simply -i) 
+    # -i.bak argument used for compatibility between mac (-i '') and linux (simply -i)
     if [ ! -z "$SYSDIG_INSTANCE_NAME" ]; then
        sed -i.bak -e 's/^\( *\)labels:$/&\
-\1  sysdig-instance: '$SYSDIG_INSTANCE_NAME'/' /tmp/sysdig-agent-daemonset-v2.yaml    
+\1  sysdig-instance: '$SYSDIG_INSTANCE_NAME'/' /tmp/sysdig-agent-daemonset-v2.yaml
         rm /tmp/sysdig-agent-daemonset-v2.yaml.bak
     fi
 
@@ -375,6 +380,9 @@ case ${key} in
     -r|--remove)
         REMOVE_AGENT=1
         ;;
+    -ni|--no-internet)
+        NO_INTERNET=1
+        ;;
     -h|--help)
         help
         exit 1
@@ -389,9 +397,9 @@ done
 
 CMD_PREF=""
 if [ $(id -u) != 0 ]; then
-    if command -v sudo  > /dev/null 2>&1; then 
+    if command -v sudo  > /dev/null 2>&1; then
         CMD_PREF="sudo "
-    else 
+    else
         echo "Please install sudo and re-run the script"
         exit 1
     fi
