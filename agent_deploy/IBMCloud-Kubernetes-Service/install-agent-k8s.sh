@@ -226,19 +226,39 @@ function install_k8s_agent {
     fi
 
     if [ ! -z "$AGENT_SLIM" ]; then
-        DAEMONSET_FILE=/tmp/sysdig-agent-slim-daemonset-v2.yaml
+        DAEMONSET_FILE='/tmp/sysdig-agent-slim-daemonset-v2.yaml'
     else
-        DAEMONSET_FILE=/tmp/sysdig-agent-daemonset-v2.yaml
+        DAEMONSET_FILE='/tmp/sysdig-agent-daemonset-v2.yaml'
     fi
 
-    sed -i -e "s|# serviceAccount: sysdig-agent|serviceAccount: sysdig-agent|" $DAEMONSET_FILE
-    # add label for Sysdig instance
     # -i.bak argument used for compatibility between mac (-i '') and linux (simply -i) 
+    sed -i.bak -e "s|# serviceAccount: sysdig-agent|serviceAccount: sysdig-agent|" $DAEMONSET_FILE
+
+    # Use IBM Cloud Container Registry instead of docker.io
+    sed -i.bak -e "s|\( *image: \)sysdig|\1icr.io/ext/sysdig|g" $DAEMONSET_FILE
+
+    ICR_SECRET_EXIST=$(kubectl -n default get secret default-icr-io >/dev/null 2>&1 || echo 1)
+    if [ "$ICR_SECRET_EXIST" = 1 ]; then
+        # Throw an error instead of running the command for them because it could
+        #  take a long time for the secrets to become populated
+        echo "ERROR: default-icr-io secret doesn't exist in the default namespace"
+        echo "ERROR: Run: ibmcloud ks cluster pull-secret apply --cluster $IKS_CLUSTER_ID"
+        exit 1
+    fi
+    # Add the icr secret to our namespace. Delete beforehand to avoid conflicts
+    kubectl -n $NAMESPACE delete secret $NAMESPACE-icr-io 2>/dev/null || true
+    kubectl get secret default-icr-io -n default -o yaml | sed "s/default/$NAMESPACE/" | kubectl apply -n $NAMESPACE -f -
+    # Use the pull secret in the daemonset flie. macOS's sed doesn't like \n
+    INDENT=$(grep 'containers' $DAEMONSET_FILE | sed 's/\( *\).*/\1/')
+    echo "${INDENT}imagePullSecrets:" >> $DAEMONSET_FILE
+    echo "${INDENT}- name: $NAMESPACE-icr-io" >> $DAEMONSET_FILE
+
+    # Add label for Sysdig instance
     if [ ! -z "$SYSDIG_INSTANCE_NAME" ]; then
        sed -i.bak -e 's/^\( *\)labels:$/&\
-\1  sysdig-instance: '$SYSDIG_INSTANCE_NAME'/' $DAEMONSET_FILE
-        rm $DAEMONSET_FILE.bak
+\1  sysdig-instance: '$SYSDIG_INSTANCE_NAME'/' $DAEMONSET_FILE  
     fi
+    rm -f $DAEMONSET_FILE.bak
 
     echo -e "    new_k8s: true" >> $CONFIG_FILE
     kubectl apply -f $CONFIG_FILE --namespace=$NAMESPACE
