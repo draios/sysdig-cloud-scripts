@@ -33,7 +33,7 @@ The files in this directory can be used to configure k8s audit logging. The rele
 Run the following to fill in the template file with the ClusterIP ip address you created with the `sysdig-agent` service above. Although services like `sysdig-agent.default.svc.cluster.local` can not be resolved from the kube-apiserver container within the minikube vm (they're run as pods but not *really* a part of the cluster), the ClusterIPs associated with those services are routable.
 
 ```
-AGENT_SERVICE_CLUSTERIP=$(kubectl get service sysdig-agent -o=jsonpath={.spec.clusterIP}) envsubst < webhook-config.yaml.in > webhook-config.yaml
+AGENT_SERVICE_CLUSTERIP=$(kubectl get service sysdig-agent -o=jsonpath={.spec.clusterIP} -n sysdig-agent) envsubst < webhook-config.yaml.in > webhook-config.yaml
 ```
 
 ## Restart the API Server to enable Audit Logging
@@ -67,7 +67,7 @@ $
 When using dynamic audit sinks, you need to create an Audit Sink object that directs audit events to the sysdig agent service. A template file [audit-sink.yaml.in](./audit-sink.yaml.in) in this directory can be used to create the sink. Like the audit policy file above, it must be filled in using the ClusterIP address of the sysdig-agent service, using a command line:
 
 ```
-AGENT_SERVICE_CLUSTERIP=$(kubectl get service sysdig-agent -o=jsonpath={.spec.clusterIP}) envsubst < audit-sink.yaml.in > audit-sink.yaml
+AGENT_SERVICE_CLUSTERIP=$(kubectl get service sysdig-agent -o=jsonpath={.spec.clusterIP} -n sysdig-agent) envsubst < audit-sink.yaml.in > audit-sink.yaml
 ```
 
 Then you can create it via: `kubectl apply -f audit-sink.yaml -n sysdig-agent`.
