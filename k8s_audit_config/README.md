@@ -28,7 +28,7 @@ Follow the [Agent Installation Instructions for Kubernetes](https://sysdigdocs.a
 The files in this directory can be used to configure k8s audit logging. The relevant files are:
 
 * [audit-policy.yaml](./audit-policy.yaml): The k8s audit log configuration we recommend that is compatible with the default k8s audit rules published by Sysdig.
-* [webhook-config.yaml.in](./webhook-config.yaml.in): A (templated) webhook configuration that sends audit events to an ip associated with the Sysdig Agent service, port 8765. It is templated in that the *actual* ip is defined in an environment variable `AGENT_SERVICE_CLUSTERIP`, which can be plugged in using a program like `envsubst`.
+* [webhook-config.yaml.in](./webhook-config.yaml.in): A (templated) webhook configuration that sends audit events to an ip associated with the Sysdig Agent service, port 7765. It is templated in that the *actual* ip is defined in an environment variable `AGENT_SERVICE_CLUSTERIP`, which can be plugged in using a program like `envsubst`.
 
 Run the following to fill in the template file with the ClusterIP ip address you created with the `sysdig-agent` service above. Although services like `sysdig-agent.default.svc.cluster.local` can not be resolved from the kube-apiserver container within the minikube vm (they're run as pods but not *really* a part of the cluster), the ClusterIPs associated with those services are routable.
 
@@ -47,7 +47,7 @@ It is run as `bash ./enable-k8s-audit.sh <variant>`. `<variant>` can be one of t
 * "minikube"
 * "kops"
 
-When running with variant="kops", you must either modify the script to specify the kops apiserver hostname or set it via the environment: `APISERVER_HOST=api.my-kops-cluster.com bash ./enable-k8s-audit.sh kops`
+When running with variant="kops", the api server hostname will be derived from the current kubectl context name, adding an "api." prefix. If you want to use a different api server hostname, you must either modify the script to specify the kops apiserver hostname or set it via the environment: `APISERVER_HOST=api.my-kops-cluster.com bash ./enable-k8s-audit.sh kops`
 
 Its output looks like this:
 

@@ -13,4 +13,4 @@ spec:
       qps: 10
       burst: 15
     clientConfig:
-      url: "http://100.70.25.98:7765/k8s_audit"
+      url: "http://$AGENT_SERVICE_CLUSTERIP:7765/k8s_audit"

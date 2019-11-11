@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -euo pipefail
+set -euxo pipefail
 
 VARIANT=${1:-minikube}
 AUDIT_TYPE=${2:-dynamic+log}
@@ -13,7 +13,11 @@ if [ "$VARIANT" == "minikube" ]; then
 fi
 
 if [ "$VARIANT" == "kops" ]; then
-    # APISERVER_HOST=api.your-kops-cluster-name.com
+
+    if [ -z ${APISERVER_HOST+x} ]; then
+	APISERVER_HOST=api.$(kubectl config current-context)
+    fi
+
     SSH_KEY=~/.ssh/id_rsa
     SSH_USER="admin"
     MANIFEST=/etc/kubernetes/manifests/kube-apiserver.manifest
