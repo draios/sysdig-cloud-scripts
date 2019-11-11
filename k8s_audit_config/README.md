@@ -61,6 +61,17 @@ apiserver-config.patch.sh                                                       
 ***Done!
 $
 ```
+
+## (Dynamic only) Create an Audit Sink Pointing to the Agent Service
+
+When using dynamic audit sinks, you need to create an Audit Sink object that directs audit events to the sysdig agent service. A template file [audit-sink.yaml.in](./audit-sink.yaml.in) in this directory can be used to create the sink. Like the audit policy file above, it must be filled in using the ClusterIP address of the sysdig-agent service, using a command line:
+
+```
+AGENT_SERVICE_CLUSTERIP=$(kubectl get service sysdig-agent -o=jsonpath={.spec.clusterIP}) envsubst < audit-sink.yaml.in > audit-sink.yaml
+```
+
+Then you can create it via: `kubectl apply -f audit-sink.yaml -n sysdig-agent`.
+
 ## Observe K8s audit events at Sysdig Agent
 
 K8s audit events will then be routed to the Sysdig Agent daemonset within the cluster, which you can observe via the Sysdig Secure Policy Events tab.
