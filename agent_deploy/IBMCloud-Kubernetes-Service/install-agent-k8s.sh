@@ -227,10 +227,10 @@ function install_k8s_agent {
 
     AGENT_STRING="agent"
     if [ ! -z "$AGENT_SLIM" ]; then
-            DAEMONSET_FILE='/tmp/sysdig-agent-slim-daemonset-v2.yaml'
-	    AGENT_STRING="agent-slim"
+	DAEMONSET_FILE='/tmp/sysdig-agent-slim-daemonset-v2.yaml'
+	AGENT_STRING="agent-slim"
     else
-            DAEMONSET_FILE='/tmp/sysdig-agent-daemonset-v2.yaml'
+        DAEMONSET_FILE='/tmp/sysdig-agent-daemonset-v2.yaml'
     fi
 
     # -i.bak argument used for compatibility between mac (-i '') and linux (simply -i) 
