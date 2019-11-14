@@ -227,10 +227,10 @@ function install_k8s_agent {
 
     AGENT_STRING="agent"
     if [ ! -z "$AGENT_SLIM" ]; then
-        DAEMONSET_FILE='/tmp/sysdig-agent-slim-daemonset-v2.yaml'
-	AGENT_STRING="agent-slim"
+            DAEMONSET_FILE='/tmp/sysdig-agent-slim-daemonset-v2.yaml'
+	    AGENT_STRING="agent-slim"
     else
-        DAEMONSET_FILE='/tmp/sysdig-agent-daemonset-v2.yaml'
+            DAEMONSET_FILE='/tmp/sysdig-agent-daemonset-v2.yaml'
     fi
 
     # -i.bak argument used for compatibility between mac (-i '') and linux (simply -i) 
@@ -238,9 +238,9 @@ function install_k8s_agent {
 
     # Use IBM Cloud Container Registry instead of docker.io
     if[ ! -z "$AGENT_VERSION" ]; then
-	sed -i.bak -e "s|\( *image: \)sysdig/${AGENT_STRING}|\1icr.io/ext/sysdig/${AGENT_STRING}:${AGENT_VERSION}|g" $DAEMONSET_FILE
+	    sed -i.bak -e "s|\( *image: \)sysdig/${AGENT_STRING}|\1icr.io/ext/sysdig/${AGENT_STRING}:${AGENT_VERSION}|g" $DAEMONSET_FILE
     else
-	sed -i.bak -e "s|\( *image: \)sysdig|\1icr.io/ext/sysdig|g" $DAEMONSET_FILE
+	    sed -i.bak -e "s|\( *image: \)sysdig|\1icr.io/ext/sysdig|g" $DAEMONSET_FILE
     fi
 
     ICR_SECRET_EXIST=$(kubectl -n default get secret default-icr-io >/dev/null 2>&1 || echo 1)
