@@ -227,8 +227,8 @@ function install_k8s_agent {
 
     AGENT_STRING="agent"
     if [ ! -z "$AGENT_SLIM" ]; then
-	DAEMONSET_FILE='/tmp/sysdig-agent-slim-daemonset-v2.yaml'
-	AGENT_STRING="agent-slim"
+	  DAEMONSET_FILE='/tmp/sysdig-agent-slim-daemonset-v2.yaml'
+	  AGENT_STRING="agent-slim"
     else
         DAEMONSET_FILE='/tmp/sysdig-agent-daemonset-v2.yaml'
     fi
@@ -237,7 +237,7 @@ function install_k8s_agent {
     sed -i.bak -e "s|# serviceAccount: sysdig-agent|serviceAccount: sysdig-agent|" $DAEMONSET_FILE
 
     # Use IBM Cloud Container Registry instead of docker.io
-    if[ ! -z "$AGENT_VERSION" ]; then
+    if [ ! -z "$AGENT_VERSION" ]; then
 	    sed -i.bak -e "s|\( *image: \)sysdig/${AGENT_STRING}|\1icr.io/ext/sysdig/${AGENT_STRING}:${AGENT_VERSION}|g" $DAEMONSET_FILE
     else
 	    sed -i.bak -e "s|\( *image: \)sysdig|\1icr.io/ext/sysdig|g" $DAEMONSET_FILE
