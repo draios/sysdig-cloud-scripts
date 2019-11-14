@@ -27,9 +27,9 @@ function download_yamls {
     echo "* Downloading Sysdig config map yaml"
     curl -s -o /tmp/sysdig-agent-configmap.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/master/agent_deploy/kubernetes/sysdig-agent-configmap.yaml
     echo "* Downloading Sysdig daemonset v2 yaml"
-    curl -s -o /tmp/sysdig-agent-daemonset-v2.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/master/agent_deploy/kubernetes/sysdig-agent-daemonset-v2.yaml
+    curl -s -o /tmp/sysdig-agent-daemonset-v2.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/master/agent_deploy/ibm-iks/sysdig-agent-daemonset-v2.yaml
     echo "* Downloading Sysdig agent-slim daemonset v2 yaml"
-    curl -s -o /tmp/sysdig-agent-slim-daemonset-v2.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/master/agent_deploy/kubernetes/sysdig-agent-slim-daemonset-v2.yaml
+    curl -s -o /tmp/sysdig-agent-slim-daemonset-v2.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/master/agent_deploy/ibm-iks/sysdig-agent-slim-daemonset-v2.yaml
 }
 
 function unsupported {

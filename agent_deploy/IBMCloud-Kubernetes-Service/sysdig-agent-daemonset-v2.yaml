@@ -1,0 +1,128 @@
+### WARNING: this file is supported from Sysdig Agent 0.80.0
+# apiVersion: extensions/v1beta1  # If you are in Kubernetes version 1.8 or less please use this line instead of the following one
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: sysdig-agent
+  labels:
+    app: sysdig-agent
+spec:
+  selector:
+    matchLabels:
+      app: sysdig-agent
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: sysdig-agent
+    spec:
+      volumes:
+      - name: osrel
+        hostPath:
+          path: /etc/os-release
+          type: FileOrCreate
+      - name: dshm
+        emptyDir:
+          medium: Memory
+      - name: dev-vol
+        hostPath:
+          path: /dev
+      - name: proc-vol
+        hostPath:
+          path: /proc
+      - name: boot-vol
+        hostPath:
+          path: /boot
+      - name: modules-vol
+        hostPath:
+          path: /lib/modules
+      - name: usr-vol
+        hostPath:
+          path: /usr
+      - name: run-vol
+        hostPath:
+          path: /run
+      - name: varrun-vol
+        hostPath:
+          path: /var/run
+      # Uncomment these lines if you'd like to map /root/ from the
+      # host into the container. This can be useful to map
+      # /root/.sysdig to pick up custom kernel modules.
+      #- name: host-root-vol
+      #  hostPath:
+      #    path: /root
+      - name: sysdig-agent-config
+        configMap:
+          name: sysdig-agent
+          optional: true
+      - name: sysdig-agent-secrets
+        secret:
+          secretName: sysdig-agent
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      hostPID: true
+      tolerations:
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/master
+      # The following line is necessary for RBAC
+      serviceAccount: sysdig-agent
+      terminationGracePeriodSeconds: 5
+      containers:
+      - name: sysdig-agent
+        image: sysdig/agent:0.92.1
+        imagePullPolicy: Always
+        securityContext:
+          privileged: true
+        resources:
+          # Resources needed are subjective to the actual workload.
+          # Please refer to Sysdig Support for more info.
+          requests:
+            cpu: 600m
+            memory: 512Mi
+          limits:
+            cpu: 2000m
+            memory: 1536Mi
+        readinessProbe:
+          exec:
+            command: [ "test", "-e", "/opt/draios/logs/running" ]
+          initialDelaySeconds: 10
+        # This section is for eBPF support. Please refer to Sysdig Support before
+        # uncommenting, as eBPF is recommended for only a few configurations.
+        #env:
+        #  - name: SYSDIG_BPF_PROBE
+        #    value: ""
+        volumeMounts:
+        - mountPath: /host/dev
+          name: dev-vol
+          readOnly: false
+        - mountPath: /host/proc
+          name: proc-vol
+          readOnly: true
+        - mountPath: /host/boot
+          name: boot-vol
+          readOnly: true
+        - mountPath: /host/lib/modules
+          name: modules-vol
+          readOnly: true
+        - mountPath: /host/usr
+          name: usr-vol
+          readOnly: true
+        - mountPath: /host/run
+          name: run-vol
+        - mountPath: /host/var/run
+          name: varrun-vol
+        - mountPath: /dev/shm
+          name: dshm
+        - mountPath: /opt/draios/etc/kubernetes/config
+          name: sysdig-agent-config
+        - mountPath: /opt/draios/etc/kubernetes/secrets
+          name: sysdig-agent-secrets
+        - mountPath: /host/etc/os-release
+          name: osrel
+          readOnly: true
+        # Uncomment these lines if you'd like to map /root/ from the
+        # host into the container. This can be useful to map
+        # /root/.sysdig to pick up custom kernel modules.
+        #- mountPath: /root
+        #  name: host-root-vol
