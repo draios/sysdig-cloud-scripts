@@ -42,7 +42,7 @@ function help {
     echo "                [-cp | --collector_port <value>] [-s | --secure <value>] [-cc | --check_certificate <value>] \ "
     echo "                [-ns | --namespace | --project <value>] [-ac | --additional_conf <value>] [-np | --no-prometheus] \ "
     echo "                [-sn | --sysdig_instance_name <value>] [-op | --openshift] [-as | --agent-slim] \ "
-    echo "                [ -r | --remove ] [-h | --help]"
+    echo "                [-av | --agent-version <value>] [ -r | --remove ] [-h | --help]"
     echo ""
     echo " -a  : secret access key, as shown in Sysdig Monitor"
     echo " -t  : list of tags for this host (ie. \"role:webserver,location:europe\", \"role:webserver\" or \"webserver\")"
@@ -225,17 +225,19 @@ function install_k8s_agent {
         echo -e "        enabled: true" >> $CONFIG_FILE
     fi
 
+    AGENT_STRING="agent"
     if [ ! -z "$AGENT_SLIM" ]; then
-        DAEMONSET_FILE='/tmp/sysdig-agent-slim-daemonset-v2.yaml'
+        DAEMONSET_FILE="/tmp/sysdig-agent-slim-daemonset-v2.yaml"
+        AGENT_STRING="agent-slim"
     else
-        DAEMONSET_FILE='/tmp/sysdig-agent-daemonset-v2.yaml'
+        DAEMONSET_FILE="/tmp/sysdig-agent-daemonset-v2.yaml"
     fi
 
     # -i.bak argument used for compatibility between mac (-i '') and linux (simply -i) 
     sed -i.bak -e "s|# serviceAccount: sysdig-agent|serviceAccount: sysdig-agent|" $DAEMONSET_FILE
 
     # Use IBM Cloud Container Registry instead of docker.io
-    sed -i.bak -e "s|\( *image: \)sysdig|\1icr.io/ext/sysdig|g" $DAEMONSET_FILE
+    sed -i.bak -e "s|\( *image: \)sysdig/${AGENT_STRING}|\1icr.io/ext/sysdig/${AGENT_STRING}:${AGENT_VERSION}|g" $DAEMONSET_FILE
 
     ICR_SECRET_EXIST=$(kubectl -n default get secret default-icr-io >/dev/null 2>&1 || echo 1)
     if [ "$ICR_SECRET_EXIST" = 1 ]; then
@@ -308,6 +310,7 @@ NAMESPACE="ibm-observe"
 REMOVE_AGENT=0
 ENABLE_PROMETHEUS=1
 OPENSHIFT=0
+AGENT_VERSION="latest"
 
 while [[ ${#} > 0 ]]
 do
@@ -394,6 +397,15 @@ case ${key} in
             SYSDIG_INSTANCE_NAME="${2}"
         else
             echo "ERROR: no value provided for sysdig instance name use -h | --help for $(basename ${0}) Usage"
+            exit 1
+        fi
+        shift
+        ;;
+    -av|--agent-version)
+	if is_valid_value "${2}"; then
+            AGENT_VERSION="${2}"
+        else
+            echo "ERROR: no value provided for agent version use -h | --help for $(basename ${0}) Usage"
             exit 1
         fi
         shift
