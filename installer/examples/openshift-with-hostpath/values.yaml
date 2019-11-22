@@ -1,0 +1,44 @@
+size: medium
+# The below can be ignored for non-openshift clusters.
+deployment: openshift
+# Replace with quay.io pull secrets provided by the sales team.
+quaypullsecret: <PLEASE_REPLACE>
+# Acceptable values here are awe|gke|none|hostPath, change this to none and configure storageClassName if you want to use an existing storageClass
+storageClassProvisioner: hostPath
+# Uncomment the below to specify an existing storageClass, if not configured a storageClass is created with the configured storageClassProvisioner
+# storageClassName: sysdig
+elasticsearch:
+  hostPathNodes:
+    # replace with the name section of kubectl get nodes
+    - my-cool-host1.com
+    - my-cool-host2.com
+    - my-cool-host3.com
+sysdig:
+  # Openshift API url along with its port number
+  openshiftUrl: <REPLACE_WITH_OPENSHIFT_URL>
+  # Username of the user to access the configured openshift url
+  openshiftUser: <REPLACE_WITH_OPENSHIFT_USERNAME>
+  # Password of the user to access the configured openshift url
+  openshiftPassword: <REPLACE_WITH_OPENSHIFT_PASSWORD>
+  collector:
+    dnsName: <PLEASE_REPLACE>
+  mysql:
+    hostPathNodes:
+      # replace with the name section of kubectl get nodes
+      - my-cool-host1.com
+  postgresql:
+    hostPathNodes:
+      # replace with the name section of kubectl get nodes
+      - my-cool-host1.com
+  cassandra:
+    hostPathNodes:
+      # replace with the name section of kubectl get nodes
+      - my-cool-host1.com
+      - my-cool-host2.com
+      - my-cool-host3.com
+  # Replace with domain name the api should be served on.
+  dnsName: <PLEASE_REPLACE>
+  admin:
+    username: <REPLACE_WITH_A_VALID_EMAIL_ADDRESS>
+  # Replace with license provided by the sales team.
+  license: <PLEASE_REPLACE>
