@@ -48,3 +48,4 @@ To need to run `kubectl` as root on the host.
 
 - the script will be hosted in a public location so you can `curl | sudo bash`
 the script.
+

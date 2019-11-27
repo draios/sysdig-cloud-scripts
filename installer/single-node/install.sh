@@ -75,7 +75,7 @@ EOM
 }
 
 function askQuestions() {
-  read -rp $'Provide quay pull secrets: \n' QUAYPULLSECRET
+  read -rp $'Provide quay pull secret: \n' QUAYPULLSECRET
   printf "\n"
   read -rp $'Provide sysdig license: \n' LICENSE
   printf "\n"
