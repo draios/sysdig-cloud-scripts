@@ -18,6 +18,9 @@ spec:
         app: sysdig-agent
     spec:
       volumes:
+      - name: modprobe-d
+        hostPath:
+          path: /etc/modprobe.d
       - name: osrel
         hostPath:
           path: /etc/os-release
@@ -93,6 +96,9 @@ spec:
         #  - name: SYSDIG_BPF_PROBE
         #    value: ""
         volumeMounts:
+        - mountPath: /etc/modprobe.d
+          name: modprobe-d
+          readOnly: true
         - mountPath: /host/dev
           name: dev-vol
           readOnly: false

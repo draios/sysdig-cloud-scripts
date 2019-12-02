@@ -18,6 +18,9 @@ spec:
         app: sysdig-agent
     spec:
       volumes:
+      - name: modprobe-d
+        hostPath:
+          path: /etc/modprobe.d
       - name: dshm
         emptyDir:
           medium: Memory
@@ -90,6 +93,9 @@ spec:
         #     new_k8s: true
         #     k8s_cluster_name: production
         volumeMounts:
+        - mountPath: /etc/modprobe.d
+          name: modprobe-d
+          readOnly: true
         - mountPath: /host/dev
           name: dev-vol
           readOnly: false
