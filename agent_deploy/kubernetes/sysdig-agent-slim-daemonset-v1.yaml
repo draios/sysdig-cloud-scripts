@@ -74,6 +74,9 @@ spec:
         - mountPath: /host/lib/modules
           name: modules-vol
           readOnly: true
+        - mountPath: /etc/modprobe.d
+          name: modprobe-d
+          readOnly: true
         - mountPath: /host/usr
           name: usr-vol
           readOnly: true
@@ -117,9 +120,6 @@ spec:
         #     new_k8s: true
         #     k8s_cluster_name: production
         volumeMounts:
-        - mountPath: /etc/modprobe.d
-          name: modprobe-d
-          readOnly: true
         - mountPath: /host/dev
           name: dev-vol
           readOnly: false

@@ -73,6 +73,9 @@ spec:
           limits:
             memory: 512Mi
         volumeMounts:
+        - mountPath: /etc/modprobe.d
+          name: modprobe-d
+          readOnly: true
         - mountPath: /host/boot
           name: boot-vol
           readOnly: true
@@ -104,9 +107,6 @@ spec:
             command: [ "test", "-e", "/opt/draios/logs/running" ]
           initialDelaySeconds: 10
         volumeMounts:
-        - mountPath: /etc/modprobe.d
-          name: modprobe-d
-          readOnly: true
         - mountPath: /host/dev
           name: dev-vol
           readOnly: false
