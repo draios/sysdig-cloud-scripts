@@ -18,7 +18,6 @@ ROOT_LOCAL_PATH="/usr/bin"
 QUAYPULLSECRET="PLACEHOLDER"
 LICENSE="PLACEHOLDER"
 DNSNAME="PLACEHOLDER"
-ANCHORE_LICENSE_FILE_NAME="none"
 
 function writeValuesYaml() {
   cat << EOM > values.yaml
@@ -64,14 +63,6 @@ sysdig:
         cpu: 500m
         memory: 1Gi
 EOM
-  if [[ -n $ANCHORE_LICENSE_FILE_NAME && $ANCHORE_LICENSE_FILE_NAME != none ]]; then
-    if [[ ! -s $ANCHORE_LICENSE_FILE_NAME ]]; then
-      echo "Provided $ANCHORE_LICENSE_FILE_NAME does not exists or is empty"
-      exit 1
-    fi
-    echo "  configureScanningReporting: true" >> values.yaml
-    echo "  anchoreLicensePath: $ANCHORE_LICENSE_FILE_NAME" >> values.yaml
-  fi
 }
 
 function askQuestions() {
@@ -80,8 +71,6 @@ function askQuestions() {
   read -rp $'Provide sysdig license: \n' LICENSE
   printf "\n"
   read -rp $'Provide domain name, this domain name should resolve to this node on port 443 and 6443: \n' DNSNAME
-  printf "\n"
-  read -rp $'Provide file name for anchore license, if you do not intend to you use enterprise anchore hit the enter key to continue \n' ANCHORE_LICENSE_FILE_NAME
   printf "\n"
 }
 
