@@ -18,6 +18,9 @@ spec:
         app: sysdig-agent
     spec:
       volumes:
+      - name: modprobe-d
+        hostPath:
+          path: /etc/modprobe.d
       - name: dshm
         emptyDir:
           medium: Memory
@@ -70,6 +73,9 @@ spec:
           limits:
             memory: 512Mi
         volumeMounts:
+        - mountPath: /etc/modprobe.d
+          name: modprobe-d
+          readOnly: true
         - mountPath: /host/boot
           name: boot-vol
           readOnly: true

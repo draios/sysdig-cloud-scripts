@@ -18,6 +18,9 @@ spec:
         app: sysdig-agent
     spec:
       volumes:
+      - name: modprobe-d
+        hostPath:
+          path: /etc/modprobe.d
       - name: dshm
         emptyDir:
           medium: Memory
@@ -71,6 +74,9 @@ spec:
             command: [ "test", "-e", "/opt/draios/logs/running" ]
           initialDelaySeconds: 10
         volumeMounts:
+        - mountPath: /etc/modprobe.d
+          name: modprobe-d
+          readOnly: true
         - mountPath: /host/var/run/docker.sock
           name: docker-sock
           readOnly: false
