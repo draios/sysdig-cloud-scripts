@@ -19,7 +19,7 @@ To upgrade:<br>
 
 1. Copy the current version sysdig-chart/values.yaml to your working directory.
   ```bash
-  wget https://github.com/draios/sysdigcloud-kubernetes/blob/installer/installer/values.yaml
+  wget https://raw.githubusercontent.com/draios/sysdigcloud-kubernetes/installer/installer/values.yaml
   ```
 2. Edit the following values:
   - [`scripts`](docs/configuration_parameters.md#scripts): Set this to
@@ -76,8 +76,12 @@ To upgrade:<br>
   see [Airgapped Installation
   Options](../README.md#airgapped-Installation-Options).) 
   ```bash
-  docker run -e HOST_USER=$(id -u) -e KUBECONFIG=/.kube/config \
-    -v ~/.kube:/.kube:Z -v $(pwd):/manifests:Z \quay.io/sysdig/installer:2.4.1-3
+  docker run \
+    -e HOST_USER=$(id -u) \
+    -e KUBECONFIG=/.kube/config \
+    -v ~/.kube:/.kube:Z \
+    -v $(pwd):/manifests:Z \
+    quay.io/sysdig/installer:3.0.0-1
   ```
 
 4. If you are fine with the differences displayed, then set value for the

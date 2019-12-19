@@ -57,3 +57,41 @@ sysdig:
     hostPathNodes:
       - my-cool-host1.com
 ```
+
+
+## Installer on EKS
+
+### Creating a cluster
+Please do not use eksctl 0.10.0 and 0.10.1 as those are known to be buggy see: kubernetes/kubernetes#73906 (comment)
+```bash
+eksctl create cluster \
+   --name=eks-installer1 \
+   --node-type=m5.4xlarge \
+   --nodes=3 \
+   --version 1.14 \
+   --region=us-east-1 \
+   --vpc-public-subnets=<subnet1,subnet2>
+```
+
+### Additional config for installer
+EKS uses aws-iam-authenticator to authorize kubectl commands.
+aws-iam-authenticator needs aws credentials mounted from **~/.aws** to the installer.
+```bash
+docker run  \
+  -v ~/.aws:/.aws \
+  -e HOST_USER=$(id -u) \
+  -e KUBECONFIG=/.kube/config \
+  -v ~/.kube:/.kube:Z \
+  -v $(pwd):/manifests:Z \
+  quay.io/sysdig/installer:<InstallerVersion>
+```
+
+### Exposing the sysdig endpoint
+Get the external ip/endpoint for the ingress service.
+```bash
+kubectl -n <namespace>  get service haproxy-ingress-service
+```
+In route53 create an A record with the dns name pointing to external ip/endpoint.
+
+### Gotchas
+Make sure that subnets have internet gateway configured and has enough ips.

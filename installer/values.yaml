@@ -7,8 +7,8 @@ schema_version: 1.0.0
 size: medium
 #Set Quay.Io secrets
 quaypullsecret: <change-me>
-#supports aws | gke | hostPath | local
-storageClassProvisioner: aws
+#supports aws | gke | ibm | hostPath | local
+storageClassProvisioner: aws  # TODO: this would be better as cloudProvisioner | hostPath | local, where cloudProvisioner differs to cloudProvider.name where used
 #Sysdig application config
 sysdig:
 # Sysdig Platform super admin user. This will be used for initial login to
