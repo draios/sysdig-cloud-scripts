@@ -89,7 +89,7 @@ function dockerLogin() {
 function installUbuntuDeps() {
   apt-get remove -y docker docker-engine docker.io containerd runc > /dev/null 2>&1
   apt-get update -qq
-  apt-get install -y apt-transport-https ca-certificates curl software-properties-common jq python-pip
+  apt-get install -y apt-transport-https ca-certificates curl software-properties-common
   curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
   add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu  $(lsb_release -cs) stable"
   apt-get update -qq
@@ -99,7 +99,7 @@ function installUbuntuDeps() {
 function installDebianDeps() {
   apt-get remove -y docker docker-engine docker.io containerd runc > /dev/null 2>&1
   apt-get update -qq
-  apt-get install -y apt-transport-https ca-certificates curl gnupg2 software-properties-common jq python-pip
+  apt-get install -y apt-transport-https ca-certificates curl gnupg2 software-properties-common
   curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -
   add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"
   apt-get update -qq
@@ -112,9 +112,9 @@ function installCentOSDeps() {
   yum -y update
   yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
   if [[ $version == 8 ]]; then
-    yum install -y yum-utils device-mapper-persistent-data lvm2 curl jq.x86_64
+    yum install -y yum-utils device-mapper-persistent-data lvm2 curl
   else
-    yum install -y yum-utils device-mapper-persistent-data lvm2 curl jq
+    yum install -y yum-utils device-mapper-persistent-data lvm2 curl
   fi
   # Copied from https://github.com/kubernetes/kops/blob/b92babeda277df27b05236d852b5c0dc0803ce5d/nodeup/pkg/model/docker.go#L758-L764
   yum install -y http://vault.centos.org/7.6.1810/extras/x86_64/Packages/container-selinux-2.68-1.el7.noarch.rpm
@@ -139,6 +139,12 @@ function installKubectl() {
   curl -s -Lo kubectl "https://storage.googleapis.com/kubernetes-release/release/${kubectl_latest}/bin/linux/amd64/kubectl"
   chmod +x kubectl
   mv kubectl "${ROOT_LOCAL_PATH}"
+}
+
+function installJq() {
+  curl -o jq -L https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
+  chmod +x jq
+  mv jq "${ROOT_LOCAL_PATH}"
 }
 
 function installDeps() {
@@ -172,6 +178,7 @@ function installDeps() {
       exit 1
       ;;
   esac
+  installJq
   installMiniKube
   installKubectl
   set -e
