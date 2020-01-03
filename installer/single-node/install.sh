@@ -123,6 +123,12 @@ function installCentOSDeps() {
   systemctl start docker
 }
 
+function disableFirewalld() {
+  echo "Disabling firewald...."
+  systemctl stop firewalld
+  systemctl disable firewalld
+}
+
 function installMiniKube() {
   local -r minikube_latest=$(
     curl -sL \
@@ -171,6 +177,7 @@ function installDeps() {
         echo "$ID version: $VERSION_ID is not supported"
         exit 1
       fi
+      disableFirewalld
       installCentOSDeps "$VERSION_ID"
       ;;
     *)
