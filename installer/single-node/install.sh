@@ -155,6 +155,14 @@ function installJq() {
 
 function installDeps() {
   set +e
+
+  cat << EOF > /etc/sysctl.d/k8s.conf
+  net.bridge.bridge-nf-call-ip6tables = 1
+  net.bridge.bridge-nf-call-iptables = 1
+EOF
+  modprobe br_netfilter
+  sysctl --system
+
   source /etc/os-release
   case $ID in
     ubuntu)
@@ -201,6 +209,7 @@ function startMinikube() {
   export MINIKUBE_HOME="/root"
   export KUBECONFIG="/root/.kube/config"
   minikube start --vm-driver=none --kubernetes-version=${KUBERNETES_VERSION}
+  systemctl enable kubelet
   kubectl config use-context minikube
 }
 
@@ -219,7 +228,7 @@ function runInstaller() {
     -v /root/.kube:/root/.kube:Z \
     -v /root/.minikube:/root/.minikube:Z \
     -v "$(pwd)":/manifests:Z \
-    quay.io/sysdig/installer:2.5.0-2
+    quay.io/sysdig/installer:2.5.0-3
 }
 
 function __main() {
