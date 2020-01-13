@@ -22,23 +22,24 @@ for debugging a failed install.
 
 ## Requirements.
 
-- An instance with at least 8 CPU cores, 16GB of RAM and 300GB of disk space.
+- An instance with at least 16 CPU cores, 32GB of RAM and 300GB of disk space.
 - Port 443 and 6443 granted network access (in AWS this is done with security
 groups)
 
 ## Status
 
 Tested on:
+- ubuntu bionic
 
+Should work fine on:
 - amazon linux
 - centos 7
 - centos 8
 - debian buster
 - debian stretch
-- ubuntu bionic
 - ubuntu xenial
 
-The script will not work on any OS that it has not been tested on.
+The script will not work on any OS not in above lists.
 
 ## Note
 
