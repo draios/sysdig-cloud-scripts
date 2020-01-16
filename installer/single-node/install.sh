@@ -228,7 +228,7 @@ function runInstaller() {
     -v /root/.kube:/root/.kube:Z \
     -v /root/.minikube:/root/.minikube:Z \
     -v "$(pwd)":/manifests:Z \
-    quay.io/sysdig/installer:3.0.0-2
+    quay.io/sysdig/installer:3.0.0-3
 }
 
 function __main() {
