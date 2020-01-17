@@ -79,12 +79,12 @@ elif [[ "$VARIANT" == "gke" ]]; then
     else
         gcloud iam service-accounts create swb-logs-reader --description "Service account used by stackdriver-webhook-bridge" --display-name "stackdriver-webhook-bridge logs reader"
         gcloud projects add-iam-policy-binding "$GCE_PROJECT_ID" --member serviceAccount:swb-logs-reader@"$GCE_PROJECT_ID".iam.gserviceaccount.com --role 'roles/logging.viewer'
-        gcloud iam service-accounts keys create "$HOME"/swb-logs-reader-key.json --iam-account swb-logs-reader@"$GCE_PROJECT_ID".iam.gserviceaccount.com
+        gcloud iam service-accounts keys create "$PWD"/swb-logs-reader-key.json --iam-account swb-logs-reader@"$GCE_PROJECT_ID".iam.gserviceaccount.com
     fi
 
     echo "Creating k8s secret containing service account keys..."
     kubectl delete secret stackdriver-webhook-bridge || true
-    kubectl create secret generic stackdriver-webhook-bridge --from-file=key.json="$HOME"/swb-logs-reader-key.json
+    kubectl create secret generic stackdriver-webhook-bridge --from-file=key.json="$PWD"/swb-logs-reader-key.json
 
     echo "Deploying stackdriver-webhook-bridge to sysdig-agent namespace..."
     curl -LO https://raw.githubusercontent.com/sysdiglabs/stackdriver-webhook-bridge/master/stackdriver-webhook-bridge.yaml

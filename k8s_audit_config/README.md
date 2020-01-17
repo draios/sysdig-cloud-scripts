@@ -203,13 +203,13 @@ GKE already provides [K8s Audit Logs](https://cloud.google.com/kubernetes-engine
 ```
 $ gcloud iam service-accounts create swb-logs-reader --description "Service account used by stackdriver-webhook-bridge" --display-name "stackdriver-webhook-bridge logs reader"
 $ gcloud projects add-iam-policy-binding <your gce project id> --member serviceAccount:swb-logs-reader@<your gce project id>.iam.gserviceaccount.com --role 'roles/logging.viewer'
-$ gcloud iam service-accounts keys create $HOME/swb-logs-reader-key.json --iam-account swb-logs-reader@<your gce project id>.iam.gserviceaccount.com
+$ gcloud iam service-accounts keys create $PWD/swb-logs-reader-key.json --iam-account swb-logs-reader@<your gce project id>.iam.gserviceaccount.com
 ```
 
 1. Create a k8s secret containing the service account keys:
 
 ```
-kubectl create secret generic stackdriver-webhook-bridge --from-file=key.json=$HOME/swb-logs-reader-key.json
+kubectl create secret generic stackdriver-webhook-bridge --from-file=key.json=$PWD/swb-logs-reader-key.json
 ```
 
 1. Deploy the bridge program to your cluster using the provided [stackdriver-webhook-bridge.yaml](https://github.com/sysdiglabs/stackdriver-webhook-bridge/blob/master/stackdriver-webhook-bridge.yaml) file:
