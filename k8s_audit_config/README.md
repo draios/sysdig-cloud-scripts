@@ -241,7 +241,7 @@ These instructions were verified with RKE v1.0.0 and K8s v1.16.3. It should work
 K8s Audit support is already enabled by default, but the audit policy must be updated to provide additional granularity. These instructions enable a webhook backend pointing to the agent's service. Dynamic audit backends are not supported as there isn't a way to enable the audit feature flag.
 
 1. On each K8s API Master Node, create the directory `/var/lib/k8s_audit`.
-1. On each K8s API Master Node, copy the provided [audit-policy.yaml](./audit-policy.yaml) file to the minikube vm into the directory `/var/lib/k8s_audit`. This directory will be mounted into the api server, giving it access to the audit/webhook files.
+1. On each K8s API Master Node, copy the provided [audit-policy.yaml](./audit-policy.yaml) file to the master node into the directory `/var/lib/k8s_audit`. This directory will be mounted into the api server, giving it access to the audit/webhook files.
 1. Follow the instructions described in [Creating a webhook configuration file](#Creating a webhook configuration file)] to create a `webhook-config.yaml` file and copy it to each K8s API Master Node into the directory `/var/lib/k8s_audit`.
 1. Modify your RKE cluster configuration `cluster.yml` to add `extra_args` and `extra_binds` sections to the `kube-api` section. Here's an example:
 
