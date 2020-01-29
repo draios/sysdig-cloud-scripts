@@ -66,6 +66,7 @@ elif [[ "$VARIANT" == "openshift-4.2" ]]; then
         POD_STATUS=$(oc get pod -l revision=${EXP_REVISION},app=openshift-kube-apiserver -n openshift-kube-apiserver -o jsonpath={.items[0].status.phase} 2>&1 || true)
     done
     echo "Creating dynamic audit sink..."
+    prepare_audit_sink_config
     kubectl apply -f audit-sink.yaml
 elif [[ "$VARIANT" == "gke" ]]; then
     echo "Enter your gce project id: "
