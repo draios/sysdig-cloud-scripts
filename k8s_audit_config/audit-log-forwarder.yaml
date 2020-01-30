@@ -1,0 +1,80 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sysdig-audit-log-forwarder
+data:
+  fluent.conf: |
+    [INPUT]
+      Name tail
+      Path /host/var/log/kube-apiserver/audit.log
+      Parser k8s_audit
+
+    [OUTPUT]
+      Name http
+      Host sysdig-agent.sysdig-agent.svc.cluster.local
+      Port 7765
+      URI /k8s_audit
+      Format json
+  parsers.conf: |
+    [PARSER]
+      Name k8s_audit
+      Format      json
+      Time_Key    stageTimestamp
+      Time_Format %Y-%m-%dT%H:%M:%S.%L
+      Time_Keep   On
+---
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  name: sysdig-audit-log-forwarder
+  labels:
+    app: sysdig-audit-log-forwarder
+spec:
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: sysdig-agent
+    spec:
+      volumes:
+      - name: kube-apiserver-audit-log
+        hostPath:
+          path: /var/log/kube-apiserver/audit.log
+          type: File
+      - name: audit-log-forwarder-config
+        configMap:
+          name: sysdig-audit-log-forwarder
+      nodeSelector:
+        node-role.kubernetes.io/master: ""
+      tolerations:
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/master
+      serviceAccount: sysdig-agent
+      containers:
+      - name: fluent-bit
+        image: fluent/fluent-bit:1.3-debug
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          seLinuxOptions:
+            type: container_logreader_t
+        command:
+          - /fluent-bit/bin/fluent-bit
+          - --config
+          - /config/fluent.conf
+          - --parser
+          - /config/parsers.conf
+        resources:
+          requests:
+            cpu: 500m
+            memory: 100Mi
+          limits:
+            cpu: 2
+            memory: 500Mi
+        volumeMounts:
+        - mountPath: /host/var/log/kube-apiserver/audit.log
+          name: kube-apiserver-audit-log
+          readOnly: true
+        - mountPath: /config
+          name: audit-log-forwarder-config
