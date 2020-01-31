@@ -1,0 +1,5 @@
+# The CODEOWNERS file describes areas of ownership within the repo.
+# Owners are required to approve Pull Requests as part of the Software Development Lifecycle
+# https://help.github.com/en/github/creating-cloning-and-archiving-repositories/about-code-owners
+# Right now there is a single Github team as root codeowner, but we can add granularity over time
+agent_deploy/* @draios/agent-cloud-scripts
