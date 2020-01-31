@@ -3,3 +3,5 @@
 # https://help.github.com/en/github/creating-cloning-and-archiving-repositories/about-code-owners
 # Right now there is a single Github team as root codeowner, but we can add granularity over time
 agent_deploy/* @draios/agent-cloud-scripts
+k8s_audit_config/* @draios/agent-cloud-scripts
+
