@@ -2,6 +2,11 @@
 
 set -euo pipefail
 
+# globals
+MINIMUM_CPUS=16
+MINIMUM_MEMORY_KB=32000000
+MINIMUM_DISK_IN_GB=60
+
 #log to file and stdout
 log_file="/var/log/sysdig-installer.log"
 exec &>> >(tee -a "$log_file")
@@ -63,6 +68,47 @@ sysdig:
         cpu: 500m
         memory: 1Gi
 EOM
+}
+
+function checkCPU() {
+  local -r cpus=$(grep -c processor /proc/cpuinfo)
+
+  if [[ $cpus -lt $MINIMUM_CPUS ]]; then
+    echo "The number of cpus '$cpus' is less than the required number of cpus: '$MINIMUM_CPUS'"
+    exit 1
+  fi
+
+  echo "Enough cpu ✓"
+}
+
+function checkMemory() {
+  local -r memory=$(grep MemTotal /proc/meminfo | awk '{print $2}')
+
+  if [[ $memory -lt $MINIMUM_MEMORY_KB ]]; then
+    echo "The amount of memory '$memory' is less than the required amount of memory in kilobytes '$MINIMUM_MEMORY_KB'"
+    exit 1
+  fi
+
+  echo "Enough memory ✓"
+}
+
+function checkDisk() {
+  local -r diskSizeHumanReadable=$(df -h /var | tail -n1 | awk '{print $2}')
+  local -r diskSize=${diskSizeHumanReadable%G}
+
+  if [[ $diskSize -lt $MINIMUM_DISK_IN_GB ]]; then
+    echo "The volume that holds the var directory needs a minimum of '$MINIMUM_DISK_IN_GB' but currently has '$diskSize'"
+    exit 1
+  fi
+
+  echo "Enough disk ✓"
+}
+
+function preFlight() {
+  echo "Running preFlight checks"
+  checkCPU
+  checkMemory
+  checkDisk
 }
 
 function askQuestions() {
@@ -232,6 +278,7 @@ function runInstaller() {
 }
 
 function __main() {
+  preFlight
   askQuestions
   installDeps
   writeValuesYaml
