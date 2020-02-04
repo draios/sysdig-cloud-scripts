@@ -9,6 +9,11 @@ function install_curl_deb {
 
     if ! hash curl > /dev/null 2>&1; then
         echo "* Installing curl"
+
+        if [[ -z $CMD_PREF ]]; then
+            unprivileged
+        fi
+
         $CMD_PREF apt-get update
         $CMD_PREF apt-get -qq -y install curl < /dev/null
     fi
@@ -17,6 +22,11 @@ function install_curl_deb {
 function install_curl_rpm {
     if ! hash curl > /dev/null 2>&1; then
         echo "* Installing curl"
+
+        if [[ -z $CMD_PREF ]]; then
+            unprivileged
+        fi
+
         $CMD_PREF yum -q -y install curl
     fi
 }
@@ -33,8 +43,13 @@ function download_yamls {
 }
 
 function unsupported {
-    echo "Unsupported operating system. Try using the the manual installation instructions"
-    exit 1	
+    echo "Unsupported operating system. Try using the manual installation instructions"
+    exit 1
+}
+
+function unprivileged {
+    echo "Unable to perform action as the current user. Please run this script as the root user"
+    exit 1
 }
 
 function help {
@@ -233,7 +248,7 @@ function install_k8s_agent {
         DAEMONSET_FILE="/tmp/sysdig-agent-daemonset-v2.yaml"
     fi
 
-    # -i.bak argument used for compatibility between mac (-i '') and linux (simply -i) 
+    # -i.bak argument used for compatibility between mac (-i '') and linux (simply -i)
     sed -i.bak -e "s|# serviceAccount: sysdig-agent|serviceAccount: sysdig-agent|" $DAEMONSET_FILE
 
     # Use IBM Cloud Container Registry instead of docker.io
@@ -258,7 +273,7 @@ function install_k8s_agent {
     # Add label for Sysdig instance
     if [ ! -z "$SYSDIG_INSTANCE_NAME" ]; then
        sed -i.bak -e 's/^\( *\)labels:$/&\
-\1  sysdig-instance: '$SYSDIG_INSTANCE_NAME'/' $DAEMONSET_FILE  
+\1  sysdig-instance: '$SYSDIG_INSTANCE_NAME'/' $DAEMONSET_FILE
     fi
     rm -f $DAEMONSET_FILE.bak
 
@@ -433,11 +448,8 @@ done
 
 CMD_PREF=""
 if [ $(id -u) != 0 ]; then
-    if command -v sudo  > /dev/null 2>&1; then 
+    if command -v sudo  > /dev/null 2>&1; then
         CMD_PREF="sudo "
-    else 
-        echo "Please install sudo and re-run the script"
-        exit 1
     fi
 fi
 
