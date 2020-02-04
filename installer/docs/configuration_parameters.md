@@ -640,7 +640,7 @@ pvStorageSize:
 **Required**: `false`<br>
 **Description**: Docker image tag of Activity Audit services.<br>
 **Options**:<br>
-**Default**: 3.0.0.5308<br>
+**Default**: [`sysdig.monitorVersion`](#sysdigmonitorversion)<br>
 **Example**:
 
 ```yaml
@@ -1141,6 +1141,7 @@ sysdig:
 **Required**: `false`<br>
 **Description**: The username of the MySQL user that the Sysdig Platform backend
 components will use in communicating with MySQL.<br>
+_**Note**: Do NOT use `root` user for this value._<br>
 **Options**:<br>
 **Default**: `mysql-admin`<br>
 
@@ -3837,6 +3838,20 @@ agent:
   apiKey: replace_with_your_monitor_access_key
 ```
 
+## **agent.appChecks.settings.limit**
+**Required**: `false`<br>
+**Description**: The maximum number of app checks metrics that will be reported to Sysdig Monitor.<br>
+**Options**:<br>
+**Default**:<br>
+**Example**:
+
+```yaml
+agent:
+  appChecks:
+    settings:
+      limit: 1500
+```
+
 ## **agent.collectorEndpoint**
 **Required**: `false`<br>
 **Description**: Sysdig Collector Address. Defaults to [`sysdig.collector.dnsName`](#sysdig.collector.dnsName) if monitor is included in apps.<br>
@@ -4486,6 +4501,62 @@ agent:
   appChecks:
     kafka:
       enableAggregationPartitions: true
+```
+
+## **agent.appChecks.mysql.enabled**
+**Required**: `false`<br>
+**Description**: Whether to enable mysql app check.<br>
+**Options**: `true|false`<br>
+**Default**: `false`<br>
+**Example**:
+
+```yaml
+agent:
+  appChecks:
+    mysql:
+      enabled: true
+```
+
+## **agent.appChecks.mysql.hostname**
+**Required**: `false`<br>
+**Description**: Name of the mySQL host that the agent should connect to.<br>
+**Options**: `true|false`<br>
+**Default**: `false`<br>
+**Example**:
+
+```yaml
+agent:
+  appChecks:
+    mysql:
+      hostname: mysql-service-url
+```
+
+## **agent.appChecks.mysql.user**
+**Required**: `false`<br>
+**Description**: The username of the MySQL user that the agent will use in communicating with MySQL.<br>
+**Options**: `true|false`<br>
+**Default**: `false`<br>
+**Example**:
+
+```yaml
+agent:
+  appChecks:
+    mysql:
+      user: mysql-user
+```
+
+## **agent.appChecks.mysql.password**
+**Required**: `false`<br>
+**Description**: The password of the MySQL user that the agent will use in communicating with MySQL.<br>
+**Options**: `true|false`<br>
+**Default**: `false`<br>
+**Example**:
+
+```yaml
+agent:
+  appChecks:
+    mysql:
+      password: mysql-password
 ```
 
 ## **agent.resources.limits.cpu**
