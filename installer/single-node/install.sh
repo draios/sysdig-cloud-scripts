@@ -17,6 +17,7 @@ if [[ "$EUID" -ne 0 ]]; then
   exit 1
 fi
 
+MINIKUBE_VERSION=v1.6.2
 KUBERNETES_VERSION=v1.16.0
 DOCKER_VERSION=18.06.3
 ROOT_LOCAL_PATH="/usr/bin"
@@ -176,19 +177,13 @@ function disableFirewalld() {
 }
 
 function installMiniKube() {
-  local -r minikube_latest=$(
-    curl -sL \
-      https://api.github.com/repos/kubernetes/minikube/releases/latest |
-      jq -r .tag_name
-  )
-  curl -s -Lo minikube "https://storage.googleapis.com/minikube/releases/${minikube_latest}/minikube-linux-amd64"
+  curl -s -Lo minikube "https://storage.googleapis.com/minikube/releases/${MINIKUBE_VERSION}/minikube-linux-amd64"
   chmod +x minikube
   mv minikube "${ROOT_LOCAL_PATH}"
 }
 
 function installKubectl() {
-  local -r kubectl_latest=$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)
-  curl -s -Lo kubectl "https://storage.googleapis.com/kubernetes-release/release/${kubectl_latest}/bin/linux/amd64/kubectl"
+  curl -s -Lo kubectl "https://storage.googleapis.com/kubernetes-release/release/${KUBERNETES_VERSION}/bin/linux/amd64/kubectl"
   chmod +x kubectl
   mv kubectl "${ROOT_LOCAL_PATH}"
 }
