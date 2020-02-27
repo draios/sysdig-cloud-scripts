@@ -57,7 +57,7 @@ function help {
     echo "                [-cp | --collector_port <value>] [-s | --secure <value>] [-cc | --check_certificate <value>] \ "
     echo "                [-ns | --namespace | --project <value>] [-ac | --additional_conf <value>] [-np | --no-prometheus] \ "
     echo "                [-sn | --sysdig_instance_name <value>] [-op | --openshift] [-as | --agent-slim] \ "
-    echo "                [-av | --agent-version <value>] [ -r | --remove ] [-h | --help]"
+    echo "                [-av | --agent-version <value>] [ -r | --remove ] [ -aws | --aws ] [-h | --help]"
     echo ""
     echo " -a  : secret access key, as shown in Sysdig Monitor"
     echo " -t  : list of tags for this host (ie. \"role:webserver,location:europe\", \"role:webserver\" or \"webserver\")"
@@ -73,6 +73,7 @@ function help {
     echo " -as : if provided, use agent-slim and agent-kmodule with the daemonset"
     echo " -r  : if provided, will remove the sysdig agent's daemonset, configmap, clusterrolebinding,"
     echo "       serviceacccount and secret from the specified namespace"
+    echo " -aws : if provided, will support AWS cluster name parsing and not use ICR"
     echo " -h  : print this usage and exit"
     echo
     exit 1
@@ -170,6 +171,10 @@ function install_k8s_agent {
     IKS_CLUSTER_ID=$(kubectl get cm -n kube-system cluster-info -o yaml | grep ' "cluster_id": ' | cut -d'"' -f4)
     if [ $OPENSHIFT -eq 0 ]; then
         CLUSTER_NAME=$(kubectl config current-context)
+        # Parse  out AWS cluster name
+        if [ $AWS -eq 1 ]; then
+            CLUSTER_NAME=$(echo $CLUSTER_NAME | cut -d'/' -f2)
+        fi
     else
         # Pull the cluster name using the cluster ID using ibmcloud ks
         # since the current-context is not a user-friendly value
@@ -251,25 +256,29 @@ function install_k8s_agent {
     # -i.bak argument used for compatibility between mac (-i '') and linux (simply -i)
     sed -i.bak -e "s|# serviceAccount: sysdig-agent|serviceAccount: sysdig-agent|" $DAEMONSET_FILE
 
-    # Use IBM Cloud Container Registry instead of docker.io
-    sed -i.bak -e "s|\( *image: \)sysdig/${AGENT_STRING}|\1icr.io/ext/sysdig/${AGENT_STRING}:${AGENT_VERSION}|g" $DAEMONSET_FILE
+    # For AWS do not use IBM Cloud Container Registry
+    if [ $AWS -eq 0]; then 
+        # Use IBM Cloud Container Registry instead of docker.io
+        sed -i.bak -e "s|\( *image: \)sysdig/${AGENT_STRING}|\1icr.io/ext/sysdig/${AGENT_STRING}:${AGENT_VERSION}|g" $DAEMONSET_FILE
 
-    ICR_SECRET_EXIST=$(kubectl -n default get secret default-icr-io >/dev/null 2>&1 || echo 1)
-    if [ "$ICR_SECRET_EXIST" = 1 ]; then
-        # Throw an error instead of running the command for them because it could
-        #  take a long time for the secrets to become populated
-        echo "ERROR: default-icr-io secret doesn't exist in the default namespace"
-        echo "ERROR: Run: ibmcloud ks cluster pull-secret apply --cluster $IKS_CLUSTER_ID"
-        exit 1
-    fi
-    # Add the icr secret to our namespace. Delete beforehand to avoid conflicts
-    kubectl -n $NAMESPACE delete secret $NAMESPACE-icr-io 2>/dev/null || true
-    kubectl get secret default-icr-io -n default -o yaml | sed "s/default/$NAMESPACE/" | kubectl apply -n $NAMESPACE -f -
-    # Use the pull secret in the daemonset flie. macOS's sed doesn't like \n
-    INDENT=$(grep 'containers' $DAEMONSET_FILE | sed 's/\( *\).*/\1/')
-    echo "${INDENT}imagePullSecrets:" >> $DAEMONSET_FILE
-    echo "${INDENT}- name: $NAMESPACE-icr-io" >> $DAEMONSET_FILE
-
+        ICR_SECRET_EXIST=$(kubectl -n default get secret default-icr-io >/dev/null 2>&1 || echo 1)
+        if [ "$ICR_SECRET_EXIST" = 1 ]; then
+            # Throw an error instead of running the command for them because it could
+            #  take a long time for the secrets to become populated
+            echo "ERROR: default-icr-io secret doesn't exist in the default namespace"
+            echo "ERROR: Run: ibmcloud ks cluster pull-secret apply --cluster $IKS_CLUSTER_ID"
+            exit 1
+        fi
+        # Add the icr secret to our namespace. Delete beforehand to avoid conflicts
+        kubectl -n $NAMESPACE delete secret $NAMESPACE-icr-io 2>/dev/null || true
+        kubectl get secret default-icr-io -n default -o yaml | sed "s/default/$NAMESPACE/" | kubectl apply -n $NAMESPACE -f -
+        # Use the pull secret in the daemonset flie. macOS's sed doesn't like \n
+        INDENT=$(grep 'containers' $DAEMONSET_FILE | sed 's/\( *\).*/\1/')
+        echo "${INDENT}imagePullSecrets:" >> $DAEMONSET_FILE
+        echo "${INDENT}- name: $NAMESPACE-icr-io" >> $DAEMONSET_FILE
+    else 
+        sed -i.bak -e "s|\( *image: \)sysdig/${AGENT_STRING}|\1sysdig/${AGENT_STRING}:${AGENT_VERSION}|g" $DAEMONSET_FILE
+    fi 
     # Add label for Sysdig instance
     if [ ! -z "$SYSDIG_INSTANCE_NAME" ]; then
        sed -i.bak -e 's/^\( *\)labels:$/&\
@@ -326,6 +335,7 @@ REMOVE_AGENT=0
 ENABLE_PROMETHEUS=1
 OPENSHIFT=0
 AGENT_VERSION="latest"
+AWS=0
 
 while [[ ${#} > 0 ]]
 do
@@ -430,6 +440,9 @@ case ${key} in
         ;;
     -as|--agent-slim)
         AGENT_SLIM=1
+        ;;
+    -aws|--aws)
+        AWS=1
         ;;
     -r|--remove)
         REMOVE_AGENT=1
