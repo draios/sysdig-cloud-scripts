@@ -257,7 +257,7 @@ function install_k8s_agent {
     sed -i.bak -e "s|# serviceAccount: sysdig-agent|serviceAccount: sysdig-agent|" $DAEMONSET_FILE
 
     # For AWS do not use IBM Cloud Container Registry
-    if [ $AWS -eq 0]; then 
+    if [ $AWS -eq 0 ]; then 
         # Use IBM Cloud Container Registry instead of docker.io
         sed -i.bak -e "s|\( *image: \)sysdig/${AGENT_STRING}|\1icr.io/ext/sysdig/${AGENT_STRING}:${AGENT_VERSION}|g" $DAEMONSET_FILE
 
