@@ -645,7 +645,7 @@ pvStorageSize:
 
 ```yaml
 sysdig:
-  activityAuditVersion: 3.0.0.5308
+  activityAuditVersion: 3.2.0.5799
 ```
 
 ## **sysdig.anchoreVersion**
@@ -658,6 +658,74 @@ sysdig:
 ```yaml
 sysdig:
   anchoreVersion: 0.5.1.2
+```
+
+## **sysdig.accessKey**
+**Required**: `false`<br>
+**Description**: The AWS(or AWS compatible) accessKey to be used by Sysdig
+components to write captures in the s3 bucket.<br>
+**Options**:<br>
+**Default**:<br>
+**Example**:
+
+```yaml
+sysdig:
+  accessKey: my_awesome_aws_access_key
+```
+
+## **sysdig.secretKey**
+**Required**: `false`<br>
+**Description**: The AWS(or AWS compatible) secretKey to be used by Sysdig
+components to write captures in the s3 bucket.<br>
+**Options**:<br>
+**Default**:<br>
+**Example**:
+
+```yaml
+sysdig:
+  secretKey: my_super_secret_secret_key
+```
+
+## **sysdig.s3.enabled**
+**Required**: `false`<br>
+**Description**: This determines if the installer should enable Sysdig storing
+captures in s3.<br>
+**Options**:`true|false`<br>
+**Default**:false<br>
+**Example**:
+
+```yaml
+sysdig:
+  s3:
+    enabled: true
+```
+
+## **sysdig.s3.endpoint**
+**Required**: `false`<br>
+**Description**: S3 endpoint for the bucket, this is ignored if
+[`sysdig.s3.enabled`](#sysdigs3enabled) is not configured<br>
+**Options**:<br>
+**Default**:<br>
+**Example**:
+
+```yaml
+sysdig:
+  s3:
+    endpoint: my.awesome.bucket.s3.aws.com
+```
+
+## **sysdig.s3.bucketName**
+**Required**: `false`<br>
+**Description**: Name of the S3 bucket to be used for captures, this is ignored if
+[`sysdig.s3.enabled`](#sysdigs3enabled) is not configured<br>
+**Options**:<br>
+**Default**:<br>
+**Example**:
+
+```yaml
+sysdig:
+  s3:
+    endpoint: my.awesome.bucket.s3.aws.com
 ```
 
 ## **sysdig.cassandraVersion**
@@ -902,12 +970,12 @@ sysdig:
 **Required**: `false`<br>
 **Description**: The docker image tag of Elasticsearch.<br>
 **Options**:<br>
-**Default**: 5.6.16.15<br>
+**Default**: 5.6.16.18<br>
 **Example**:
 
 ```yaml
 sysdig:
-  elasticsearchVersion: 5.6.16.15
+  elasticsearchVersion: 5.6.16.18
 ```
 
 ## **sysdig.haproxyVersion**
@@ -1017,12 +1085,12 @@ sysdig:
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 3.0.0.5439<br>
+**Default**: 3.2.0.5799<br>
 **Example**:
 
 ```yaml
 sysdig:
-  monitorVersion: 3.0.0.5439
+  monitorVersion: 3.2.0.5799
 ```
 
 ## **sysdig.mysqlHa**
@@ -1406,12 +1474,12 @@ sysdig:
 **Description**: Docker image tag of HA Redis, relevant when configured
 `sysdig.redisHa` is `true`.<br>
 **Options**:<br>
-**Default**: 4.0.12.8-ha<br>
+**Default**: 4.0.12-1.0.1<br>
 **Example**:
 
 ```yaml
 sysdig:
-  redisHaVersion: 4.0.12.8-ha
+  redisHaVersion: 4.0.12-1.0.1
 ```
 
 ## **sysdig.redisHa**
@@ -1940,184 +2008,6 @@ sysdig:
 sysdig:
   resources:
     redis:
-      requests:
-        memory: 2Gi
-```
-
-## **sysdig.resources.redis-primary.limits.cpu**
-**Required**: `false`<br>
-**Description**: The amount of cpu assigned to redis-primary pods<br>
-**Options**:<br>
-**Default**:
-
-|cluster-size|limits  |
-|------------|--------|
-| small      | 2      |
-| medium     | 2      |
-| large      | 2      |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    redis-primary:
-      limits:
-        cpu: 2
-```
-
-## **sysdig.resources.redis-primary.limits.memory**
-**Required**: `false`<br>
-**Description**: The amount of memory assigned to redis-primary pods<br>
-**Options**:<br>
-**Default**:
-
-|cluster-size|limits  |
-|------------|--------|
-| small      | 2Gi    |
-| medium     | 2Gi    |
-| large      | 2Gi    |
-
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    redis-primary:
-      limits:
-        memory: 1Gi
-```
-
-## **sysdig.resources.redis-primary.requests.cpu**
-**Required**: `false`<br>
-**Description**: The amount of cpu required to schedule redis-primary pods<br>
-**Options**:<br>
-**Default**:
-
-|cluster-size|requests|
-|------------|--------|
-| small      | 100m   |
-| medium     | 100m   |
-| large      | 100m   |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    redis-primary:
-      requests:
-        cpu: 2
-```
-
-## **sysdig.resources.redis-primary.requests.memory**
-**Required**: `false`<br>
-**Description**: The amount of memory required to schedule redis-primary pods<br>
-**Options**:<br>
-**Default**:
-
-|cluster-size|requests|
-|------------|--------|
-| small      | 100Mi  |
-| medium     | 100Mi  |
-| large      | 100Mi  |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    redis-primary:
-      requests:
-        memory: 2Gi
-```
-
-## **sysdig.resources.redis-secondary.limits.cpu**
-**Required**: `false`<br>
-**Description**: The amount of cpu assigned to redis-secondary pods<br>
-**Options**:<br>
-**Default**:
-
-|cluster-size|limits  |
-|------------|--------|
-| small      | 2      |
-| medium     | 2      |
-| large      | 2      |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    redis-secondary:
-      limits:
-        cpu: 2
-```
-
-## **sysdig.resources.redis-secondary.limits.memory**
-**Required**: `false`<br>
-**Description**: The amount of memory assigned to redis-secondary pods<br>
-**Options**:<br>
-**Default**:
-
-|cluster-size|limits  |
-|------------|--------|
-| small      | 2Gi    |
-| medium     | 2Gi    |
-| large      | 2Gi    |
-
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    redis-secondary:
-      limits:
-        memory: 1Gi
-```
-
-## **sysdig.resources.redis-secondary.requests.cpu**
-**Required**: `false`<br>
-**Description**: The amount of cpu required to schedule redis-secondary pods<br>
-**Options**:<br>
-**Default**:
-
-|cluster-size|requests|
-|------------|--------|
-| small      | 100m   |
-| medium     | 100m   |
-| large      | 100m   |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    redis-secondary:
-      requests:
-        cpu: 2
-```
-
-## **sysdig.resources.redis-secondary.requests.memory**
-**Required**: `false`<br>
-**Description**: The amount of memory required to schedule redis-secondary pods<br>
-**Options**:<br>
-**Default**:
-
-|cluster-size|requests|
-|------------|--------|
-| small      | 100Mi  |
-| medium     | 100Mi  |
-| large      | 100Mi  |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    redis-secondary:
       requests:
         memory: 2Gi
 ```
