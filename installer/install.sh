@@ -28,7 +28,7 @@ LICENSE="PLACEHOLDER"
 DNSNAME="PLACEHOLDER"
 AIRGAP_BUILD="false"
 AIRGAP_INSTALL="false"
-INSTALLER_IMAGE="quay.io/sysdig/installer:3.0.0-5"
+INSTALLER_IMAGE="quay.io/sysdig/installer:3.2.0-2"
 
 function writeValuesYaml() {
   cat << EOM > values.yaml
@@ -151,7 +151,7 @@ function dockerLogin() {
 function installUbuntuDeps() {
   apt-get remove -y docker docker-engine docker.io containerd runc > /dev/null 2>&1
   apt-get update -qq
-  apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+  apt-get install -y apt-transport-https ca-certificates curl software-properties-common "linux-headers-$(uname -r)"
   curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
   add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu  $(lsb_release -cs) stable"
   apt-get update -qq
@@ -161,7 +161,7 @@ function installUbuntuDeps() {
 function installDebianDeps() {
   apt-get remove -y docker docker-engine docker.io containerd runc > /dev/null 2>&1
   apt-get update -qq
-  apt-get install -y apt-transport-https ca-certificates curl gnupg2 software-properties-common
+  apt-get install -y apt-transport-https ca-certificates curl gnupg2 software-properties-common "linux-headers-$(uname -r)"
   curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -
   add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"
   apt-get update -qq
@@ -181,6 +181,7 @@ function installCentOSDeps() {
   # Copied from https://github.com/kubernetes/kops/blob/b92babeda277df27b05236d852b5c0dc0803ce5d/nodeup/pkg/model/docker.go#L758-L764
   yum install -y http://vault.centos.org/7.6.1810/extras/x86_64/Packages/container-selinux-2.68-1.el7.noarch.rpm
   yum install -y https://download.docker.com/linux/centos/7/x86_64/stable/Packages/docker-ce-18.06.3.ce-3.el7.x86_64.rpm
+  yum install -y "kernel-devel-$(uname -r)"
   systemctl enable docker
   systemctl start docker
 }
