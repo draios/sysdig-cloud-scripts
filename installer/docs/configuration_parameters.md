@@ -46,7 +46,7 @@ or local in clusters that do not have a provisioner. For setups where
 Persistent Volumes and Persistent Volume Claims are created manually this
 should be configured as `none`. If this is not configured
 [`storageClassName`](#storageclassname) needs to be configured.<br>
-**Options**: `aws|gke|hostPath|local|none`<br>
+**Options**: `aws|gke|hostPath|none`<br>
 **Default**:<br>
 **Example**:
 
@@ -117,18 +117,6 @@ airgapped_registry_username: bob+alice
 
 ```yaml
 deployment: kubernetes
-```
-
-## **localStoragehostDir**
-**Required**: `false`<br>
-**Description**: The path on the host where the local volumes are mounted
-under. This  is relevant only when `storageClassProvisioner` is `local`.<br>
-**Options**:<br>
-**Default**: `/sysdig`<br>
-**Example**:
-
-```yaml
-localStoragehostDir: /sysdig
 ```
 
 ## **context**
@@ -1065,18 +1053,6 @@ sysdig:
 ```yaml
 sysdig:
   license: replace_with_your_license
-```
-
-## **sysdig.localVolumeProvisioner**
-**Required**: `false`<br>
-**Description**: The version of the localVolumeProvisioner.<br>
-**Options**:<br>
-**Default**: v2.3.2<br>
-**Example**:
-
-```yaml
-sysdig:
-  localVolumeProvisioner: v2.3.2
 ```
 
 ## **sysdig.monitorVersion**
