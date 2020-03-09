@@ -288,7 +288,7 @@ function pullImagesSysdigImages(){
   mapfile -t job_images < <(jq -r '.spec.jobTemplate.spec.template.spec.containers[]? | .image' \
     resources/*/sysdig.json 2> /dev/null | sort -u | grep 'quay\|docker.io')
   mapfile -t init_container_images < <(jq -r '.spec.template.spec.initContainers[]? | .image' \
-      /sysdig-chart/tests/resources/*/sysdig.json 2> /dev/null | sort -u | grep 'quay\|docker.io')
+    resources/*/sysdig.json 2> /dev/null | sort -u | grep 'quay\|docker.io')
   #collected images  to images obj
   local -a images=("${non_job_images[@]}")
   images+=("${job_images[@]}")
