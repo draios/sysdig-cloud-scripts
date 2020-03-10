@@ -29,6 +29,7 @@ spec:
       - name: varrun-vol
         hostPath:
           path: /var/run
+      # Add custom volume here
       - name: sysdig-image-analyzer-config
         configMap:
           name: sysdig-image-analyzer
@@ -133,3 +134,4 @@ spec:
           readOnly: true
         - mountPath: /var/lib/containers
           name: varlibcontainers-vol
+        # Add custom volume mount here
