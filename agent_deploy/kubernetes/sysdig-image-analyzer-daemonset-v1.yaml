@@ -53,14 +53,6 @@ spec:
           limits:
             cpu: 0.5
             memory: 1024Mi
-        volumeMounts:
-        - mountPath: /var/run
-          name: varrun-vol
-        - mountPath: /etc/containers
-          name: etccontainers-vol
-          readOnly: true
-        - mountPath: /var/lib/containers
-          name: varlibcontainers-vol
         env:
         - name: ACCESS_KEY
           valueFrom:
@@ -133,3 +125,11 @@ spec:
               name: sysdig-image-analyzer
               key: debug
               optional: true
+        volumeMounts:
+        - mountPath: /var/run
+          name: varrun-vol
+        - mountPath: /etc/containers
+          name: etccontainers-vol
+          readOnly: true
+        - mountPath: /var/lib/containers
+          name: varlibcontainers-vol
