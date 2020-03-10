@@ -4,4 +4,3 @@ metadata:
   name: sysdig-image-analyzer
 data:
   debug: "true"
-  collector_endpoint: "https://collector-staging3.sysdigcloud.com/internal/scanning/scanning-analysis-collector"
