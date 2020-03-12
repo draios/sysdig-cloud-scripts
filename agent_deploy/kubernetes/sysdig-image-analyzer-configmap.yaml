@@ -4,3 +4,4 @@ metadata:
   name: sysdig-image-analyzer
 data:
   debug: "true"
+  # Add data here
