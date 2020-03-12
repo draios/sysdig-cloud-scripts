@@ -28,7 +28,7 @@ LICENSE="PLACEHOLDER"
 DNSNAME="PLACEHOLDER"
 AIRGAP_BUILD="false"
 AIRGAP_INSTALL="false"
-INSTALLER_IMAGE="quay.io/sysdig/installer:3.0.0-6"
+INSTALLER_IMAGE="quay.io/sysdig/installer:3.2.0-2"
 
 function writeValuesYaml() {
   cat << EOM > values.yaml
@@ -151,7 +151,7 @@ function dockerLogin() {
 function installUbuntuDeps() {
   apt-get remove -y docker docker-engine docker.io containerd runc > /dev/null 2>&1
   apt-get update -qq
-  apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+  apt-get install -y apt-transport-https ca-certificates curl software-properties-common "linux-headers-$(uname -r)"
   curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
   add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu  $(lsb_release -cs) stable"
   apt-get update -qq
@@ -161,7 +161,7 @@ function installUbuntuDeps() {
 function installDebianDeps() {
   apt-get remove -y docker docker-engine docker.io containerd runc > /dev/null 2>&1
   apt-get update -qq
-  apt-get install -y apt-transport-https ca-certificates curl gnupg2 software-properties-common
+  apt-get install -y apt-transport-https ca-certificates curl gnupg2 software-properties-common "linux-headers-$(uname -r)"
   curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -
   add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"
   apt-get update -qq
@@ -176,6 +176,25 @@ function installCentOSDeps() {
   if [[ $version == 8 ]]; then
     yum install -y yum-utils device-mapper-persistent-data lvm2 curl
   else
+    yum install -y yum-utils device-mapper-persistent-data lvm2 curl
+  fi
+  # Copied from https://github.com/kubernetes/kops/blob/b92babeda277df27b05236d852b5c0dc0803ce5d/nodeup/pkg/model/docker.go#L758-L764
+  yum install -y http://vault.centos.org/7.6.1810/extras/x86_64/Packages/container-selinux-2.68-1.el7.noarch.rpm
+  yum install -y https://download.docker.com/linux/centos/7/x86_64/stable/Packages/docker-ce-18.06.3.ce-3.el7.x86_64.rpm
+  yum install -y "kernel-devel-$(uname -r)"
+  systemctl enable docker
+  systemctl start docker
+}
+
+function installRhelOSDeps() {
+  local -r version=$1
+  yum remove -y docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-engine
+  yum -y update
+  if [[ $version == 7 ]]; then
+    yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+    yum install -y yum-utils device-mapper-persistent-data lvm2 curl
+  else
+    yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
     yum install -y yum-utils device-mapper-persistent-data lvm2 curl
   fi
   # Copied from https://github.com/kubernetes/kops/blob/b92babeda277df27b05236d852b5c0dc0803ce5d/nodeup/pkg/model/docker.go#L758-L764
@@ -244,6 +263,15 @@ EOF
       disableFirewalld
       installCentOSDeps "$VERSION_ID"
       ;;
+    rhel)
+      if [[ $ID =~ ^(rhel)$ ]] &&
+        [[ ! "$VERSION_ID" =~ ^(7) ]]; then
+        echo "$ID version: $VERSION_ID is not supported"
+        exit 1
+      fi
+      disableFirewalld
+      installRhelOSDeps "$VERSION_ID"
+      ;;
     *)
       logError "unsupported platform $ID"
       exit 1
@@ -286,9 +314,12 @@ function pullImagesSysdigImages(){
     resources/*/sysdig.json 2> /dev/null | sort -u | grep 'quay\|docker.io')
   mapfile -t job_images < <(jq -r '.spec.jobTemplate.spec.template.spec.containers[]? | .image' \
     resources/*/sysdig.json 2> /dev/null | sort -u | grep 'quay\|docker.io')
+  mapfile -t init_container_images < <(jq -r '.spec.template.spec.initContainers[]? | .image' \
+    resources/*/sysdig.json 2> /dev/null | sort -u | grep 'quay\|docker.io')
   #collected images  to images obj
   local -a images=("${non_job_images[@]}")
   images+=("${job_images[@]}")
+  images+=("${init_container_images[@]}")
   #iterate and pull image if not present
   for image in "${images[@]}"; do
     if [[ -z $(docker images -q "$image") ]]; then
