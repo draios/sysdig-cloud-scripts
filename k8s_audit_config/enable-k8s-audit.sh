@@ -133,7 +133,7 @@ elif [[ "$VARIANT" == "kops" ]]; then
     fi
 
     echo "Fetching current kops cluster configuration..."
-    kops get cluster -o yaml > cluster-current.yaml
+    kops get cluster -o yaml $KOPS_CLUSTER_NAME > cluster-current.yaml
 
     echo "Adding webhook configuration/audit policy to cluster configuration..."
 
