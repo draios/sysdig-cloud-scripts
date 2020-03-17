@@ -17,11 +17,16 @@ spec:
         app: sysdig-image-analyzer
     spec:
       volumes:
-      # Needed for cri-o image inspection
-      - name: etccontainers-vol
+      # Needed for cri-o image inspection.
+      # cri-o and especially OCP 4.x by default use containers/storage to handle images, and this makes sure that the
+      # analyzer has access to the configuration. This file is mounted read-only.
+      - name: etccontainersstorage-vol
         hostPath:
-          path: /etc/containers
-      # Needed for cri-o image inspection
+          path: /etc/containers/storage.conf
+      # Needed for cri-o image inspection.
+      # This is the directory where image data is stored by default when using cri-o and OCP 4.x and the analyzer
+      # uses it to get the data to scan. This directory must be mounted r/w because proper access to its files through
+      # the containers/storage library is always regulated with a lockfile.
       - name: varlibcontainers-vol
         hostPath:
           path: /var/lib/containers
@@ -44,7 +49,6 @@ spec:
       - name: artifactory
       containers:
       - name: sysdig-image-analyzer
-        # TODO change image repo with Docker Hub 
         image: docker.internal.sysdig.com/image-analyzer:dev
         securityContext:
           # needed for the CRI socket
@@ -52,27 +56,39 @@ spec:
         imagePullPolicy: Always
         resources:
           limits:
-            cpu: 0.5
+            cpu: 500m
             memory: 1024Mi
+          requests:
+            cpu: 250m
+            memory: 512Mi
+        volumeMounts:
+        - mountPath: /var/run
+          name: varrun-vol
+        - mountPath: /etc/containers/storage.conf
+          name: etccontainersstorage-vol
+          readOnly: true
+        - mountPath: /var/lib/containers
+          name: varlibcontainers-vol
+        # Add custom volume mount here
         env:
         - name: ACCESS_KEY
           valueFrom:
             secretKeyRef:
               name: sysdig-agent
               key: access-key
-        - name: IA_IMAGE_PERIOD
+        - name: IMAGE_PERIOD
           valueFrom:
             configMapKeyRef:
               name: sysdig-image-analyzer
               key: image_period
               optional: true
-        - name: IA_IMAGE_CACHE_TTL
+        - name: IMAGE_CACHE_TTL
           valueFrom:
             configMapKeyRef:
               name: sysdig-image-analyzer
               key: image_cache_ttl
               optional: true
-        - name: IA_REPORT_PERIOD
+        - name: REPORT_PERIOD
           valueFrom:
             configMapKeyRef:
               name: sysdig-image-analyzer
@@ -126,12 +142,3 @@ spec:
               name: sysdig-image-analyzer
               key: debug
               optional: true
-        volumeMounts:
-        - mountPath: /var/run
-          name: varrun-vol
-        - mountPath: /etc/containers
-          name: etccontainers-vol
-          readOnly: true
-        - mountPath: /var/lib/containers
-          name: varlibcontainers-vol
-        # Add custom volume mount here

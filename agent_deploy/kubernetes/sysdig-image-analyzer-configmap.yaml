@@ -3,5 +3,5 @@ kind: ConfigMap
 metadata:
   name: sysdig-image-analyzer
 data:
-  debug: "true"
+  debug: "false"
   # Add data parametrs here
