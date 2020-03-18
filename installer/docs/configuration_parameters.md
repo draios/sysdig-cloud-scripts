@@ -83,6 +83,19 @@ details.<br>
 airgapped_registry_name: my-awesome-domain.docker.io
 ```
 
+## **airgapped_repository_prefix**
+**Required**: `false`<br>
+**Description**: This defines custom repository prefix for airgapped_registry.
+Tags and pushes images as airgapped_registry_name/airgapped_repository_prefix/image_name:tag<br>
+**Options**:<br>
+**Default**: sysdig<br>
+**Example**:
+
+```yaml
+#tags and pushes the image to <airgapped_registry_name>/foo/bar/<image_name:tag>
+airgapped_repository_prefix: foo/bar
+```
+
 ## **airgapped_registry_password**
 **Required**: `false`
 **Description**: The password for the configured
@@ -188,6 +201,18 @@ cloudProvider:
   create_loadbalancer: true
 ```
 
+## **cloudProvider.name**
+**Required**: `false`<br>
+**Description**: The name of the cloud provider Sysdig Platform will run on.<br>
+**Options**: `aws|gke`<br>
+**Default**:<br>
+**Example**:
+
+```yaml
+cloudProvider:
+  name: aws
+```
+
 ## **cloudProvider.isMultiAZ**
 **Required**: `false`<br>
 **Description**: Specifies whether the underlying Kubernetes cluster is
@@ -200,18 +225,6 @@ deployed in multiple availability zones. The parameter requires
 ```yaml
 cloudProvider:
   isMultiAZ: false
-```
-
-## **cloudProvider.name**
-**Required**: `false`<br>
-**Description**: The name of the cloud provider Sysdig Platform will run on.<br>
-**Options**: `aws|gke|ibm`<br>
-**Default**:<br>
-**Example**:
-
-```yaml
-cloudProvider:
-  name: aws
 ```
 
 ## **cloudProvider.region**
@@ -691,7 +704,7 @@ sysdig:
 ## **sysdig.s3.endpoint**
 **Required**: `false`<br>
 **Description**: S3 endpoint for the bucket, this is ignored if
-[`sysdig.s3.enabled`](#sysdigs3enabled) is not configured<br>
+[`sysdig.s3.enabled`](#sysdigs3enabled) is not configured. This is not required if using an AWS S3 Bucket for captures.<br>
 **Options**:<br>
 **Default**:<br>
 **Example**:
@@ -910,7 +923,7 @@ sysdig:
   collectorPort: 7000
 ```
 
-## **sysdig.customCA**
+## **sysdig.certificate.customCA**
 **Required**: `false`<br>
 **Description**:
 The Sysdig platform may sometimes open connections over SSL to certain external services, including:
@@ -939,7 +952,8 @@ values.yaml
 
 ```yaml
 sysdig:
-  customCA: true
+  certificate:
+    customCA: true
 ```
 
 ## **sysdig.dnsName**
@@ -3463,6 +3477,101 @@ clusters of `size` `small`.<br>
 ```yaml
 sysdig:
   collectorReplicaCount: 7
+```
+
+## **sysdig.activityAuditWorkerReplicaCount**
+**Required**: `false`<br>
+**Description**: Number of Activity Audit Worker replicas.<br>
+**Options**:<br>
+**Default**:<br>
+
+|cluster-size|count|
+|------------|-----|
+| small      |  1  |
+| medium     |  2  |
+| large      |  4  |
+
+**Example**:
+
+```yaml
+sysdig:
+  activityAuditWorkerReplicaCount: 20
+```
+
+## **sysdig.activityAuditApiReplicaCount**
+**Required**: `false`<br>
+**Description**: Number of Activity Audit API replicas.<br>
+**Options**:<br>
+**Default**:<br>
+
+|cluster-size|count|
+|------------|-----|
+| small      |  1  |
+| medium     |  1  |
+| large      |  1  |
+
+**Example**:
+
+```yaml
+sysdig:
+  activityAuditApiReplicaCount: 20
+```
+
+## **sysdig.policyAdvisorReplicaCount**
+**Required**: `false`<br>
+**Description**: Number of Policy Advisor replicas.<br>
+**Options**:<br>
+**Default**:<br>
+
+|cluster-size|count|
+|------------|-----|
+| small      |  1  |
+| medium     |  1  |
+| large      |  1  |
+
+**Example**:
+
+```yaml
+sysdig:
+  policyAdvisorReplicaCount: 20
+```
+
+## **sysdig.anchoreCoreReplicaCount**
+**Required**: `false`<br>
+**Description**: Number of Anchore Core replicas.<br>
+**Options**:<br>
+**Default**:<br>
+
+|cluster-size|count|
+|------------|-----|
+| small      |  1  |
+| medium     |  1  |
+| large      |  1  |
+
+**Example**:
+
+```yaml
+sysdig:
+  anchoreCoreReplicaCount: 2
+```
+
+## **sysdig.scanningApiReplicaCount**
+**Required**: `false`<br>
+**Description**: Number of Scanning API replicas.<br>
+**Options**:<br>
+**Default**:<br>
+
+|cluster-size|count|
+|------------|-----|
+| small      |  1  |
+| medium     |  1  |
+| large      |  1  |
+
+**Example**:
+
+```yaml
+sysdig:
+  scanningApiReplicaCount: 3
 ```
 
 ## **sysdig.elasticsearchReplicaCount**
