@@ -45,8 +45,6 @@ spec:
       # The following line is necessary for RBAC
       serviceAccount: sysdig-agent
       terminationGracePeriodSeconds: 5
-      imagePullSecrets:
-      - name: artifactory
       containers:
       - name: sysdig-image-analyzer
         image: docker.io/sysdig/node-image-analyzer:latest
