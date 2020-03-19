@@ -20,14 +20,14 @@ spec:
       # Needed for cri-o image inspection.
       # cri-o and especially OCP 4.x by default use containers/storage to handle images, and this makes sure that the
       # analyzer has access to the configuration. This file is mounted read-only.
-      - name: etccontainersstorage-vol
+      - name: etc-containers-storage-vol
         hostPath:
           path: /etc/containers/storage.conf
       # Needed for cri-o image inspection.
       # This is the directory where image data is stored by default when using cri-o and OCP 4.x and the analyzer
       # uses it to get the data to scan. This directory must be mounted r/w because proper access to its files through
       # the containers/storage library is always regulated with a lockfile.
-      - name: varlibcontainers-vol
+      - name: var-lib-containers-vol
         hostPath:
           path: /var/lib/containers
       # Needed for socket access
@@ -49,7 +49,8 @@ spec:
       - name: sysdig-image-analyzer
         image: docker.io/sysdig/node-image-analyzer:latest
         securityContext:
-          # needed for the CRI socket
+          # The privileged flag is necessary for OCP 4.x and other Kubernetes setups that deny host filesystem access to
+          # running containers by default regardless of volume mounts. In those cases, access to the CRI socket would fail.
           privileged: true
         imagePullPolicy: Always
         resources:
@@ -63,10 +64,10 @@ spec:
         - mountPath: /var/run
           name: varrun-vol
         - mountPath: /etc/containers/storage.conf
-          name: etccontainersstorage-vol
+          name: etc-containers-storage-vol
           readOnly: true
         - mountPath: /var/lib/containers
-          name: varlibcontainers-vol
+          name: var-lib-containers-vol
         # Add custom volume mount here
         env:
         - name: ACCESS_KEY
