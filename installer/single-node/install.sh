@@ -28,7 +28,7 @@ LICENSE="PLACEHOLDER"
 DNSNAME="PLACEHOLDER"
 AIRGAP_BUILD="false"
 AIRGAP_INSTALL="false"
-INSTALLER_IMAGE="quay.io/sysdig/installer:3.2.0-3"
+INSTALLER_IMAGE="quay.io/sysdig/installer:3.2.0-4"
 
 function writeValuesYaml() {
   cat << EOM > values.yaml
@@ -306,7 +306,7 @@ function fixIptables() {
   iptables -I INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 }
 
-function pullImagesSysdigImages(){
+function pullImagesSysdigImages() {
   #copy tests/resources to local
   getSysdigImagesFromInstaller
   #find images in resources
@@ -333,11 +333,11 @@ function pullImagesSysdigImages(){
   rm -rf resources
 }
 
-function getSysdigImagesFromInstaller(){
+function getSysdigImagesFromInstaller() {
   #get resources from sysdig-chart/tests
   docker create --name installer_image ${INSTALLER_IMAGE}
   docker cp installer_image:/sysdig-chart/tests/resources .
-  docker rm  installer_image
+  docker rm installer_image
 }
 
 function runInstaller() {
@@ -373,41 +373,40 @@ function __main() {
   runInstaller
 }
 
-while [[ $# -gt 0 ]]
-do
-arguments="$1"
+while [[ $# -gt 0 ]]; do
+  arguments="$1"
 
-case "${arguments}" in
-    -a|--airgap-build)
-    AIRGAP_BUILD="true"
-    LICENSE="installer.airgap.license"
-    DNSNAME="installer.airgap.dnsname"
-    shift # past argument
-    ;;
-    -i|--airgap-install)
-    AIRGAP_INSTALL="true"
-    LICENSE="installer.airgap.license"
-    DNSNAME="installer.airgap.dnsname"
-    shift # past argument
-    ;;
-    -q|--quaypullsecret)
-    QUAYPULLSECRET="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    -h|--help)
-    echo "Help..."
-    echo "use -a|--airgap-builder to specify airgap builder"
-    echo "-q|--quaypullsecret followed by quaysecret to specify airgap builder"
-    shift # past argument
-    exit 0
-    ;;
-    *)    # unknown option
-    shift # past argument
-    logError "unknown arg $1"
-    exit 1
-    ;;
-esac
+  case "${arguments}" in
+    -a | --airgap-build)
+      AIRGAP_BUILD="true"
+      LICENSE="installer.airgap.license"
+      DNSNAME="installer.airgap.dnsname"
+      shift # past argument
+      ;;
+    -i | --airgap-install)
+      AIRGAP_INSTALL="true"
+      LICENSE="installer.airgap.license"
+      DNSNAME="installer.airgap.dnsname"
+      shift # past argument
+      ;;
+    -q | --quaypullsecret)
+      QUAYPULLSECRET="$2"
+      shift # past argument
+      shift # past value
+      ;;
+    -h | --help)
+      echo "Help..."
+      echo "use -a|--airgap-builder to specify airgap builder"
+      echo "-q|--quaypullsecret followed by quaysecret to specify airgap builder"
+      shift # past argument
+      exit 0
+      ;;
+    *) # unknown option
+      shift # past argument
+      logError "unknown arg $1"
+      exit 1
+      ;;
+  esac
 done
 
 __main
