@@ -6,6 +6,9 @@ set -euo pipefail
 MINIMUM_CPUS=16
 MINIMUM_MEMORY_KB=31000000
 MINIMUM_DISK_IN_GB=59
+ADDITIONAL_IMAGES=(
+  "sysdig/falco_rules_installer:latest"
+)
 
 function logError() { echo "$@" 1>&2; }
 
@@ -318,6 +321,7 @@ function pullImagesSysdigImages() {
     resources/*/sysdig.json 2> /dev/null | sort -u | grep 'quay\|docker.io')
   #collected images  to images obj
   local -a images=("${non_job_images[@]}")
+  images+=("${ADDITIONAL_IMAGES[@]}")
   images+=("${job_images[@]}")
   images+=("${init_container_images[@]}")
   #iterate and pull image if not present
