@@ -28,20 +28,3 @@ data:
     security:
       k8s_audit_server_url: 0.0.0.0
       k8s_audit_server_port: 7765
-  prometheus.yaml: |
-    global:
-      scrape_interval: 10s
-
-    #scrape_configs:
-    #- job_name: 'default'
-    #  sample_limit: 2000
-    #  sysdig_sd_configs: # default relabeling config
-    #  relabel_configs:
-    #  metric_relabel_configs:
-    #- job_name: 'app'
-    #  sysdig_sd_configs:
-    #  - tags:
-    #      namespace: default
-    #      deployment: app
-    #  relabel_configs:
-    #  metric_relabel_configs:
