@@ -156,7 +156,7 @@ function install_k8s_agent {
         # Pull the cluster name using the cluster ID using ibmcloud ks
         # since the current-context is not a user-friendly value
         fail=0
-        CLUSTER_NAME=$(ibmcloud ks cluster-get "$IKS_CLUSTER_ID" --json | jq .name | tr -d '"') || { fail=1 && echo "Failed to get the cluster name"; }
+        CLUSTER_NAME=$(ibmcloud ks cluster get --cluster "$IKS_CLUSTER_ID" --json | jq .name | tr -d '"') || { fail=1 && echo "Failed to get the cluster name"; }
         if [ $fail -eq 1 ]; then
             echo "Failed to get the cluster name from the Cluster ID using ibmcloud ks - $CLUSTER_ID "
             echo "Attempting to retrieve the current-context for the cluster name"
