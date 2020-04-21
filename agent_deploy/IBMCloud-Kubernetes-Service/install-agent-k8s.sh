@@ -270,8 +270,10 @@ function install_k8s_agent {
             exit 1
         fi
         # Add the icr secret to our namespace. Delete beforehand to avoid conflicts
-        kubectl -n $NAMESPACE delete secret $NAMESPACE-icr-io 2>/dev/null || true
-        kubectl get secret default-icr-io -n default -o yaml | sed "s/default/$NAMESPACE/" | kubectl apply -n $NAMESPACE -f -
+        if [ "$NAMESPACE" != "default" ];then
+            kubectl -n $NAMESPACE delete secret $NAMESPACE-icr-io 2>/dev/null || true
+            kubectl get secret default-icr-io -n default -o yaml | sed "s/default/$NAMESPACE/" | kubectl apply -n $NAMESPACE -f -
+        fi
         # Use the pull secret in the daemonset flie. macOS's sed doesn't like \n
         INDENT=$(grep 'containers' $DAEMONSET_FILE | sed 's/\( *\).*/\1/')
         echo "${INDENT}imagePullSecrets:" >> $DAEMONSET_FILE
