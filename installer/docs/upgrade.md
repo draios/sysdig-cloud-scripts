@@ -81,7 +81,7 @@ To upgrade:<br>
     -e KUBECONFIG=/.kube/config \
     -v ~/.kube:/.kube:Z \
     -v $(pwd):/manifests:Z \
-    quay.io/sysdig/installer:3.2.0-5
+    quay.io/sysdig/installer:3.2.0-6
   ```
 
 4. If you are fine with the differences displayed, then set value for the
