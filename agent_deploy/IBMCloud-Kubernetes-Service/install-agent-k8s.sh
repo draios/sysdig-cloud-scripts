@@ -279,9 +279,11 @@ function install_k8s_agent {
         echo "${INDENT}imagePullSecrets:" >> $DAEMONSET_FILE
 
         kubectl -n default get secrets -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' | grep -E "default-icr-io|all-icr-io" | while read default_secret; do
-            kubectl get secret ${default_secret} -n default -o yaml --export | sed "s/name: default-/name: /g" | kubectl -n $NAMESPACE create -f -
+            SECRET_NAME=$(echo ${default_secret} | sed "s/default-/$NAMESPACE-/g")
 
-            SECRET_NAME=$(echo ${default_secret} | sed "s/default-//g")
+            echo "Processing ${default_secret} as ${SECRET_NAME}"
+            kubectl get secret ${default_secret} -n default -o yaml --export | sed "s/name: default-/name: $NAMESPACE-/g" | kubectl -n $NAMESPACE apply -f -
+
             echo "${INDENT}- name: $SECRET_NAME" >> $DAEMONSET_FILE
         done
     else
