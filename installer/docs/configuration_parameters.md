@@ -46,7 +46,7 @@ or local in clusters that do not have a provisioner. For setups where
 Persistent Volumes and Persistent Volume Claims are created manually this
 should be configured as `none`. If this is not configured
 [`storageClassName`](#storageclassname) needs to be configured.<br>
-**Options**: `aws|gke|hostPath|none`<br>
+**Options**: `aws|gke|hostPath|local|none`<br>
 **Default**:<br>
 **Example**:
 
@@ -83,19 +83,6 @@ details.<br>
 airgapped_registry_name: my-awesome-domain.docker.io
 ```
 
-## **airgapped_repository_prefix**
-**Required**: `false`<br>
-**Description**: This defines custom repository prefix for airgapped_registry.
-Tags and pushes images as airgapped_registry_name/airgapped_repository_prefix/image_name:tag<br>
-**Options**:<br>
-**Default**: sysdig<br>
-**Example**:
-
-```yaml
-#tags and pushes the image to <airgapped_registry_name>/foo/bar/<image_name:tag>
-airgapped_repository_prefix: foo/bar
-```
-
 ## **airgapped_registry_password**
 **Required**: `false`
 **Description**: The password for the configured
@@ -130,6 +117,18 @@ airgapped_registry_username: bob+alice
 
 ```yaml
 deployment: kubernetes
+```
+
+## **localStoragehostDir**
+**Required**: `false`<br>
+**Description**: The path on the host where the local volumes are mounted
+under. This  is relevant only when `storageClassProvisioner` is `local`.<br>
+**Options**:<br>
+**Default**: `/sysdig`<br>
+**Example**:
+
+```yaml
+localStoragehostDir: /sysdig
 ```
 
 ## **context**
@@ -201,18 +200,6 @@ cloudProvider:
   create_loadbalancer: true
 ```
 
-## **cloudProvider.name**
-**Required**: `false`<br>
-**Description**: The name of the cloud provider Sysdig Platform will run on.<br>
-**Options**: `aws|gke`<br>
-**Default**:<br>
-**Example**:
-
-```yaml
-cloudProvider:
-  name: aws
-```
-
 ## **cloudProvider.isMultiAZ**
 **Required**: `false`<br>
 **Description**: Specifies whether the underlying Kubernetes cluster is
@@ -225,6 +212,18 @@ deployed in multiple availability zones. The parameter requires
 ```yaml
 cloudProvider:
   isMultiAZ: false
+```
+
+## **cloudProvider.name**
+**Required**: `false`<br>
+**Description**: The name of the cloud provider Sysdig Platform will run on.<br>
+**Options**: `aws|gke|ibm`<br>
+**Default**:<br>
+**Example**:
+
+```yaml
+cloudProvider:
+  name: aws
 ```
 
 ## **cloudProvider.region**
@@ -646,7 +645,7 @@ pvStorageSize:
 
 ```yaml
 sysdig:
-  activityAuditVersion: 3.2.0.5799
+  activityAuditVersion: 3.0.0.5308
 ```
 
 ## **sysdig.anchoreVersion**
@@ -659,74 +658,6 @@ sysdig:
 ```yaml
 sysdig:
   anchoreVersion: 0.5.1.2
-```
-
-## **sysdig.accessKey**
-**Required**: `false`<br>
-**Description**: The AWS(or AWS compatible) accessKey to be used by Sysdig
-components to write captures in the s3 bucket.<br>
-**Options**:<br>
-**Default**:<br>
-**Example**:
-
-```yaml
-sysdig:
-  accessKey: my_awesome_aws_access_key
-```
-
-## **sysdig.secretKey**
-**Required**: `false`<br>
-**Description**: The AWS(or AWS compatible) secretKey to be used by Sysdig
-components to write captures in the s3 bucket.<br>
-**Options**:<br>
-**Default**:<br>
-**Example**:
-
-```yaml
-sysdig:
-  secretKey: my_super_secret_secret_key
-```
-
-## **sysdig.s3.enabled**
-**Required**: `false`<br>
-**Description**: This determines if the installer should enable Sysdig storing
-captures in s3.<br>
-**Options**:`true|false`<br>
-**Default**:false<br>
-**Example**:
-
-```yaml
-sysdig:
-  s3:
-    enabled: true
-```
-
-## **sysdig.s3.endpoint**
-**Required**: `false`<br>
-**Description**: S3 endpoint for the bucket, this is ignored if
-[`sysdig.s3.enabled`](#sysdigs3enabled) is not configured. This is not required if using an AWS S3 Bucket for captures.<br>
-**Options**:<br>
-**Default**:<br>
-**Example**:
-
-```yaml
-sysdig:
-  s3:
-    endpoint: my.awesome.bucket.s3.aws.com
-```
-
-## **sysdig.s3.bucketName**
-**Required**: `false`<br>
-**Description**: Name of the S3 bucket to be used for captures, this is ignored if
-[`sysdig.s3.enabled`](#sysdigs3enabled) is not configured<br>
-**Options**:<br>
-**Default**:<br>
-**Example**:
-
-```yaml
-sysdig:
-  s3:
-    endpoint: my.awesome.bucket.s3.aws.com
 ```
 
 ## **sysdig.cassandraVersion**
@@ -923,7 +854,7 @@ sysdig:
   collectorPort: 7000
 ```
 
-## **sysdig.certificate.customCA**
+## **sysdig.customCA**
 **Required**: `false`<br>
 **Description**:
 The Sysdig platform may sometimes open connections over SSL to certain external services, including:
@@ -952,8 +883,7 @@ values.yaml
 
 ```yaml
 sysdig:
-  certificate:
-    customCA: true
+  customCA: true
 ```
 
 ## **sysdig.dnsName**
@@ -972,12 +902,12 @@ sysdig:
 **Required**: `false`<br>
 **Description**: The docker image tag of Elasticsearch.<br>
 **Options**:<br>
-**Default**: 5.6.16.18<br>
+**Default**: 5.6.16.15<br>
 **Example**:
 
 ```yaml
 sysdig:
-  elasticsearchVersion: 5.6.16.18
+  elasticsearchVersion: 5.6.16.15
 ```
 
 ## **sysdig.haproxyVersion**
@@ -1069,18 +999,30 @@ sysdig:
   license: replace_with_your_license
 ```
 
+## **sysdig.localVolumeProvisioner**
+**Required**: `false`<br>
+**Description**: The version of the localVolumeProvisioner.<br>
+**Options**:<br>
+**Default**: v2.3.2<br>
+**Example**:
+
+```yaml
+sysdig:
+  localVolumeProvisioner: v2.3.2
+```
+
 ## **sysdig.monitorVersion**
 **Required**: `false`<br>
 **Description**: The docker image tag of the Sysdig Monitor. **Do not modify
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 3.2.0.5799<br>
+**Default**: 3.0.0.5439<br>
 **Example**:
 
 ```yaml
 sysdig:
-  monitorVersion: 3.2.0.5799
+  monitorVersion: 3.0.0.5439
 ```
 
 ## **sysdig.mysqlHa**
@@ -1464,12 +1406,12 @@ sysdig:
 **Description**: Docker image tag of HA Redis, relevant when configured
 `sysdig.redisHa` is `true`.<br>
 **Options**:<br>
-**Default**: 4.0.12-1.0.1<br>
+**Default**: 4.0.12.8-ha<br>
 **Example**:
 
 ```yaml
 sysdig:
-  redisHaVersion: 4.0.12-1.0.1
+  redisHaVersion: 4.0.12.8-ha
 ```
 
 ## **sysdig.redisHa**
@@ -1998,6 +1940,184 @@ sysdig:
 sysdig:
   resources:
     redis:
+      requests:
+        memory: 2Gi
+```
+
+## **sysdig.resources.redis-primary.limits.cpu**
+**Required**: `false`<br>
+**Description**: The amount of cpu assigned to redis-primary pods<br>
+**Options**:<br>
+**Default**:
+
+|cluster-size|limits  |
+|------------|--------|
+| small      | 2      |
+| medium     | 2      |
+| large      | 2      |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    redis-primary:
+      limits:
+        cpu: 2
+```
+
+## **sysdig.resources.redis-primary.limits.memory**
+**Required**: `false`<br>
+**Description**: The amount of memory assigned to redis-primary pods<br>
+**Options**:<br>
+**Default**:
+
+|cluster-size|limits  |
+|------------|--------|
+| small      | 2Gi    |
+| medium     | 2Gi    |
+| large      | 2Gi    |
+
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    redis-primary:
+      limits:
+        memory: 1Gi
+```
+
+## **sysdig.resources.redis-primary.requests.cpu**
+**Required**: `false`<br>
+**Description**: The amount of cpu required to schedule redis-primary pods<br>
+**Options**:<br>
+**Default**:
+
+|cluster-size|requests|
+|------------|--------|
+| small      | 100m   |
+| medium     | 100m   |
+| large      | 100m   |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    redis-primary:
+      requests:
+        cpu: 2
+```
+
+## **sysdig.resources.redis-primary.requests.memory**
+**Required**: `false`<br>
+**Description**: The amount of memory required to schedule redis-primary pods<br>
+**Options**:<br>
+**Default**:
+
+|cluster-size|requests|
+|------------|--------|
+| small      | 100Mi  |
+| medium     | 100Mi  |
+| large      | 100Mi  |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    redis-primary:
+      requests:
+        memory: 2Gi
+```
+
+## **sysdig.resources.redis-secondary.limits.cpu**
+**Required**: `false`<br>
+**Description**: The amount of cpu assigned to redis-secondary pods<br>
+**Options**:<br>
+**Default**:
+
+|cluster-size|limits  |
+|------------|--------|
+| small      | 2      |
+| medium     | 2      |
+| large      | 2      |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    redis-secondary:
+      limits:
+        cpu: 2
+```
+
+## **sysdig.resources.redis-secondary.limits.memory**
+**Required**: `false`<br>
+**Description**: The amount of memory assigned to redis-secondary pods<br>
+**Options**:<br>
+**Default**:
+
+|cluster-size|limits  |
+|------------|--------|
+| small      | 2Gi    |
+| medium     | 2Gi    |
+| large      | 2Gi    |
+
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    redis-secondary:
+      limits:
+        memory: 1Gi
+```
+
+## **sysdig.resources.redis-secondary.requests.cpu**
+**Required**: `false`<br>
+**Description**: The amount of cpu required to schedule redis-secondary pods<br>
+**Options**:<br>
+**Default**:
+
+|cluster-size|requests|
+|------------|--------|
+| small      | 100m   |
+| medium     | 100m   |
+| large      | 100m   |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    redis-secondary:
+      requests:
+        cpu: 2
+```
+
+## **sysdig.resources.redis-secondary.requests.memory**
+**Required**: `false`<br>
+**Description**: The amount of memory required to schedule redis-secondary pods<br>
+**Options**:<br>
+**Default**:
+
+|cluster-size|requests|
+|------------|--------|
+| small      | 100Mi  |
+| medium     | 100Mi  |
+| large      | 100Mi  |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    redis-secondary:
       requests:
         memory: 2Gi
 ```
@@ -3477,101 +3597,6 @@ clusters of `size` `small`.<br>
 ```yaml
 sysdig:
   collectorReplicaCount: 7
-```
-
-## **sysdig.activityAuditWorkerReplicaCount**
-**Required**: `false`<br>
-**Description**: Number of Activity Audit Worker replicas.<br>
-**Options**:<br>
-**Default**:<br>
-
-|cluster-size|count|
-|------------|-----|
-| small      |  1  |
-| medium     |  2  |
-| large      |  4  |
-
-**Example**:
-
-```yaml
-sysdig:
-  activityAuditWorkerReplicaCount: 20
-```
-
-## **sysdig.activityAuditApiReplicaCount**
-**Required**: `false`<br>
-**Description**: Number of Activity Audit API replicas.<br>
-**Options**:<br>
-**Default**:<br>
-
-|cluster-size|count|
-|------------|-----|
-| small      |  1  |
-| medium     |  1  |
-| large      |  1  |
-
-**Example**:
-
-```yaml
-sysdig:
-  activityAuditApiReplicaCount: 20
-```
-
-## **sysdig.policyAdvisorReplicaCount**
-**Required**: `false`<br>
-**Description**: Number of Policy Advisor replicas.<br>
-**Options**:<br>
-**Default**:<br>
-
-|cluster-size|count|
-|------------|-----|
-| small      |  1  |
-| medium     |  1  |
-| large      |  1  |
-
-**Example**:
-
-```yaml
-sysdig:
-  policyAdvisorReplicaCount: 20
-```
-
-## **sysdig.anchoreCoreReplicaCount**
-**Required**: `false`<br>
-**Description**: Number of Anchore Core replicas.<br>
-**Options**:<br>
-**Default**:<br>
-
-|cluster-size|count|
-|------------|-----|
-| small      |  1  |
-| medium     |  1  |
-| large      |  1  |
-
-**Example**:
-
-```yaml
-sysdig:
-  anchoreCoreReplicaCount: 2
-```
-
-## **sysdig.scanningApiReplicaCount**
-**Required**: `false`<br>
-**Description**: Number of Scanning API replicas.<br>
-**Options**:<br>
-**Default**:<br>
-
-|cluster-size|count|
-|------------|-----|
-| small      |  1  |
-| medium     |  1  |
-| large      |  1  |
-
-**Example**:
-
-```yaml
-sysdig:
-  scanningApiReplicaCount: 3
 ```
 
 ## **sysdig.elasticsearchReplicaCount**
