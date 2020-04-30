@@ -257,28 +257,38 @@ function install_k8s_agent {
     sed -i.bak -e "s|# serviceAccount: sysdig-agent|serviceAccount: sysdig-agent|" $DAEMONSET_FILE
 
     # For AWS do not use IBM Cloud Container Registry
-    if [ $AWS -eq 0 ]; then 
+    if [ $AWS -eq 0 ]; then
         # Use IBM Cloud Container Registry instead of docker.io
         sed -i.bak -e "s|\( *image: \)sysdig/${AGENT_STRING}|\1icr.io/ext/sysdig/${AGENT_STRING}:${AGENT_VERSION}|g" $DAEMONSET_FILE
 
-        ICR_SECRET_EXIST=$(kubectl -n default get secret default-icr-io >/dev/null 2>&1 || echo 1)
+        ICR_SECRET_EXIST=$(kubectl -n default get secret -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' | grep -qE "default-icr-io|all-icr-io" || echo 1)
         if [ "$ICR_SECRET_EXIST" = 1 ]; then
             # Throw an error instead of running the command for them because it could
             #  take a long time for the secrets to become populated
-            echo "ERROR: default-icr-io secret doesn't exist in the default namespace"
+            echo "ERROR: default-icr-io or all-icr-io secret doesn't exist in the default namespace"
             echo "ERROR: Run: ibmcloud ks cluster pull-secret apply --cluster $IKS_CLUSTER_ID"
             exit 1
         fi
+
         # Add the icr secret to our namespace. Delete beforehand to avoid conflicts
         kubectl -n $NAMESPACE delete secret $NAMESPACE-icr-io 2>/dev/null || true
-        kubectl get secret default-icr-io -n default -o yaml | sed "s/default/$NAMESPACE/" | kubectl apply -n $NAMESPACE -f -
+        kubectl -n $NAMESPACE delete secret all-icr-io 2>/dev/null || true
+
         # Use the pull secret in the daemonset flie. macOS's sed doesn't like \n
         INDENT=$(grep 'containers' $DAEMONSET_FILE | sed 's/\( *\).*/\1/')
         echo "${INDENT}imagePullSecrets:" >> $DAEMONSET_FILE
-        echo "${INDENT}- name: $NAMESPACE-icr-io" >> $DAEMONSET_FILE
-    else 
+
+        kubectl -n default get secrets -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' | grep -E "default-icr-io|all-icr-io" | while read default_secret; do
+            SECRET_NAME=$(echo ${default_secret} | sed "s/default-/$NAMESPACE-/g")
+
+            echo "Processing ${default_secret} as ${SECRET_NAME}"
+            kubectl get secret ${default_secret} -n default -o yaml --export | sed "s/name: default-/name: $NAMESPACE-/g" | kubectl -n $NAMESPACE apply -f -
+
+            echo "${INDENT}- name: $SECRET_NAME" >> $DAEMONSET_FILE
+        done
+    else
         sed -i.bak -e "s|\( *image: \)sysdig/${AGENT_STRING}|\1sysdig/${AGENT_STRING}:${AGENT_VERSION}|g" $DAEMONSET_FILE
-    fi 
+    fi
     # Add label for Sysdig instance
     if [ ! -z "$SYSDIG_INSTANCE_NAME" ]; then
        sed -i.bak -e 's/^\( *\)labels:$/&\
