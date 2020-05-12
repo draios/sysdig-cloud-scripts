@@ -100,6 +100,9 @@ This install assumes the Kubernetes cluster has network access to pull images fr
     The URL of the airgapped (internal) docker registry. This URL is used for
     installations where the Kubernetes cluster can not pull images directly from
     Quay.
+  - [`airgapped_repository_prefix`](docs/configuration_parameters.md#airgapped_repository_prefix):
+    This defines custom repository prefix for airgapped_registry.
+    Tags and pushes images as airgapped_registry_name/airgapped_repository_prefix/image_name:tag
   - [`airgapped_registry_password`](docs/configuration_parameters.md#airgapped_registry_password):
     The password for the configured airgapped_registry_username. Ignore this
     parameter if the registry does not require authentication.
@@ -115,7 +118,7 @@ This install assumes the Kubernetes cluster has network access to pull images fr
     -e KUBECONFIG=/.kube/config \
     -v ~/.kube:/.kube:Z \
     -v $(pwd):/manifests:Z \
-    quay.io/sysdig/installer:3.0.0-7
+    quay.io/sysdig/installer:3.2.0-7
   ```
 - On successful run of Installer towards the end of your terminal you should
   see the below:
@@ -180,12 +183,11 @@ the following exceptions:
 docker run \
   -e HOST_USER=$(id -u) \
   -e KUBECONFIG=/.kube/config \
-  -e IMAGE_EXTRACT_PUSH=true
   -v ~/.kube:/.kube:Z \
   -v $(pwd):/manifests:Z \
   -v /var/run/docker.sock:/var/run/docker.sock:Z \
   -v ~/.docker:/root/docker:Z \
-  quay.io/sysdig/installer:3.0.0-7
+  quay.io/sysdig/installer:3.2.0-7
 ```
 
 ## Full Airgap Install
@@ -220,11 +222,11 @@ the installation machine.
 - Follow the Docker Log In to quay.io steps under the Access Requirements section.
 - Pull the image containing the self-extracting tar:
   ```bash
-  docker pull quay.io/sysdig/installer:3.0.0-7-uber
+  docker pull quay.io/sysdig/installer:3.2.0-7-uber
   ```
 - Extract the tarball:
   ```bash
-  docker create --name uber_image quay.io/sysdig/installer:3.0.0-7-uber
+  docker create --name uber_image quay.io/sysdig/installer:3.2.0-7-uber
   docker cp uber_image:/sysdig_installer.tar.gz .
   docker rm uber_image
   ```
@@ -272,6 +274,9 @@ the installation machine.
     The URL of the airgapped (internal) docker registry. This URL is used for
     installations where the Kubernetes cluster can not pull images directly from
     Quay.
+  - [`airgapped_repository_prefix`](docs/configuration_parameters.md#airgapped_repository_prefix):
+      This defines custom repository prefix for airgapped_registry.
+      Tags and pushes images as airgapped_registry_name/airgapped_repository_prefix/image_name:tag
   - [`airgapped_registry_password`](docs/configuration_parameters.md#airgapped_registry_password):
     The password for the configured airgapped_registry_username. Ignore this
     parameter if the registry does not require authentication.

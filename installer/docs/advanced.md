@@ -86,6 +86,15 @@ docker run  \
   quay.io/sysdig/installer:<InstallerVersion>
 ```
 
+### Running airgapped EKS
+
+```bash
+EKS=true bash sysdig_installer.tar.gz
+```
+
+The above ensures the `~/.aws` directory is correctly mounted for the airgap
+installer container.
+
 ### Exposing the sysdig endpoint
 Get the external ip/endpoint for the ingress service.
 ```bash
