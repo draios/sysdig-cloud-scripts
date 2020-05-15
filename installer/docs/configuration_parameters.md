@@ -3262,6 +3262,30 @@ sysdig:
   restrictPasswordLogin: true
 ```
 
+## **sysdig.feedsDBVersion**
+**Required**: `false`<br>
+**Description**: Docker image tag of feedsDB.<br>
+**Options**:<br>
+**Default**: latest<br>
+**Example**:
+
+```yaml
+sysdig:
+  feedsDBVersion: latest
+```
+
+## **sysdig.feedsAPIVersion**
+**Required**: `false`<br>
+**Description**: Docker image tag of feedsAPI.<br>
+**Options**:<br>
+**Default**: latest<br>
+**Example**:
+
+```yaml
+sysdig:
+  feedsAPIVersion: latest
+```
+
 ## **sysdig.rsyslogVersion**
 **Required**: `false`<br>
 **Description**: Docker image tag of rsyslog, relevant only when configured
