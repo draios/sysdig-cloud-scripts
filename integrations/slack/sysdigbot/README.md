@@ -9,7 +9,7 @@ Note, this script utilizes the [Sysdig Cloud python client](https://github.com/d
 
 # Install Instructions
 
-1. Create a [new Slack bot user](https://my.slack.com/services/new/bot) called "Sysdigbot" (or whatever you want), and note your Slack API token. 
+1. Create a [new Slack bot user](https://api.slack.com/apps?new_classic_app=1) called "Sysdigbot" (or whatever you want), and note your Slack API token. Since the bot uses the `RTM` protocol to communicate with Slack, notice that you are creating a classic-style app and not a new-style.
 2. Go to the [User Settings page](https://app.sysdigcloud.com/#/settings/user) in Sysdig Cloud, and note your Sysdig Cloud API Token (which, to be clear, is different from your Access Key).
 3. Pull and run the Sysdigbot container from Docker Hub:  
 
