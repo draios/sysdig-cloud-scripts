@@ -88,8 +88,14 @@ spec:
             memory: 1536Mi
         readinessProbe:
           exec:
-            command: [ "test", "-e", "/opt/draios/logs/running" ]
+            command: [ "test", "-e", "/opt/draios/logs/startup" ]
           initialDelaySeconds: 10
+          periodSeconds: 5
+        startupProbe:
+          exec:
+            command: [ "test", "-e", "/opt/draios/logs/startup"]
+          failureThreshold: 18
+          periodSeconds: 10
         # This section is for eBPF support. Please refer to Sysdig Support before
         # uncommenting, as eBPF is recommended for only a few configurations.
         #env:

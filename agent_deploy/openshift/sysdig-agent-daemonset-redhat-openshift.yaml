@@ -71,8 +71,14 @@ spec:
             memory: 1536Mi
         readinessProbe:
           exec:
-            command: [ "test", "-e", "/opt/draios/logs/running" ]
+            command: [ "test", "-e", "/opt/draios/logs/startup" ]
           initialDelaySeconds: 10
+          periodSeconds: 5
+        startupProbe:
+          exec:
+            command: [ "test", "-e", "/opt/draios/logs/startup"]
+          failureThreshold: 18
+          periodSeconds: 10
         volumeMounts:
         - mountPath: /etc/modprobe.d
           name: modprobe-d

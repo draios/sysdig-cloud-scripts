@@ -69,8 +69,14 @@ spec:
             memory: 1024Mi
         readinessProbe:
           exec:
-            command: [ "test", "-e", "/opt/draios/logs/running" ]
+            command: [ "test", "-e", "/opt/draios/logs/startup" ]
           initialDelaySeconds: 10
+          periodSeconds: 5
+        startupProbe:
+          exec:
+            command: [ "test", "-e", "/opt/draios/logs/startup"]
+          failureThreshold: 18
+          periodSeconds: 10
         env:
         ### REQUIRED: replace with your Sysdig Platform access key
         - name: ACCESS_KEY
