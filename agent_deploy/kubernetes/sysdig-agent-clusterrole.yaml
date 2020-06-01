@@ -9,6 +9,7 @@ rules:
   - pods
   - replicationcontrollers
   - services
+  - endpoints
   - events
   - limitranges
   - namespaces
