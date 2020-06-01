@@ -69,12 +69,12 @@ spec:
             memory: 1024Mi
         readinessProbe:
           exec:
-            command: [ "test", "-e", "/opt/draios/logs/startup" ]
+            command: [ "test", "-e", "/opt/draios/logs/running" ]
           initialDelaySeconds: 10
           periodSeconds: 5
         startupProbe:
           exec:
-            command: [ "test", "-e", "/opt/draios/logs/startup"]
+            command: [ "test", "-e", "/opt/draios/logs/running"]
           failureThreshold: 18
           periodSeconds: 10
         env:
