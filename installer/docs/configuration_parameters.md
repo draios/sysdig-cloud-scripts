@@ -305,6 +305,35 @@ elasticsearch:
   hostname: external.elasticsearch.cluster
 ```
 
+## **elasticsearch.useES6**
+**Required**: `false`<br>
+**Description**: Install Elasticsearch 6.8.x along with user authentication and TLS-encrypted data-in-transit
+using Elasticsearch's native TLS Encrpytion.
+If TLS Encrpytion is enabled Installer does the following in the provided order:
+  1. Checks for existing Elasticsearch certificates in the provided environment to setup ES cluster. (applicable for upgrades)
+  2. If they are not present Installer autogenerates tls certificates and uses them to setup es cluster.
+**Options**: `true|false`<br>
+**Default**: `true`<br>
+**Example**:
+
+```yaml
+elasticsearch:
+  useES6: true
+```
+
+## **elasticsearch.tlsencryption.adminUser**
+**Required**: `false`<br>
+**Description**: The user bound to the ElasticSearch admin role.<br>
+**Options**: <br>
+**Default**: `sysdig`<br>
+**Example**:
+
+```yaml
+elasticsearch:
+  tlsencryption:
+    adminUser: admin
+```
+
 ## ~~**elasticsearch.searchguard.enabled**~~ (**Deprecated**)
 **Required**: `false`<br>
 **Description**: Enables user authentication and TLS-encrypted data-in-transit
@@ -646,25 +675,25 @@ pvStorageSize:
 
 ```yaml
 sysdig:
-  activityAuditVersion: 3.2.0.5799
+  activityAuditVersion: 3.2.0.6373
 ```
 
 ## **sysdig.anchoreVersion**
 **Required**: `false`<br>
 **Description**: The docker image tag of the Sysdig Anchore Core.<br>
 **Options**:<br>
-**Default**: 0.5.1.2<br>
+**Default**: 0.5.1.3<br>
 **Example**:
 
 ```yaml
 sysdig:
-  anchoreVersion: 0.5.1.2
+  anchoreVersion: 0.5.1.3
 ```
 
 ## **sysdig.accessKey**
 **Required**: `false`<br>
-**Description**: The AWS(or AWS compatible) accessKey to be used by Sysdig
-components to write captures in the s3 bucket.<br>
+**Description**: The AWS (or AWS compatible) accessKey to be used by Sysdig
+components to communicate with AWS (or an AWS compatible API).<br>
 **Options**:<br>
 **Default**:<br>
 **Example**:
@@ -676,8 +705,8 @@ sysdig:
 
 ## **sysdig.secretKey**
 **Required**: `false`<br>
-**Description**: The AWS(or AWS compatible) secretKey to be used by Sysdig
-components to write captures in the s3 bucket.<br>
+**Description**: The AWS (or AWS compatible) secretKey to be used by Sysdig
+components to communicate with AWS (or an AWS compatible API).<br>
 **Options**:<br>
 **Default**:<br>
 **Example**:
@@ -689,8 +718,7 @@ sysdig:
 
 ## **sysdig.s3.enabled**
 **Required**: `false`<br>
-**Description**: This determines if the installer should enable Sysdig storing
-captures in s3.<br>
+**Description**: Specifies if storing Sysdig Captures in S3 or S3-compatible storage is enabled.<br>
 **Options**:`true|false`<br>
 **Default**:false<br>
 **Example**:
@@ -703,8 +731,8 @@ sysdig:
 
 ## **sysdig.s3.endpoint**
 **Required**: `false`<br>
-**Description**: S3 endpoint for the bucket, this is ignored if
-[`sysdig.s3.enabled`](#sysdigs3enabled) is not configured. This is not required if using an AWS S3 Bucket for captures.<br>
+**Description**: S3-compatible endpoint for the bucket, this option is ignored if
+[`sysdig.s3.enabled`](#sysdigs3enabled) is not configured. This option is not required if using an AWS S3 Bucket for captures.<br>
 **Options**:<br>
 **Default**:<br>
 **Example**:
@@ -712,13 +740,13 @@ sysdig:
 ```yaml
 sysdig:
   s3:
-    endpoint: my.awesome.bucket.s3.aws.com
+    endpoint: s3.us-south.cloud-object-storage.appdomain.cloud
 ```
 
 ## **sysdig.s3.bucketName**
 **Required**: `false`<br>
-**Description**: Name of the S3 bucket to be used for captures, this is ignored if
-[`sysdig.s3.enabled`](#sysdigs3enabled) is not configured<br>
+**Description**: Name of the S3 bucket to be used for captures, this option is ignored if
+[`sysdig.s3.enabled`](#sysdigs3enabled) is not configured.<br>
 **Options**:<br>
 **Default**:<br>
 **Example**:
@@ -726,7 +754,7 @@ sysdig:
 ```yaml
 sysdig:
   s3:
-    endpoint: my.awesome.bucket.s3.aws.com
+    bucketName: my_awesome_bucket
 ```
 
 ## **sysdig.cassandraVersion**
@@ -1075,12 +1103,72 @@ sysdig:
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 3.2.0.5799<br>
+**Default**: 3.2.0.6373<br>
 **Example**:
 
 ```yaml
 sysdig:
-  monitorVersion: 3.2.0.5799
+  monitorVersion: 3.2.0.6373
+```
+
+## **sysdig.scanningVersion**
+**Required**: `false`<br>
+**Description**: The docker image tag of the Sysdig Scanning components, if
+this is not configured it defaults to `sysdig.monitorVersion` **Do not modify
+this unless you know what you are doing as modifying it could have unintended
+consequences**<br>
+**Options**:<br>
+**Default**: 3.2.0.6373<br>
+**Example**:
+
+```yaml
+sysdig:
+  scanningVersion: 3.2.0.6373
+```
+
+## **sysdig.sysdigAPIVersion**
+**Required**: `false`<br>
+**Description**: The docker image tag of Sysdig API components, if
+this is not configured it defaults to `sysdig.monitorVersion` **Do not modify
+this unless you know what you are doing as modifying it could have unintended
+consequences**<br>
+**Options**:<br>
+**Default**: 3.2.0.6373<br>
+**Example**:
+
+```yaml
+sysdig:
+  sysdigAPIVersion: 3.2.0.6373
+```
+
+## **sysdig.sysdigCollectorVersion**
+**Required**: `false`<br>
+**Description**: The docker image tag of Sysdig Collector components, if
+this is not configured it defaults to `sysdig.monitorVersion` **Do not modify
+this unless you know what you are doing as modifying it could have unintended
+consequences**<br>
+**Options**:<br>
+**Default**: 3.2.0.6373<br>
+**Example**:
+
+```yaml
+sysdig:
+  sysdigCollectorVersion: 3.2.0.6373
+```
+
+## **sysdig.sysdigWorkerVersion**
+**Required**: `false`<br>
+**Description**: The docker image tag of Sysdig Worker components, if
+this is not configured it defaults to `sysdig.monitorVersion` **Do not modify
+this unless you know what you are doing as modifying it could have unintended
+consequences**<br>
+**Options**:<br>
+**Default**: 3.2.0.6373<br>
+**Example**:
+
+```yaml
+sysdig:
+  sysdigWorkerVersion: 3.2.0.6373
 ```
 
 ## **sysdig.mysqlHa**
@@ -1095,28 +1183,40 @@ sysdig:
   mysqlHa: false
 ```
 
-## **sysdig.mysqlHaVersion**
+## **sysdig.useMySQL8**
 **Required**: `false`<br>
-**Description**: The docker image tag of MySQL used for HA.<br>
-**Options**:<br>
-**Default**: 8.0.16.2<br>
+**Description**: Determines if standalone mysql should run MySQL8.<br>
+**Options**: `true|false`<br>
+**Default**: `false`<br>
 **Example**:
 
 ```yaml
 sysdig:
-  mysqlHaVersion: 8.0.16.2
+  useMySQL8: true
+```
+
+## **sysdig.mysqlHaVersion**
+**Required**: `false`<br>
+**Description**: The docker image tag of MySQL used for HA.<br>
+**Options**:<br>
+**Default**: 8.0.16.3<br>
+**Example**:
+
+```yaml
+sysdig:
+  mysqlHaVersion: 8.0.16.3
 ```
 
 ## **sysdig.mysqlHaAgentVersion**
 **Required**: `false`<br>
 **Description**: The docker image tag of MySQL Agent used for HA.<br>
 **Options**:<br>
-**Default**: 0.1.1.5<br>
+**Default**: 0.1.1.6<br>
 **Example**:
 
 ```yaml
 sysdig:
-  mysqlHaAgentVersion: 0.1.1.5
+  mysqlHaAgentVersion: 0.1.1.6
 ```
 
 ## **sysdig.mysqlVersion**
@@ -1129,6 +1229,18 @@ sysdig:
 ```yaml
 sysdig:
   mysqlVersion: 5.6.44.0
+```
+
+## **sysdig.mysql8Version**
+**Required**: `false`<br>
+**Description**: The docker image tag of MySQL8.<br>
+**Options**:<br>
+**Default**: 8.0.16.0<br>
+**Example**:
+
+```yaml
+sysdig:
+  mysqlVersion: 8.0.16.0
 ```
 
 ## **sysdig.mysql.external**
@@ -1446,6 +1558,32 @@ sysdig:
     user: alice
 ```
 
+## **sysdig.secure.anchore.customCerts**
+**Required**: `false`<br>
+**Description**:
+To allow the Anchore to trust these certificates, use this configuration to upload one or more PEM-format CA certificates. You must ensure you've uploaded all certificates in the CA approval chain to the root CA.
+
+This configuration when set expects certificates with .crt, .pem extension under certs/anchore-custom-certs/ in the same level as `values.yaml`<br>
+**Options**: `true|false`<br>
+**Default**: false<br>
+**Example**:
+
+```bash
+#In the example directory structure below, certificate1.crt and certificate2.crt will be added to the trusted list.
+bash-5.0$ find certs values.yaml
+certs
+certs/anchore-custom-certs
+certs/anchore-custom-certs/certificate1.crt
+certs/anchore-custom-certs/certificate2.crt
+values.yaml
+```
+
+```yaml
+sysdig:
+  secure:
+    anchore:
+      customCerts: true
+```
 
 ## **sysdig.redisVersion**
 **Required**: `false`<br>
@@ -3262,30 +3400,6 @@ sysdig:
   restrictPasswordLogin: true
 ```
 
-## **sysdig.feedsDBVersion**
-**Required**: `false`<br>
-**Description**: Docker image tag of feedsDB.<br>
-**Options**:<br>
-**Default**: latest<br>
-**Example**:
-
-```yaml
-sysdig:
-  feedsDBVersion: latest
-```
-
-## **sysdig.feedsAPIVersion**
-**Required**: `false`<br>
-**Description**: Docker image tag of feedsAPI.<br>
-**Options**:<br>
-**Default**: latest<br>
-**Example**:
-
-```yaml
-sysdig:
-  feedsAPIVersion: latest
-```
-
 ## **sysdig.rsyslogVersion**
 **Required**: `false`<br>
 **Description**: Docker image tag of rsyslog, relevant only when configured
@@ -3727,7 +3841,7 @@ this has to be configured. The key must match the certificate in
 ```yaml
 sysdig:
   certificate:
-    crt: certs/server.key
+    key: certs/server.key
 ```
 
 ## **sysdig.collector.dnsName**
