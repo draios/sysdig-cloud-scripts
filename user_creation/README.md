@@ -87,3 +87,86 @@ To re-enable the ability to create users via the API:
     }
 }
 ```
+
+# Change Default User Role in Team via API
+
+The `update_default_user_role.sh` helper script in this directory will assist you in hitting the correct API endpoints to:
+
+1. Display information about the available user roles and teams
+2. Change the user role assigned by default to users in a team
+
+To prepare, modify `env.sh` to set the required values for the `API_TOKEN` of the Admin user, the URL for accessing the Sysdig platform API (which will be the same URL that your users access for the Sysdig Monitor application).
+
+# Usage examples:
+
+To see usage information:
+
+```
+# ./update_default_user_role.sh --help
+Usage: ./update_default_user_role.sh [OPTIONS]
+
+Update the default user role for the specified team
+
+If no OPTION is specified, available user roles and teams are displayed
+
+General options:
+  -h | --help             Print this Usage output
+
+Options for updating a team:
+  -t | --team             Team name
+  -r | --role             Default user
+```
+
+To display information about user roles and teams:
+
+```
+# ./update_default_user_role.sh User roles:
+
+Team Manager      ROLE_TEAM_MANAGER
+Advanced User     ROLE_TEAM_EDIT
+Standard User     ROLE_TEAM_STANDARD
+View only         ROLE_TEAM_READ
+Service Manager   ROLE_TEAM_SERVICE_MANAGER
+
+Team names and current default user roles:
+
+Monitor Operations          ROLE_TEAM_EDIT
+Secure Operations           ROLE_TEAM_EDIT
+Second team                 ROLE_TEAM_EDIT
+Third team                  ROLE_TEAM_EDIT
+```
+
+To update the default user role for a given team
+```
+# ./update_default_user_role.sh -t "Secure Operations" -r ROLE_TEAM_STANDARD
+{
+  "team": {
+    "userRoles": [],
+    "version": 87,
+    "origin": "SYSDIG",
+    "description": "Immutable Secure team with full visibility",
+    "show": "host",
+    "customerId": 1,
+    "theme": "#7BB0B2",
+    "products": [
+      "SDS"
+    ],
+    "entryPoint": {
+      "module": "Explore"
+    },
+    "dateCreated": 1591191680000,
+    "lastUpdated": 1591298554000,
+    "defaultTeamRole": "ROLE_TEAM_STANDARD",
+    "immutable": true,
+    "canUseSysdigCapture": true,
+    "canUseCustomEvents": true,
+    "canUseAwsMetrics": true,
+    "canUseBeaconMetrics": true,
+    "userCount": 2,
+    "name": "Secure Operations",
+    "properties": {},
+    "id": 2,
+    "default": true
+  }
+}
+```
