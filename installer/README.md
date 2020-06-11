@@ -34,6 +34,7 @@ described below.
 
 - Sysdig license key (Monitor and/or Secure)
 - Quay pull secret
+- Anchore license file (if Secure is licensed)
 - Docker Log In to quay.io
 - Retrieve Quay username and password from Quay pull secret.
   For example:
@@ -117,7 +118,7 @@ This install assumes the Kubernetes cluster has network access to pull images fr
     -e KUBECONFIG=/.kube/config \
     -v ~/.kube:/.kube:Z \
     -v $(pwd):/manifests:Z \
-    quay.io/sysdig/installer:3.2.0-4
+    quay.io/sysdig/installer:3.2.2-1
   ```
 - On successful run of Installer towards the end of your terminal you should
   see the below:
@@ -186,7 +187,7 @@ docker run \
   -v $(pwd):/manifests:Z \
   -v /var/run/docker.sock:/var/run/docker.sock:Z \
   -v ~/.docker:/root/docker:Z \
-  quay.io/sysdig/installer:3.2.0-4
+  quay.io/sysdig/installer:3.2.2-1
 ```
 
 ## Full Airgap Install
@@ -221,11 +222,11 @@ the installation machine.
 - Follow the Docker Log In to quay.io steps under the Access Requirements section.
 - Pull the image containing the self-extracting tar:
   ```bash
-  docker pull quay.io/sysdig/installer:3.2.0-4-uber
+  docker pull quay.io/sysdig/installer:3.2.2-1-uber
   ```
 - Extract the tarball:
   ```bash
-  docker create --name uber_image quay.io/sysdig/installer:3.2.0-4-uber
+  docker create --name uber_image quay.io/sysdig/installer:3.2.2-1-uber
   docker cp uber_image:/sysdig_installer.tar.gz .
   docker rm uber_image
   ```
