@@ -6,6 +6,9 @@ set -euo pipefail
 MINIMUM_CPUS=16
 MINIMUM_MEMORY_KB=31000000
 MINIMUM_DISK_IN_GB=59
+ADDITIONAL_IMAGES=(
+  "sysdig/falco_rules_installer:latest"
+)
 
 function logError() { echo "$@" 1>&2; }
 
@@ -28,7 +31,8 @@ LICENSE="PLACEHOLDER"
 DNSNAME="PLACEHOLDER"
 AIRGAP_BUILD="false"
 AIRGAP_INSTALL="false"
-INSTALLER_IMAGE="quay.io/sysdig/installer:3.2.2-1"
+RUN_INSTALLER="false"
+INSTALLER_IMAGE="quay.io/sysdig/installer:3.2.0-9"
 
 function writeValuesYaml() {
   cat << EOM > values.yaml
@@ -190,13 +194,8 @@ function installRhelOSDeps() {
   local -r version=$1
   yum remove -y docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-engine
   yum -y update
-  if [[ $version == 7 ]]; then
-    yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-    yum install -y yum-utils device-mapper-persistent-data lvm2 curl
-  else
-    yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
-    yum install -y yum-utils device-mapper-persistent-data lvm2 curl
-  fi
+  yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+  yum install -y yum-utils device-mapper-persistent-data lvm2 curl
   # Copied from https://github.com/kubernetes/kops/blob/b92babeda277df27b05236d852b5c0dc0803ce5d/nodeup/pkg/model/docker.go#L758-L764
   yum install -y http://vault.centos.org/7.6.1810/extras/x86_64/Packages/container-selinux-2.68-1.el7.noarch.rpm
   yum install -y https://download.docker.com/linux/centos/7/x86_64/stable/Packages/docker-ce-18.06.3.ce-3.el7.x86_64.rpm
@@ -234,8 +233,12 @@ function installDeps() {
   cat << EOF > /etc/sysctl.d/k8s.conf
   net.bridge.bridge-nf-call-ip6tables = 1
   net.bridge.bridge-nf-call-iptables = 1
+  net.ipv4.ip_forward = 1
 EOF
   modprobe br_netfilter
+  swapoff -a
+  systemctl mask "*.swap"
+  sed -i.bak '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
   sysctl --system
 
   source /etc/os-release
@@ -318,6 +321,7 @@ function pullImagesSysdigImages() {
     resources/*/sysdig.json 2> /dev/null | sort -u | grep 'quay\|docker.io')
   #collected images  to images obj
   local -a images=("${non_job_images[@]}")
+  images+=("${ADDITIONAL_IMAGES[@]}")
   images+=("${job_images[@]}")
   images+=("${init_container_images[@]}")
   #iterate and pull image if not present
@@ -359,6 +363,17 @@ function runInstaller() {
 }
 
 function __main() {
+
+  if [[ "${RUN_INSTALLER}" == "true" ]]; then
+    #single node installer just runs installer and returns early
+     docker run --net=host \
+      -e KUBECONFIG=/root/.kube/config \
+      -v /root/.kube:/root/.kube:Z \
+      -v /root/.minikube:/root/.minikube:Z \
+      -v "$(pwd)":/manifests:Z \
+      "${INSTALLER_IMAGE}"
+    exit 0
+  fi
   preFlight
   askQuestions
   if [[ "${AIRGAP_INSTALL}" != "true" ]]; then
@@ -389,6 +404,10 @@ while [[ $# -gt 0 ]]; do
       DNSNAME="installer.airgap.dnsname"
       shift # past argument
       ;;
+    -r | --run-installer)
+      RUN_INSTALLER="true"
+      shift # past value
+      ;;
     -q | --quaypullsecret)
       QUAYPULLSECRET="$2"
       shift # past argument
@@ -396,8 +415,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     -h | --help)
       echo "Help..."
-      echo "use -a|--airgap-builder to specify airgap builder"
-      echo "-q|--quaypullsecret followed by quaysecret to specify airgap builder"
+      echo "-a | --airgap-builder to specify airgap builder"
+      echo "-i | --airgap-install to run as airgap install mode"
+      echo "-r | --run-installer  to run the installer alone"
+      echo "-q | --quaypullsecret followed by quaysecret to specify airgap builder"
       shift # past argument
       exit 0
       ;;

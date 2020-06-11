@@ -7,8 +7,7 @@ values.yaml and run the installer using the created values.yaml file.
 ## Usage
 
 Copy the [script](./install.sh) to the machine that sysdig
-platform is intended to run on, if you intend using enterprise anchore copy the
-anchore license file to the same path as the script, then run:
+platform is intended to run on, then run:
 
 ```bash
 sudo ./install.sh
