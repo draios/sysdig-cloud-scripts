@@ -646,7 +646,7 @@ pvStorageSize:
 
 ```yaml
 sysdig:
-  activityAuditVersion: 3.2.2.6509
+  activityAuditVersion: 3.2.3.6525
 ```
 
 ## **sysdig.anchoreVersion**
@@ -1075,12 +1075,12 @@ sysdig:
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 3.2.2.6509<br>
+**Default**: 3.2.3.6525<br>
 **Example**:
 
 ```yaml
 sysdig:
-  monitorVersion: 3.2.2.6509
+  monitorVersion: 3.2.3.6525
 ```
 
 ## **sysdig.mysqlHa**
