@@ -186,8 +186,6 @@ function installCentOSDeps() {
   yum install -y http://vault.centos.org/7.6.1810/extras/x86_64/Packages/container-selinux-2.68-1.el7.noarch.rpm
   yum install -y https://download.docker.com/linux/centos/7/x86_64/stable/Packages/docker-ce-18.06.3.ce-3.el7.x86_64.rpm
   yum install -y "kernel-devel-$(uname -r)"
-  systemctl enable docker
-  systemctl start docker
 }
 
 function installRhelOSDeps() {
@@ -199,8 +197,6 @@ function installRhelOSDeps() {
   # Copied from https://github.com/kubernetes/kops/blob/b92babeda277df27b05236d852b5c0dc0803ce5d/nodeup/pkg/model/docker.go#L758-L764
   yum install -y http://vault.centos.org/7.6.1810/extras/x86_64/Packages/container-selinux-2.68-1.el7.noarch.rpm
   yum install -y https://download.docker.com/linux/centos/7/x86_64/stable/Packages/docker-ce-18.06.3.ce-3.el7.x86_64.rpm
-  systemctl enable docker
-  systemctl start docker
 }
 
 function disableFirewalld() {
@@ -280,16 +276,37 @@ EOF
       exit 1
       ;;
   esac
+  startDocker
   installJq
   installMiniKube
   installKubectl
   set -e
 }
 
+
 function startDocker() {
   systemctl enable docker
   systemctl start docker
-  ip link set docker0 promisc on
+}
+
+#There is a work around for a bug in minikube
+function setDocker0Promisc() {
+  mkdir -p /usr/lib/systemd/system/
+  cat << EOF > /usr/lib/systemd/system/docker0-promisc.service
+[Unit]
+Description=Setup promisc on docker0 interface
+Wants=docker.service
+After=docker.service
+[Service]
+Type=oneshot
+ExecStart=/sbin/ip link set docker0 promisc on
+RemainAfterExit=true
+StandardOutput=journal
+[Install]
+WantedBy=multi-user.target
+EOF
+  systemctl enable docker0-promisc
+  systemctl start docker0-promisc
 }
 
 function startMinikube() {
@@ -378,7 +395,7 @@ function __main() {
   askQuestions
   if [[ "${AIRGAP_INSTALL}" != "true" ]]; then
     installDeps
-    startDocker
+    setDocker0Promisc
   fi
   #minikube needs to run to set the correct context & ip during airgap run
   startMinikube
