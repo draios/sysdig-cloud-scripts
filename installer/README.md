@@ -1,7 +1,9 @@
 # Installer
 
 The Sysdig Installer tool is a collection of scripts that help automate the
-on-premises deployment of the Sysdig platform (Sysdig Monitor, Secure and Agent), for environments using Kubernetes or OpenShift. Use the Installer to install or upgrade your Sysdig platform. It is recommended as a replacement
+on-premises deployment of the Sysdig platform (Sysdig Monitor, Secure and
+Agent), for environments using Kubernetes or OpenShift. Use the Installer to
+install or upgrade your Sysdig platform. It is recommended as a replacement
 for the earlier manual install/upgrade procedures.
 
 # Installation Overview
@@ -18,10 +20,7 @@ described below.
 
 ### Requirements for Installation Machine with Internet Access
 
-- Network access to Kubernetes cluster
-- Docker
-- Bash
-- jq
+- kubectl or oc binary
 - Network access to quay.io
 - A domain name you are in control of.
 
@@ -34,19 +33,6 @@ described below.
 
 - Sysdig license key (Monitor and/or Secure)
 - Quay pull secret
-- Anchore license file (if Secure is licensed)
-- Docker Log In to quay.io
-- Retrieve Quay username and password from Quay pull secret.
-  For example:
-  ```bash
-  AUTH=$(echo <REPLACE_WITH_quaypullsecret> | base64 --decode | jq -r '.auths."quay.io".auth'| base64 --decode)
-  QUAY_USERNAME=${AUTH%:*}
-  QUAY_PASSWORD=${AUTH#*:}
-  ```
-- Log in to quay.io using the username and password retrieved above.
-  ```bash
-  docker login -u "$QUAY_USERNAME" -p "$QUAY_PASSWORD" quay.io
-  ```
 
 # Quickstart Install
 
@@ -110,26 +96,25 @@ This install assumes the Kubernetes cluster has network access to pull images fr
     The username for the configured airgapped_registry_name. Ignore this
     parameter if the registry does not require authentication.
 
-- Run the Installer. (Note: This step differs in [Airgapped Installation
-  Options](#airgapped-installation-options).)
+- Download the installer binary that matches your OS from the
+  [sysdigcloud-kubernetes releases
+  page](https://github.com/draios/sysdigcloud-kubernetes/releases).
+- Run the Installer.
   ```bash
-  docker run \
-    -e HOST_USER=$(id -u) \
-    -e KUBECONFIG=/.kube/config \
-    -v ~/.kube:/.kube:Z \
-    -v $(pwd):/manifests:Z \
-    quay.io/sysdig/installer:3.2.2-1
+  ./installer deploy
   ```
 - On successful run of Installer towards the end of your terminal you should
   see the below:
 
   ```
-  All Pods Ready.....Continuing
   Congratulations, your Sysdig installation was successful!
   You can now login to the UI at "https://awesome-domain.com:443" with:
 
   username: "configured-username@awesome-domain.com"
   password: "awesome-password"
+
+  Collector endpoint for connecting agents is: awesome-domain.com
+  Collector port is: 6443
   ```
 
 **NOTE**: Save the values.yaml file in a secure location; it will be used for
@@ -176,19 +161,16 @@ The Prerequisites and workflow are the same as in the Quickstart Install, with
 the following exceptions:
 
 - In step 2, add the airgap registry information.
-
-- In step 3, run the Installer as follows:
-
+- Make the installer push sysdig images to the airgapped registry by running:
 ```bash
-docker run \
-  -e HOST_USER=$(id -u) \
-  -e KUBECONFIG=/.kube/config \
-  -v ~/.kube:/.kube:Z \
-  -v $(pwd):/manifests:Z \
-  -v /var/run/docker.sock:/var/run/docker.sock:Z \
-  -v ~/.docker:/root/docker:Z \
-  quay.io/sysdig/installer:3.2.2-1
+./installer airgap
 ```
+  That will pull all the images into `images_archive` directory as tar files
+  and push them to the airgapped registry
+- Run the Installer.
+  ```bash
+  ./installer deploy
+  ```
 
 ## Full Airgap Install
 
@@ -210,8 +192,6 @@ the installation machine.
 
 - Network access to Kubernetes cluster
 - Docker
-- Bash
-- tar
 - Network and authenticated access to the private registry
 - Edited sysdig-chart/values.yaml, with airgap registry details updated
 
@@ -222,11 +202,11 @@ the installation machine.
 - Follow the Docker Log In to quay.io steps under the Access Requirements section.
 - Pull the image containing the self-extracting tar:
   ```bash
-  docker pull quay.io/sysdig/installer:3.2.2-1-uber
+  docker pull quay.io/sysdig/installer:3.2.0-9-uber
   ```
 - Extract the tarball:
   ```bash
-  docker create --name uber_image quay.io/sysdig/installer:3.2.2-1-uber
+  docker create --name uber_image quay.io/sysdig/installer:3.2.0-9-uber
   docker cp uber_image:/sysdig_installer.tar.gz .
   docker rm uber_image
   ```
@@ -285,10 +265,17 @@ the installation machine.
     parameter if the registry does not require authentication.
 
 - Copy the tarball file to the directory where you have your values.yaml file.
-- Run the tar file:
-  `bash sysdig_installer.tar.gz`
-- The above step extracts images, runs installer and pushes images to the remote repository in one step. The extract, push images can be redundant for successive installer runs. Setting IMAGE_EXTRACT_PUSH=false runs only the installer.
-  `IMAGE_EXTRACT_PUSH=false bash sysdig_installer.tar.gz`
+- Run:
+```bash
+installer airgap --tar-file sysdig_installer.tar.gz
+```
+The above step will extract the images into `images_archive` directory
+relative to where the installer was run and push the images to the
+airgapped_registry
+- Run the Installer:
+  ```bash
+  ./installer deploy
+  ```
 - On successful run of Installer towards the end of your terminal you should
   see the below:
 

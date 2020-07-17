@@ -72,21 +72,16 @@ To upgrade:<br>
   The username for the configured airgapped_registry_name. Ignore this
   parameter if the registry does not require authentication.
 
-3. Run the Installer. (Note: This step differs for Airgapped Installations,
-  see [Airgapped Installation
-  Options](../README.md#airgapped-Installation-Options).) 
+3. Run the Installer (if you are in airgapped environment make sure you follow
+instructions from installation on how to get the images to your airgapped
+registry)
   ```bash
-  docker run \
-    -e HOST_USER=$(id -u) \
-    -e KUBECONFIG=/.kube/config \
-    -v ~/.kube:/.kube:Z \
-    -v $(pwd):/manifests:Z \
-    quay.io/sysdig/installer:3.2.2-1
+  ./installer diff
   ```
-
-4. If you are fine with the differences displayed, then set value for the
-  `scripts` parameter in your values.yaml to `deploy` and rerun the Installer
-  as in Step 3.<br>
+4. If you are fine with the differences displayed, then run:
+  ```bash
+  ./installer deploy
+  ```
   If you find differences that you want to preserve you should
   look in the [Configuration Parameters](docs/configuration_parameters.md)
   documentation for the configuration parameter that matches the difference
@@ -94,5 +89,5 @@ To upgrade:<br>
   step 3 until you are fine with the differences. Then set scripts to deploy
   and run for the final time.
 
-5. The datastores Cassandra and ElasticSearch have onDelete update strategy and need to be manually restarted to
-   complete upgrade.
+5. The datastores Cassandra and ElasticSearch have onDelete update strategy
+  and need to be manually restarted to complete upgrade.
