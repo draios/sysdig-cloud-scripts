@@ -32,7 +32,6 @@ DNSNAME="PLACEHOLDER"
 AIRGAP_BUILD="false"
 AIRGAP_INSTALL="false"
 RUN_INSTALLER="false"
-INSTALLER_IMAGE="quay.io/sysdig/installer:3.2.0-9"
 
 function writeValuesYaml() {
   cat << EOM > values.yaml
@@ -152,6 +151,12 @@ function dockerLogin() {
   fi
 }
 
+function downloadInstallerBinary() {
+  curl -o installer -L https://github.com/draios/sysdigcloud-kubernetes/releases/download/3.5.0/installer-linux-amd64
+  chmod +x installer
+  mv installer "${ROOT_LOCAL_PATH}"
+}
+
 function installUbuntuDeps() {
   apt-get remove -y docker docker-engine docker.io containerd runc > /dev/null 2>&1
   apt-get update -qq
@@ -233,7 +238,7 @@ function installDeps() {
 EOF
   modprobe br_netfilter
   swapoff -a
-  systemctl mask "*.swap"
+  systemctl mask '*.swap'
   sed -i.bak '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
   sysctl --system
 
@@ -283,7 +288,6 @@ EOF
   set -e
 }
 
-
 function startDocker() {
   systemctl enable docker
   systemctl start docker
@@ -327,15 +331,13 @@ function fixIptables() {
 }
 
 function pullImagesSysdigImages() {
-  #copy tests/resources to local
-  getSysdigImagesFromInstaller
   #find images in resources
   mapfile -t non_job_images < <(jq -r '.spec.template.spec.containers[]? | .image' \
-    resources/*/sysdig.json 2> /dev/null | sort -u | grep 'quay\|docker.io')
+    /opt/sysdig-chart/resources/*/sysdig.json 2> /dev/null | sort -u | grep 'quay\|docker.io')
   mapfile -t job_images < <(jq -r '.spec.jobTemplate.spec.template.spec.containers[]? | .image' \
-    resources/*/sysdig.json 2> /dev/null | sort -u | grep 'quay\|docker.io')
+    /opt/sysdig-chart/resources/*/sysdig.json 2> /dev/null | sort -u | grep 'quay\|docker.io')
   mapfile -t init_container_images < <(jq -r '.spec.template.spec.initContainers[]? | .image' \
-    resources/*/sysdig.json 2> /dev/null | sort -u | grep 'quay\|docker.io')
+    /opt/sysdig-chart/resources/*/sysdig.json 2> /dev/null | sort -u | grep 'quay\|docker.io')
   #collected images  to images obj
   local -a images=("${non_job_images[@]}")
   images+=("${ADDITIONAL_IMAGES[@]}")
@@ -351,31 +353,20 @@ function pullImagesSysdigImages() {
     fi
   done
   #clean up resources
-  rm -rf resources
-}
-
-function getSysdigImagesFromInstaller() {
-  #get resources from sysdig-chart/tests
-  docker create --name installer_image ${INSTALLER_IMAGE}
-  docker cp installer_image:/sysdig-chart/tests/resources .
-  docker rm installer_image
+  rm -rf /opt/sysdig-chart
 }
 
 function runInstaller() {
   if [[ "${AIRGAP_INSTALL}" != "true" ]]; then
-    dockerLogin
+    downloadInstallerBinary
   fi
   if [[ "${AIRGAP_BUILD}" == "true" ]]; then
-    docker pull "${INSTALLER_IMAGE}"
+    downloadInstallerBinary
+    dockerLogin
     pullImagesSysdigImages
   else
     writeValuesYaml
-    docker run --net=host \
-      -e KUBECONFIG=/root/.kube/config \
-      -v /root/.kube:/root/.kube:Z \
-      -v /root/.minikube:/root/.minikube:Z \
-      -v "$(pwd)":/manifests:Z \
-      "${INSTALLER_IMAGE}"
+    installer deploy
   fi
 }
 
@@ -383,12 +374,7 @@ function __main() {
 
   if [[ "${RUN_INSTALLER}" == "true" ]]; then
     #single node installer just runs installer and returns early
-     docker run --net=host \
-      -e KUBECONFIG=/root/.kube/config \
-      -v /root/.kube:/root/.kube:Z \
-      -v /root/.minikube:/root/.minikube:Z \
-      -v "$(pwd)":/manifests:Z \
-      "${INSTALLER_IMAGE}"
+    installer deploy
     exit 0
   fi
   preFlight
