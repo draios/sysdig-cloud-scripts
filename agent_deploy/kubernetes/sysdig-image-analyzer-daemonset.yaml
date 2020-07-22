@@ -117,11 +117,11 @@ spec:
               name: sysdig-image-analyzer
               key: collector_timeout
               optional: true
-        - name: CHECK_CERTIFICATE
+        - name: VERIFY_CERTIFICATE
           valueFrom:
             configMapKeyRef:
               name: sysdig-image-analyzer
-              key: check_certificate
+              key: ssl_verify_certificate
               optional: true
         - name: K8S_NODE_NAME
           valueFrom:
