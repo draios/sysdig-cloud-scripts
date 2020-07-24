@@ -266,7 +266,14 @@ function install_k8s_agent {
             # Throw an error instead of running the command for them because it could
             #  take a long time for the secrets to become populated
             echo "ERROR: default-icr-io or all-icr-io secret doesn't exist in the default namespace"
-            echo "ERROR: Run: ibmcloud ks cluster pull-secret apply --cluster $IKS_CLUSTER_ID"
+            echo "ERROR: Run the following:"
+            if [ "$OPENSHIFT" = 1 ]; then
+                echo "ibmcloud iam service-id-create all-icr-io --description \"Grant access to private Sysdig agent image\""
+                echo "ibmcloud iam service-api-key-create all-icr-io-apikey all-icr-io"
+                echo "oc -n default create secret docker-registry all-icr-io --docker-username=iamapikey --docker-password=all-icr-io-apikey"
+            else
+                echo "ibmcloud ks cluster pull-secret apply --cluster $IKS_CLUSTER_ID"
+            fi
             exit 1
         fi
 
