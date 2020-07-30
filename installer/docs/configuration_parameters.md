@@ -1318,6 +1318,20 @@ sysdig:
       - my-cool-host1.com
 ```
 
+## **sysdig.mysql.maxConnections**
+**Required**: `false`<br>
+**Description**: The maximum permitted number of simultaneous client connections.<br>
+**Options**:<br>
+**Default**: `1024`<br>
+
+**Example**:
+
+```yaml
+sysdig:
+  mysql:
+    maxConnections: 1024
+```
+
 ## **sysdig.mysql.password**
 **Required**: `false`<br>
 **Description**: The password of the MySQL user that the Sysdig Platform backend
@@ -1654,11 +1668,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits|
-|------------|------|
-| small      | 2    |
-| medium     | 4    |
-| large      | 8    |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 2      |
+| medium       | 4      |
+| large        | 8      |
 
 **Example**:
 
@@ -1676,11 +1690,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits|
-|------------|------|
-| small      | 8Gi  |
-| medium     | 8Gi  |
-| large      | 8Gi  |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 8Gi    |
+| medium       | 8Gi    |
+| large        | 8Gi    |
 
 **Example**:
 
@@ -1698,11 +1712,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      | 1      |
-| medium     | 2      |
-| large      | 4      |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 1        |
+| medium       | 2        |
+| large        | 4        |
 
 **Example**:
 
@@ -1720,11 +1734,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      | 2Gi    |
-| medium     | 2Gi    |
-| large      | 2Gi    |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 2Gi      |
+| medium       | 2Gi      |
+| large        | 2Gi      |
 
 **Example**:
 
@@ -1742,11 +1756,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits|
-|------------|------|
-| small      | 2    |
-| medium     | 4    |
-| large      | 8    |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 2      |
+| medium       | 4      |
+| large        | 8      |
 
 **Example**:
 
@@ -1764,11 +1778,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits|
-|------------|------|
-| small      | 8Gi  |
-| medium     | 8Gi  |
-| large      | 8Gi  |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 8Gi    |
+| medium       | 8Gi    |
+| large        | 8Gi    |
 
 **Example**:
 
@@ -1786,11 +1800,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      | 1      |
-| medium     | 2      |
-| large      | 4      |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 1        |
+| medium       | 2        |
+| large        | 4        |
 
 **Example**:
 
@@ -1808,11 +1822,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      | 4Gi    |
-| medium     | 4Gi    |
-| large      | 4Gi    |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 4Gi      |
+| medium       | 4Gi      |
+| large        | 4Gi      |
 
 **Example**:
 
@@ -1830,11 +1844,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits|
-|------------|------|
-| small      | 500m |
-| medium     | 500m |
-| large      | 500m |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 500m   |
+| medium       | 500m   |
+| large        | 500m   |
 
 **Example**:
 
@@ -1852,11 +1866,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits|
-|------------|------|
-| small      | 500Mi|
-| medium     | 500Mi|
-| large      | 500Mi|
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 500Mi  |
+| medium       | 500Mi  |
+| large        | 500Mi  |
 
 **Example**:
 
@@ -1874,11 +1888,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      | 250m   |
-| medium     | 250m   |
-| large      | 250m   |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 250m     |
+| medium       | 250m     |
+| large        | 250m     |
 
 **Example**:
 
@@ -1896,11 +1910,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      | 100Mi  |
-| medium     | 100Mi  |
-| large      | 100Mi  |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 100Mi    |
+| medium       | 100Mi    |
+| large        | 100Mi    |
 
 **Example**:
 
@@ -1950,11 +1964,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      | 500m   |
-| medium     | 500m   |
-| large      | 500m   |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 500m     |
+| medium       | 500m     |
+| large        | 500m     |
 
 **Example**:
 
@@ -1972,11 +1986,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      | 1Gi    |
-| medium     | 1Gi    |
-| large      | 1Gi    |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 1Gi      |
+| medium       | 1Gi      |
+| large        | 1Gi      |
 
 **Example**:
 
@@ -1994,11 +2008,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 2      |
-| medium     | 4      |
-| large      | 4      |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 2      |
+| medium       | 4      |
+| large        | 4      |
 
 **Example**:
 
@@ -2016,11 +2030,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 4Gi    |
-| medium     | 4Gi    |
-| large      | 8Gi    |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 4Gi    |
+| medium       | 4Gi    |
+| large        | 8Gi    |
 
 
 **Example**:
@@ -2039,11 +2053,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      | 500m   |
-| medium     | 1      |
-| large      | 2      |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 500m     |
+| medium       | 1        |
+| large        | 2        |
 
 **Example**:
 
@@ -2061,11 +2075,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      | 500Mi  |
-| medium     | 1Gi    |
-| large      | 2Gi    |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 500Mi    |
+| medium       | 1Gi      |
+| large        | 2Gi      |
 
 **Example**:
 
@@ -2083,11 +2097,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 2      |
-| medium     | 2      |
-| large      | 2      |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 2      |
+| medium       | 2      |
+| large        | 2      |
 
 **Example**:
 
@@ -2105,11 +2119,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 2Gi    |
-| medium     | 2Gi    |
-| large      | 2Gi    |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 2Gi    |
+| medium       | 2Gi    |
+| large        | 2Gi    |
 
 
 **Example**:
@@ -2128,11 +2142,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      | 100m   |
-| medium     | 100m   |
-| large      | 100m   |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 100m     |
+| medium       | 100m     |
+| large        | 100m     |
 
 **Example**:
 
@@ -2150,11 +2164,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      | 100Mi  |
-| medium     | 100Mi  |
-| large      | 100Mi  |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 100Mi    |
+| medium       | 100Mi    |
+| large        | 100Mi    |
 
 **Example**:
 
@@ -2172,11 +2186,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 300m   |
-| medium     | 300m   |
-| large      | 300m   |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 300m   |
+| medium       | 300m   |
+| large        | 300m   |
 
 **Example**:
 
@@ -2194,11 +2208,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 20Mi   |
-| medium     | 20Mi   |
-| large      | 20Mi   |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 20Mi   |
+| medium       | 20Mi   |
+| large        | 20Mi   |
 
 
 **Example**:
@@ -2217,11 +2231,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |  50m   |
-| medium     |  50m   |
-| large      |  50m   |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 50m      |
+| medium       | 50m      |
+| large        | 50m      |
 
 **Example**:
 
@@ -2239,11 +2253,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |   5Mi  |
-| medium     |   5Mi  |
-| large      |   5Mi  |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 5Mi      |
+| medium       | 5Mi      |
+| large        | 5Mi      |
 
 **Example**:
 
@@ -2261,11 +2275,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 300m   |
-| medium     | 300m   |
-| large      | 300m   |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 300m   |
+| medium       | 300m   |
+| large        | 300m   |
 
 **Example**:
 
@@ -2283,11 +2297,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 20Mi   |
-| medium     | 20Mi   |
-| large      | 20Mi   |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 20Mi   |
+| medium       | 20Mi   |
+| large        | 20Mi   |
 
 
 **Example**:
@@ -2306,11 +2320,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |  50m   |
-| medium     |  50m   |
-| large      |  50m   |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 50m      |
+| medium       | 50m      |
+| large        | 50m      |
 
 **Example**:
 
@@ -2328,11 +2342,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |   5Mi  |
-| medium     |   5Mi  |
-| large      |   5Mi  |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 5Mi      |
+| medium       | 5Mi      |
+| large        | 5Mi      |
 
 **Example**:
 
@@ -2350,11 +2364,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 4      |
-| medium     | 4      |
-| large      | 16     |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 4      |
+| medium       | 4      |
+| large        | 16     |
 
 **Example**:
 
@@ -2372,11 +2386,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 4Gi    |
-| medium     | 4Gi    |
-| large      | 16Gi   |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 4Gi    |
+| medium       | 4Gi    |
+| large        | 16Gi   |
 
 
 **Example**:
@@ -2395,11 +2409,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |  1     |
-| medium     |  1     |
-| large      |  4     |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 1        |
+| medium       | 1        |
+| large        | 4        |
 
 **Example**:
 
@@ -2417,11 +2431,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |   1Gi  |
-| medium     |   1Gi  |
-| large      |   4Gi  |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 1Gi      |
+| medium       | 1Gi      |
+| large        | 4Gi      |
 
 **Example**:
 
@@ -2439,11 +2453,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 4      |
-| medium     | 4      |
-| large      | 16     |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 4      |
+| medium       | 4      |
+| large        | 16     |
 
 **Example**:
 
@@ -2461,11 +2475,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 4Gi    |
-| medium     | 4Gi    |
-| large      | 16Gi   |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 4Gi    |
+| medium       | 4Gi    |
+| large        | 16Gi   |
 
 
 **Example**:
@@ -2484,11 +2498,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |  1     |
-| medium     |  1     |
-| large      |  4     |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 1        |
+| medium       | 1        |
+| large        | 4        |
 
 **Example**:
 
@@ -2506,11 +2520,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |   1Gi  |
-| medium     |   1Gi  |
-| large      |   4Gi  |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 1Gi      |
+| medium       | 1Gi      |
+| large        | 4Gi      |
 
 **Example**:
 
@@ -2528,11 +2542,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 4      |
-| medium     | 4      |
-| large      | 16     |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 4      |
+| medium       | 4      |
+| large        | 16     |
 
 **Example**:
 
@@ -2550,11 +2564,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 4Gi    |
-| medium     | 4Gi    |
-| large      | 16Gi   |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 4Gi    |
+| medium       | 4Gi    |
+| large        | 16Gi   |
 
 
 **Example**:
@@ -2573,11 +2587,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |  1     |
-| medium     |  1     |
-| large      |  4     |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 1        |
+| medium       | 1        |
+| large        | 4        |
 
 **Example**:
 
@@ -2595,11 +2609,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |   1Gi  |
-| medium     |   1Gi  |
-| large      |   4Gi  |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 1Gi      |
+| medium       | 1Gi      |
+| large        | 4Gi      |
 
 **Example**:
 
@@ -2617,11 +2631,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 4      |
-| medium     | 4      |
-| large      | 16     |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 4      |
+| medium       | 4      |
+| large        | 16     |
 
 **Example**:
 
@@ -2639,11 +2653,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 4Gi    |
-| medium     | 4Gi    |
-| large      | 16Gi   |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 4Gi    |
+| medium       | 4Gi    |
+| large        | 16Gi   |
 
 
 **Example**:
@@ -2662,11 +2676,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |  1     |
-| medium     |  1     |
-| large      |  4     |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 1        |
+| medium       | 1        |
+| large        | 4        |
 
 **Example**:
 
@@ -2684,11 +2698,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |   1Gi  |
-| medium     |   1Gi  |
-| large      |   4Gi  |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 1Gi      |
+| medium       | 1Gi      |
+| large        | 4Gi      |
 
 **Example**:
 
@@ -2706,11 +2720,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 4      |
-| medium     | 4      |
-| large      | 4      |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 4      |
+| medium       | 4      |
+| large        | 4      |
 
 **Example**:
 
@@ -2728,11 +2742,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 4Gi    |
-| medium     | 4Gi    |
-| large      | 4Gi    |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 4Gi    |
+| medium       | 4Gi    |
+| large        | 4Gi    |
 
 
 **Example**:
@@ -2751,11 +2765,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |  500m  |
-| medium     |  1     |
-| large      |  1     |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 500m     |
+| medium       | 1        |
+| large        | 1        |
 
 **Example**:
 
@@ -2773,11 +2787,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |   1Gi  |
-| medium     |   1Gi  |
-| large      |   1Gi  |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 1Gi      |
+| medium       | 1Gi      |
+| large        | 1Gi      |
 
 **Example**:
 
@@ -2795,11 +2809,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 4      |
-| medium     | 4      |
-| large      | 4      |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 4      |
+| medium       | 4      |
+| large        | 4      |
 
 **Example**:
 
@@ -2817,11 +2831,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 4Gi    |
-| medium     | 4Gi    |
-| large      | 4Gi    |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 4Gi    |
+| medium       | 4Gi    |
+| large        | 4Gi    |
 
 
 **Example**:
@@ -2840,11 +2854,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |  500m  |
-| medium     |  1     |
-| large      |  1     |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 500m     |
+| medium       | 1        |
+| large        | 1        |
 
 **Example**:
 
@@ -2862,11 +2876,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |   1Gi  |
-| medium     |   1Gi  |
-| large      |   1Gi  |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 1Gi      |
+| medium       | 1Gi      |
+| large        | 1Gi      |
 
 **Example**:
 
@@ -2884,11 +2898,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 4      |
-| medium     | 4      |
-| large      | 4      |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 4      |
+| medium       | 4      |
+| large        | 4      |
 
 **Example**:
 
@@ -2906,11 +2920,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 4Gi    |
-| medium     | 4Gi    |
-| large      | 4Gi    |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 4Gi    |
+| medium       | 4Gi    |
+| large        | 4Gi    |
 
 
 **Example**:
@@ -2929,11 +2943,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |  500m  |
-| medium     |  1     |
-| large      |  1     |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 500m     |
+| medium       | 1        |
+| large        | 1        |
 
 **Example**:
 
@@ -2951,11 +2965,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |   1Gi  |
-| medium     |   1Gi  |
-| large      |   1Gi  |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 1Gi      |
+| medium       | 1Gi      |
+| large        | 1Gi      |
 
 **Example**:
 
@@ -2974,11 +2988,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 4      |
-| medium     | 4      |
-| large      | 4      |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 4      |
+| medium       | 4      |
+| large        | 4      |
 
 **Example**:
 
@@ -2996,11 +3010,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 4Gi    |
-| medium     | 4Gi    |
-| large      | 4Gi    |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 4Gi    |
+| medium       | 4Gi    |
+| large        | 4Gi    |
 
 
 **Example**:
@@ -3019,11 +3033,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |  500m  |
-| medium     |  1     |
-| large      |  1     |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 500m     |
+| medium       | 1        |
+| large        | 1        |
 
 **Example**:
 
@@ -3041,11 +3055,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |   1Gi  |
-| medium     |   1Gi  |
-| large      |   1Gi  |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 1Gi      |
+| medium       | 1Gi      |
+| large        | 1Gi      |
 
 **Example**:
 
@@ -3063,11 +3077,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 4      |
-| medium     | 4      |
-| large      | 4      |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 4      |
+| medium       | 4      |
+| large        | 4      |
 
 **Example**:
 
@@ -3085,11 +3099,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 4Gi    |
-| medium     | 4Gi    |
-| large      | 4Gi    |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 4Gi    |
+| medium       | 4Gi    |
+| large        | 4Gi    |
 
 
 **Example**:
@@ -3108,11 +3122,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |  1  |
-| medium     |  1     |
-| large      |  1     |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 1        |
+| medium       | 1        |
+| large        | 1        |
 
 **Example**:
 
@@ -3130,11 +3144,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |   1Gi  |
-| medium     |   1Gi  |
-| large      |   1Gi  |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 1Gi      |
+| medium       | 1Gi      |
+| large        | 1Gi      |
 
 **Example**:
 
@@ -3152,11 +3166,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 2      |
-| medium     | 2      |
-| large      | 2      |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 2      |
+| medium       | 2      |
+| large        | 2      |
 
 **Example**:
 
@@ -3174,11 +3188,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      |  2Gi   |
-| medium     |  2Gi   |
-| large      |  2Gi   |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 2Gi    |
+| medium       | 2Gi    |
+| large        | 2Gi    |
 
 
 **Example**:
@@ -3197,11 +3211,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |  250m  |
-| medium     |  250m  |
-| large      |  250m  |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 250m     |
+| medium       | 250m     |
+| large        | 250m     |
 
 **Example**:
 
@@ -3219,11 +3233,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |  1Gi   |
-| medium     |  1Gi   |
-| large      |  1Gi   |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 1Gi      |
+| medium       | 1Gi      |
+| large        | 1Gi      |
 
 **Example**:
 
@@ -3241,11 +3255,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 2      |
-| medium     | 2      |
-| large      | 2      |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 2      |
+| medium       | 2      |
+| large        | 2      |
 
 **Example**:
 
@@ -3263,11 +3277,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 500Mi  |
-| medium     | 500Mi  |
-| large      | 500Mi  |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 500Mi  |
+| medium       | 500Mi  |
+| large        | 500Mi  |
 
 **Example**:
 
@@ -3285,11 +3299,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |  250m  |
-| medium     |  250m  |
-| large      |  250m  |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 250m     |
+| medium       | 250m     |
+| large        | 250m     |
 
 **Example**:
 
@@ -3307,11 +3321,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |  50Mi  |
-| medium     |  50Mi  |
-| large      |  50Mi  |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 50Mi     |
+| medium       | 50Mi     |
+| large        | 50Mi     |
 
 **Example**:
 
@@ -3329,11 +3343,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 1      |
-| medium     | 1      |
-| large      | 1      |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 1      |
+| medium       | 1      |
+| large        | 1      |
 
 **Example**:
 
@@ -3351,11 +3365,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 500Mi  |
-| medium     | 500Mi  |
-| large      | 500Mi  |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 500Mi  |
+| medium       | 500Mi  |
+| large        | 500Mi  |
 
 
 **Example**:
@@ -3374,11 +3388,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |  250m  |
-| medium     |  250m  |
-| large      |  250m  |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 250m     |
+| medium       | 250m     |
+| large        | 250m     |
 
 **Example**:
 
@@ -3396,11 +3410,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |  50Mi  |
-| medium     |  50Mi  |
-| large      |  50Mi  |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 50Mi     |
+| medium       | 50Mi     |
+| large        | 50Mi     |
 
 **Example**:
 
@@ -3418,11 +3432,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 250m   |
-| medium     | 250m   |
-| large      | 250m   |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 250m   |
+| medium       | 250m   |
+| large        | 250m   |
 
 **Example**:
 
@@ -3440,11 +3454,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 200Mi  |
-| medium     | 200Mi  |
-| large      | 200Mi  |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 200Mi  |
+| medium       | 200Mi  |
+| large        | 200Mi  |
 
 
 **Example**:
@@ -3463,11 +3477,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |  250m  |
-| medium     |  250m  |
-| large      |  250m  |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 250m     |
+| medium       | 250m     |
+| large        | 250m     |
 
 **Example**:
 
@@ -3485,11 +3499,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |  50Mi  |
-| medium     |  50Mi  |
-| large      |  50Mi  |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 50Mi     |
+| medium       | 50Mi     |
+| large        | 50Mi     |
 
 **Example**:
 
@@ -3507,11 +3521,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 2      |
-| medium     | 2      |
-| large      | 2      |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 2      |
+| medium       | 2      |
+| large        | 2      |
 
 **Example**:
 
@@ -3529,11 +3543,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 500Mi  |
-| medium     | 500Mi  |
-| large      | 500Mi  |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 500Mi  |
+| medium       | 500Mi  |
+| large        | 500Mi  |
 
 **Example**:
 
@@ -3551,11 +3565,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |  250m  |
-| medium     |  250m  |
-| large      |  250m  |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 250m     |
+| medium       | 250m     |
+| large        | 250m     |
 
 **Example**:
 
@@ -3573,11 +3587,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |  50Mi  |
-| medium     |  50Mi  |
-| large      |  50Mi  |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 50Mi     |
+| medium       | 50Mi     |
+| large        | 50Mi     |
 
 **Example**:
 
@@ -3595,11 +3609,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 1      |
-| medium     | 1      |
-| large      | 1      |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 1      |
+| medium       | 1      |
+| large        | 1      |
 
 **Example**:
 
@@ -3617,11 +3631,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 500Mi  |
-| medium     | 500Mi  |
-| large      | 500Mi  |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 500Mi  |
+| medium       | 500Mi  |
+| large        | 500Mi  |
 
 
 **Example**:
@@ -3640,11 +3654,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |  250m  |
-| medium     |  250m  |
-| large      |  250m  |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 250m     |
+| medium       | 250m     |
+| large        | 250m     |
 
 **Example**:
 
@@ -3662,11 +3676,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |  50Mi  |
-| medium     |  50Mi  |
-| large      |  50Mi  |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 50Mi     |
+| medium       | 50Mi     |
+| large        | 50Mi     |
 
 **Example**:
 
@@ -3684,11 +3698,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 2      |
-| medium     | 2      |
-| large      | 2      |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 2      |
+| medium       | 2      |
+| large        | 2      |
 
 **Example**:
 
@@ -3706,11 +3720,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 1Gi    |
-| medium     | 1Gi    |
-| large      | 1Gi    |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 1Gi    |
+| medium       | 1Gi    |
+| large        | 1Gi    |
 
 
 **Example**:
@@ -3729,11 +3743,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |  500m  |
-| medium     |  500m  |
-| large      |  500m  |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 500m     |
+| medium       | 500m     |
+| large        | 500m     |
 
 **Example**:
 
@@ -3751,11 +3765,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |  512Mi |
-| medium     |  512Mi |
-| large      |  512Mi |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 512Mi    |
+| medium       | 512Mi    |
+| large        | 512Mi    |
 
 **Example**:
 
@@ -3773,11 +3787,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 2      |
-| medium     | 2      |
-| large      | 2      |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 2      |
+| medium       | 2      |
+| large        | 2      |
 
 **Example**:
 
@@ -3795,11 +3809,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 8Gi    |
-| medium     | 8Gi    |
-| large      | 8Gi    |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 8Gi    |
+| medium       | 8Gi    |
+| large        | 8Gi    |
 
 
 **Example**:
@@ -3818,11 +3832,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |  500m  |
-| medium     |  500m  |
-| large      |  500m  |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 500m     |
+| medium       | 500m     |
+| large        | 500m     |
 
 **Example**:
 
@@ -3840,11 +3854,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |  2Gi   |
-| medium     |  2Gi   |
-| large      |  2Gi   |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 2Gi      |
+| medium       | 2Gi      |
+| large        | 2Gi      |
 
 **Example**:
 
@@ -3862,11 +3876,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 1      |
-| medium     | 1      |
-| large      | 1      |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 1      |
+| medium       | 1      |
+| large        | 1      |
 
 **Example**:
 
@@ -3884,11 +3898,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 500Mi  |
-| medium     | 500Mi  |
-| large      | 500Mi  |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 500Mi  |
+| medium       | 500Mi  |
+| large        | 500Mi  |
 
 **Example**:
 
@@ -3906,11 +3920,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |  250m  |
-| medium     |  250m  |
-| large      |  250m  |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 250m     |
+| medium       | 250m     |
+| large        | 250m     |
 
 **Example**:
 
@@ -3928,11 +3942,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |  50Mi  |
-| medium     |  50Mi  |
-| large      |  50Mi  |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 50Mi     |
+| medium       | 50Mi     |
+| large        | 50Mi     |
 
 **Example**:
 
@@ -3950,11 +3964,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 2      |
-| medium     | 2      |
-| large      | 2      |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 2      |
+| medium       | 2      |
+| large        | 2      |
 
 **Example**:
 
@@ -3972,11 +3986,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      |   1Gi  |
-| medium     |   1Gi  |
-| large      |   1Gi  |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 1Gi    |
+| medium       | 1Gi    |
+| large        | 1Gi    |
 
 **Example**:
 
@@ -3994,11 +4008,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |  250m  |
-| medium     |  250m  |
-| large      |  250m  |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 250m     |
+| medium       | 250m     |
+| large        | 250m     |
 
 **Example**:
 
@@ -4016,11 +4030,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |  250Mi |
-| medium     |  250Mi |
-| large      |  250Mi |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 250Mi    |
+| medium       | 250Mi    |
+| large        | 250Mi    |
 
 **Example**:
 
@@ -4038,11 +4052,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 1      |
-| medium     | 1      |
-| large      | 1      |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 1      |
+| medium       | 1      |
+| large        | 1      |
 
 **Example**:
 
@@ -4060,11 +4074,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      |  250Mi |
-| medium     |  250Mi |
-| large      |  250Mi |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 250Mi  |
+| medium       | 250Mi  |
+| large        | 250Mi  |
 
 **Example**:
 
@@ -4082,11 +4096,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |  250m  |
-| medium     |  250m  |
-| large      |  250m  |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 250m     |
+| medium       | 250m     |
+| large        | 250m     |
 
 **Example**:
 
@@ -4104,11 +4118,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |   50Mi |
-| medium     |   50Mi |
-| large      |   50Mi |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 50Mi     |
+| medium       | 50Mi     |
+| large        | 50Mi     |
 
 **Example**:
 
@@ -4126,11 +4140,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 1      |
-| medium     | 1      |
-| large      | 1      |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 1      |
+| medium       | 1      |
+| large        | 1      |
 
 **Example**:
 
@@ -4148,11 +4162,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 500Mi  |
-| medium     | 500Mi  |
-| large      | 500Mi  |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 500Mi  |
+| medium       | 500Mi  |
+| large        | 500Mi  |
 
 **Example**:
 
@@ -4170,11 +4184,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |  250m  |
-| medium     |  250m  |
-| large      |  250m  |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 250m     |
+| medium       | 250m     |
+| large        | 250m     |
 
 **Example**:
 
@@ -4192,11 +4206,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |  50Mi  |
-| medium     |  50Mi  |
-| large      |  50Mi  |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 50Mi     |
+| medium       | 50Mi     |
+| large        | 50Mi     |
 
 **Example**:
 
@@ -4214,11 +4228,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 1      |
-| medium     | 1      |
-| large      | 1      |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 1      |
+| medium       | 1      |
+| large        | 1      |
 
 **Example**:
 
@@ -4236,11 +4250,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      |  500Mi |
-| medium     |  500Mi |
-| large      |  500Mi |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 500Mi  |
+| medium       | 500Mi  |
+| large        | 500Mi  |
 
 **Example**:
 
@@ -4258,11 +4272,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |  250m  |
-| medium     |  250m  |
-| large      |  250m  |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 250m     |
+| medium       | 250m     |
+| large        | 250m     |
 
 **Example**:
 
@@ -4280,11 +4294,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |   50Mi |
-| medium     |   50Mi |
-| large      |   50Mi |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 50Mi     |
+| medium       | 50Mi     |
+| large        | 50Mi     |
 
 **Example**:
 
@@ -4302,11 +4316,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 1      |
-| medium     | 1      |
-| large      | 1      |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 1      |
+| medium       | 1      |
+| large        | 1      |
 
 **Example**:
 
@@ -4324,11 +4338,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits  |
-|------------|--------|
-| small      | 200Mi  |
-| medium     | 200Mi  |
-| large      | 200Mi  |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 200Mi  |
+| medium       | 200Mi  |
+| large        | 200Mi  |
 
 
 **Example**:
@@ -4347,11 +4361,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |  250m  |
-| medium     |  250m  |
-| large      |  250m  |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 250m     |
+| medium       | 250m     |
+| large        | 250m     |
 
 **Example**:
 
@@ -4369,11 +4383,11 @@ sysdig:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      |  50Mi  |
-| medium     |  50Mi  |
-| large      |  50Mi  |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 50Mi     |
+| medium       | 50Mi     |
+| large        | 50Mi     |
 
 **Example**:
 
@@ -4524,11 +4538,11 @@ clusters of `size` `small`.<br>
 **Options**:<br>
 **Default**:<br>
 
-|cluster-size|count|
-|------------|-----|
-| small      |  1  |
-| medium     |  1  |
-| large      |  1  |
+| cluster-size | count |
+| ------------ | ----- |
+| small        | 1     |
+| medium       | 1     |
+| large        | 1     |
 
 **Example**:
 
@@ -4543,11 +4557,11 @@ sysdig:
 **Options**:<br>
 **Default**:<br>
 
-|cluster-size|count|
-|------------|-----|
-| small      |  1  |
-| medium     |  1  |
-| large      |  1  |
+| cluster-size | count |
+| ------------ | ----- |
+| small        | 1     |
+| medium       | 1     |
+| large        | 1     |
 
 **Example**:
 
@@ -4563,11 +4577,11 @@ sysdig:
 **Options**:<br>
 **Default**:<br>
 
-|cluster-size|count|
-|------------|-----|
-| small      |  1  |
-| medium     |  3  |
-| large      |  5  |
+| cluster-size | count |
+| ------------ | ----- |
+| small        | 1     |
+| medium       | 3     |
+| large        | 5     |
 
 **Example**:
 
@@ -4583,11 +4597,11 @@ sysdig:
 **Options**:<br>
 **Default**:<br>
 
-|cluster-size|count|
-|------------|-----|
-| small      |  1  |
-| medium     |  3  |
-| large      |  6  |
+| cluster-size | count |
+| ------------ | ----- |
+| small        | 1     |
+| medium       | 3     |
+| large        | 6     |
 
 **Example**:
 
@@ -4603,11 +4617,11 @@ clusters of `size` `small`.<br>
 **Options**:<br>
 **Default**:<br>
 
-|cluster-size|count|
-|------------|-----|
-| small      |  1  |
-| medium     |  3  |
-| large      |  5  |
+| cluster-size | count |
+| ------------ | ----- |
+| small        | 1     |
+| medium       | 3     |
+| large        | 5     |
 
 **Example**:
 
@@ -4622,11 +4636,11 @@ sysdig:
 **Options**:<br>
 **Default**:<br>
 
-|cluster-size|count|
-|------------|-----|
-| small      |  1  |
-| medium     |  2  |
-| large      |  4  |
+| cluster-size | count |
+| ------------ | ----- |
+| small        | 1     |
+| medium       | 2     |
+| large        | 4     |
 
 **Example**:
 
@@ -4641,11 +4655,11 @@ sysdig:
 **Options**:<br>
 **Default**:<br>
 
-|cluster-size|count|
-|------------|-----|
-| small      |  1  |
-| medium     |  1  |
-| large      |  1  |
+| cluster-size | count |
+| ------------ | ----- |
+| small        | 1     |
+| medium       | 1     |
+| large        | 1     |
 
 **Example**:
 
@@ -4660,11 +4674,11 @@ sysdig:
 **Options**:<br>
 **Default**:<br>
 
-|cluster-size|count|
-|------------|-----|
-| small      |  1  |
-| medium     |  1  |
-| large      |  1  |
+| cluster-size | count |
+| ------------ | ----- |
+| small        | 1     |
+| medium       | 1     |
+| large        | 1     |
 
 **Example**:
 
@@ -4679,11 +4693,11 @@ sysdig:
 **Options**:<br>
 **Default**:<br>
 
-|cluster-size|count|
-|------------|-----|
-| small      |  1  |
-| medium     |  1  |
-| large      |  1  |
+| cluster-size | count |
+| ------------ | ----- |
+| small        | 1     |
+| medium       | 1     |
+| large        | 1     |
 
 **Example**:
 
@@ -4698,11 +4712,11 @@ sysdig:
 **Options**:<br>
 **Default**:<br>
 
-|cluster-size|count|
-|------------|-----|
-| small      |  1  |
-| medium     |  1  |
-| large      |  1  |
+| cluster-size | count |
+| ------------ | ----- |
+| small        | 1     |
+| medium       | 1     |
+| large        | 1     |
 
 **Example**:
 
@@ -4718,11 +4732,11 @@ sysdig:
 **Options**:<br>
 **Default**:<br>
 
-|cluster-size|count|
-|------------|-----|
-| small      |  1  |
-| medium     |  3  |
-| large      |  6  |
+| cluster-size | count |
+| ------------ | ----- |
+| small        | 1     |
+| medium       | 3     |
+| large        | 6     |
 
 **Example**:
 
@@ -4738,11 +4752,11 @@ of `size` `small`.<br>
 **Options**:<br>
 **Default**:<br>
 
-|cluster-size|count|
-|------------|-----|
-| small      |  1  |
-| medium     |  3  |
-| large      |  5  |
+| cluster-size | count |
+| ------------ | ----- |
+| small        | 1     |
+| medium       | 3     |
+| large        | 5     |
 
 **Example**:
 
@@ -4758,11 +4772,11 @@ of `size` `small`.<br>
 **Options**:<br>
 **Default**:<br>
 
-|cluster-size|count|
-|------------|-----|
-| small      |  1  |
-| medium     |  2  |
-| large      |  4  |
+| cluster-size | count |
+| ------------ | ----- |
+| small        | 1     |
+| medium       | 2     |
+| large        | 4     |
 
 **Example**:
 
@@ -4778,11 +4792,11 @@ of `size` `small`.<br>
 **Options**:<br>
 **Default**:<br>
 
-|cluster-size|count|
-|------------|-----|
-| small      |  1  |
-| medium     |  1  |
-| large      |  1  |
+| cluster-size | count |
+| ------------ | ----- |
+| small        | 1     |
+| medium       | 1     |
+| large        | 1     |
 
 **Example**:
 
@@ -4798,11 +4812,11 @@ of `size` `small`.<br>
 **Options**:<br>
 **Default**:<br>
 
-|cluster-size|count|
-|------------|-----|
-| small      |  1  |
-| medium     |  1  |
-| large      |  1  |
+| cluster-size | count |
+| ------------ | ----- |
+| small        | 1     |
+| medium       | 1     |
+| large        | 1     |
 
 **Example**:
 
@@ -4818,11 +4832,11 @@ of `size` `small`.<br>
 **Options**:<br>
 **Default**:<br>
 
-|cluster-size|count|
-|------------|-----|
-| small      |  1  |
-| medium     |  1  |
-| large      |  2  |
+| cluster-size | count |
+| ------------ | ----- |
+| small        | 1     |
+| medium       | 1     |
+| large        | 2     |
 
 **Example**:
 
@@ -4838,11 +4852,11 @@ of `size` `small`.<br>
 **Options**:<br>
 **Default**:<br>
 
-|cluster-size|count|
-|------------|-----|
-| small      |  1  |
-| medium     |  1  |
-| large      |  1  |
+| cluster-size | count |
+| ------------ | ----- |
+| small        | 1     |
+| medium       | 1     |
+| large        | 1     |
 
 **Example**:
 
@@ -5777,11 +5791,11 @@ agent:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits|
-|------------|------|
-| small      | 3    |
-| medium     | 5    |
-| large      | 8    |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 3      |
+| medium       | 5      |
+| large        | 8      |
 
 **Example**:
 
@@ -5798,11 +5812,11 @@ agent:
 **Options**:<br>
 **Default**:
 
-|cluster-size|limits|
-|------------|------|
-| small      | 3Gi  |
-| medium     | 6Gi  |
-| large      | 10Gi |
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 3Gi    |
+| medium       | 6Gi    |
+| large        | 10Gi   |
 
 **Example**:
 
@@ -5819,11 +5833,11 @@ agent:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      | 1      |
-| medium     | 3      |
-| large      | 5      |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 1        |
+| medium       | 3        |
+| large        | 5        |
 
 **Example**:
 
@@ -5840,11 +5854,11 @@ agent:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      | 1Gi    |
-| medium     | 3Gi    |
-| large      | 6Gi    |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 1Gi      |
+| medium       | 3Gi      |
+| large        | 6Gi      |
 
 **Example**:
 
@@ -5861,11 +5875,11 @@ agent:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      | 512    |
-| medium     | 1024   |
-| large      | 2048   |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 512      |
+| medium       | 1024     |
+| large        | 2048     |
 
 **Example**:
 
@@ -5882,11 +5896,11 @@ agent:
 **Options**:<br>
 **Default**:
 
-|cluster-size|requests|
-|------------|--------|
-| small      | 512    |
-| medium     | 2048   |
-| large      | 4096   |
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 512      |
+| medium       | 2048     |
+| large        | 4096     |
 
 **Example**:
 
