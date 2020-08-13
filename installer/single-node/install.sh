@@ -32,6 +32,7 @@ DNSNAME="PLACEHOLDER"
 AIRGAP_BUILD="false"
 AIRGAP_INSTALL="false"
 RUN_INSTALLER="false"
+INSTALLER_BINARY="installer"
 
 function writeValuesYaml() {
   cat << EOM > values.yaml
@@ -149,12 +150,6 @@ function dockerLogin() {
     logError "Please rerun the script and configure quay pull secret"
     exit 1
   fi
-}
-
-function downloadInstallerBinary() {
-  curl -o installer -L https://github.com/draios/sysdigcloud-kubernetes/releases/download/3.5.0/installer-linux-amd64
-  chmod +x installer
-  mv installer "${ROOT_LOCAL_PATH}"
 }
 
 function installUbuntuDeps() {
@@ -357,16 +352,12 @@ function pullImagesSysdigImages() {
 }
 
 function runInstaller() {
-  if [[ "${AIRGAP_INSTALL}" != "true" ]]; then
-    downloadInstallerBinary
-  fi
   if [[ "${AIRGAP_BUILD}" == "true" ]]; then
-    downloadInstallerBinary
     dockerLogin
     pullImagesSysdigImages
   else
     writeValuesYaml
-    installer deploy
+    ${INSTALLER_BINARY} deploy
   fi
 }
 
@@ -374,7 +365,7 @@ function __main() {
 
   if [[ "${RUN_INSTALLER}" == "true" ]]; then
     #single node installer just runs installer and returns early
-    installer deploy
+    ${INSTALLER_BINARY} deploy
     exit 0
   fi
   preFlight

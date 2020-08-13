@@ -4,6 +4,21 @@ This script will install docker, minikube, jq, curl etc required to run Sysdig
 Platform, after installing all dependencies the script will create a
 values.yaml and run the installer using the created values.yaml file.
 
+## Download Installer
+Single Node script is integrated into installer. Download/Copy installer binary to get the single node installer script.
+
+Running "installer single-node" creates a install.sh file in current working directory.
+
+```bash
+sudo su
+#execute permissions for installer installer
+chmod u+x installer-linux-amd64
+#installer needs to be in PATH
+cp installer-linux-amd64 /usr/bin/installer
+#get single node installer script
+installer single-node
+```
+
 ## Usage
 
 Copy the [script](./install.sh) to the machine that sysdig
