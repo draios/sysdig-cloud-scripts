@@ -675,7 +675,7 @@ pvStorageSize:
 
 ```yaml
 sysdig:
-  activityAuditVersion: 3.5.0.6725
+  activityAuditVersion: 3.5.1.7018
 ```
 
 ## **sysdig.profilingVersion**
@@ -687,7 +687,7 @@ sysdig:
 
 ```yaml
 sysdig:
-  profilingVersion: 3.5.0.6725
+  profilingVersion: 3.5.1.7018
 ```
 
 ## **sysdig.anchoreVersion**
@@ -699,7 +699,7 @@ sysdig:
 
 ```yaml
 sysdig:
-  anchoreVersion: 0.6.1.2
+  anchoreVersion: 0.6.1.6
 ```
 
 ## **sysdig.accessKey**
@@ -1129,12 +1129,12 @@ sysdig:
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 3.5.0.6725<br>
+**Default**: 3.5.1.7018<br>
 **Example**:
 
 ```yaml
 sysdig:
-  monitorVersion: 3.5.0.6725
+  monitorVersion: 3.5.1.7018
 ```
 
 ## **sysdig.scanningVersion**
@@ -1144,12 +1144,12 @@ this is not configured it defaults to `sysdig.monitorVersion` **Do not modify
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 3.5.0.6725<br>
+**Default**: 3.5.1.7018<br>
 **Example**:
 
 ```yaml
 sysdig:
-  scanningVersion: 3.5.0.6725
+  scanningVersion: 3.5.1.7018
 ```
 
 ## **sysdig.sysdigAPIVersion**
@@ -1159,12 +1159,12 @@ this is not configured it defaults to `sysdig.monitorVersion` **Do not modify
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 3.5.0.6725<br>
+**Default**: 3.5.1.7018<br>
 **Example**:
 
 ```yaml
 sysdig:
-  sysdigAPIVersion: 3.5.0.6725
+  sysdigAPIVersion: 3.5.1.7018
 ```
 
 ## **sysdig.sysdigCollectorVersion**
@@ -1174,12 +1174,12 @@ this is not configured it defaults to `sysdig.monitorVersion` **Do not modify
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 3.5.0.6725<br>
+**Default**: 3.5.1.7018<br>
 **Example**:
 
 ```yaml
 sysdig:
-  sysdigCollectorVersion: 3.5.0.6725
+  sysdigCollectorVersion: 3.5.1.7018
 ```
 
 ## **sysdig.sysdigWorkerVersion**
@@ -1189,12 +1189,12 @@ this is not configured it defaults to `sysdig.monitorVersion` **Do not modify
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 3.5.0.6725<br>
+**Default**: 3.5.1.7018<br>
 **Example**:
 
 ```yaml
 sysdig:
-  sysdigWorkerVersion: 3.5.0.6725
+  sysdigWorkerVersion: 3.5.1.7018
 ```
 
 ## **sysdig.mysqlHa**
@@ -1225,12 +1225,12 @@ sysdig:
 **Required**: `false`<br>
 **Description**: The docker image tag of MySQL used for HA.<br>
 **Options**:<br>
-**Default**: 8.0.16.3<br>
+**Default**: 8.0.16.4<br>
 **Example**:
 
 ```yaml
 sysdig:
-  mysqlHaVersion: 8.0.16.3
+  mysqlHaVersion: 8.0.16.4
 ```
 
 ## **sysdig.mysqlHaAgentVersion**

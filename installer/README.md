@@ -202,11 +202,11 @@ the installation machine.
 - Follow the Docker Log In to quay.io steps under the Access Requirements section.
 - Pull the image containing the self-extracting tar:
   ```bash
-  docker pull quay.io/sysdig/installer:3.2.0-9-uber
+  docker pull quay.io/sysdig/installer:3.5.1-1-uber
   ```
 - Extract the tarball:
   ```bash
-  docker create --name uber_image quay.io/sysdig/installer:3.2.0-9-uber
+  docker create --name uber_image quay.io/sysdig/installer:3.5.1-1-uber
   docker cp uber_image:/sysdig_installer.tar.gz .
   docker rm uber_image
   ```
@@ -302,6 +302,31 @@ See [upgrade.md](docs/upgrade.md) for upgrades documentation.
 
 For the full dictionary of configuration parameters, see:
 [configuration_parameters.md](docs/configuration_parameters.md)
+
+# Permissions
+
+## General
+* CRU on the sysdig namespace
+* CRU on StorageClass (only Read is required if the storageClass already exists)
+* CRUD on Secrets/ServiceAccount/ConfigMap/Deployment/CronJob/Job/StatefulSet/Service/DaemonSet in the sysdig namespace.
+* CRUD on role/rolebinding in sysdig namespace (if sysdig ingress controller is deployed)
+* CRU on the ingress-controller(this is the name of the object) ClusterRole/ClusterRoleBinding (if sysdig ingress controller is deployed)
+* Get Nodes (for validations).
+
+## MultiAZ enabled
+* CRU on the node-labels-to-files(this is the name of the object) ClusterRole/ClusterRoleBinding (for multi-AZ deployments)
+
+## HostPath
+* CRU on PV
+* CRU on PVC in sysdig namespace
+
+## Openshift
+* CRUD on route in the sysdig namespace
+* CRUD on openshift SCC in the sysdig namespace
+
+## Network policies enabled
+* CRUD on networkpolicies in sysdig namespace (if networkpolicies are enabled, this is an alpha feature customers should not enable it)
+
 
 # Advanced Configuration
 
