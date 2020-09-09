@@ -40,6 +40,12 @@ function download_yamls {
     curl -s -o /tmp/sysdig-agent-daemonset-v2.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/master/agent_deploy/kubernetes/sysdig-agent-daemonset-v2.yaml
     echo "* Downloading Sysdig agent-slim daemonset v2 yaml"
     curl -s -o /tmp/sysdig-agent-slim-daemonset-v2.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/master/agent_deploy/kubernetes/sysdig-agent-slim-daemonset-v2.yaml
+    if [ $INSTALL_ANALYZER -eq 1 ]; then
+      echo "* Downloading Sysdig Image Analyzer config map yaml"
+      curl -H 'Cache-Control: no-cache' -s -o /tmp/sysdig-image-analyzer-configmap.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/master/agent_deploy/kubernetes/sysdig-image-analyzer-configmap.yaml
+      echo "* Downloading Sysdig Image Analyzer daemonset v1 yaml"
+      curl -H 'Cache-Control: no-cache' -s -o /tmp/sysdig-image-analyzer-daemonset.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/master/agent_deploy/kubernetes/sysdig-image-analyzer-daemonset.yaml
+    fi
 }
 
 function unsupported {
@@ -57,6 +63,7 @@ function help {
     echo "                [-cp | --collector_port <value>] [-s | --secure <value>] [-cc | --check_certificate <value>] \ "
     echo "                [-ns | --namespace | --project <value>] [-ac | --additional_conf <value>] [-np | --no-prometheus] \ "
     echo "                [-sn | --sysdig_instance_name <value>] [-op | --openshift] [-as | --agent-slim] \ "
+    echo "                [-ia | --imageanalyzer ] [-am | --analysismanager <value>] [-ds | --dockersocket <value>] [-cs | --crisocket <value>] [-cv | --customvolume <value>] \ "
     echo "                [-av | --agent-version <value>] [ -r | --remove ] [ -aws | --aws ] [-h | --help]"
     echo ""
     echo " -a  : secret access key, as shown in Sysdig Monitor"
@@ -74,6 +81,11 @@ function help {
     echo " -r  : if provided, will remove the sysdig agent's daemonset, configmap, clusterrolebinding,"
     echo "       serviceacccount and secret from the specified namespace"
     echo " -aws : if provided, will support AWS cluster name parsing and not use ICR"
+    echo " -am : Analysis Manager endpoint for Sysdig Secure"
+    echo " -ds : docker socket for Image Analyzer"
+    echo " -cs : CRI socket for Image Analyzer"
+    echo " -cv : custom volume for Image Analyzer"
+    echo " -ia : if not provided, will skip Image Analyzer installation"
     echo " -h  : print this usage and exit"
     echo
     exit 1
@@ -245,6 +257,39 @@ function install_k8s_agent {
         echo -e "        enabled: true" >> $CONFIG_FILE
     fi
 
+    if [ $INSTALL_ANALYZER -eq 1 ]; then
+      # Image Analyzer config map
+      IA_CONFIG_FILE=/tmp/sysdig-image-analyzer-configmap.yaml
+
+      # If the collector was changed but the analysis manager was not this was
+      # most likely an onprem install, add the default analysis manager for that onprem
+      if [ ! -z "$COLLECTOR" ] && [ -z "$ANALYSIS_MANAGER" ]; then
+        ANALYSIS_MANAGER="https://${COLLECTOR}/internal/scanning/scanning-analysis-collector"
+        echo "* Configuring Analysis Manager endpoint to ${ANALYSIS_MANAGER}. You can also use the -am option to explicitly specify it."
+      fi
+
+      if [ ! -z "$ANALYSIS_MANAGER" ]; then
+        echo "* Setting Analysis Manager endpoint for Image Analyzer"
+        echo "  collector_endpoint: $ANALYSIS_MANAGER" >> $IA_CONFIG_FILE
+      fi
+      if [ ! -z "$DOCKER_SOCKET_PATH" ]; then
+        echo "* Setting docker socket path"
+        echo "  docker_socket_path: $DOCKER_SOCKET_PATH" >> $IA_CONFIG_FILE
+      fi
+      if [ ! -z "$CRI_SOCKET_PATH" ]; then
+        echo "* Setting CRI socket path"
+        echo "  cri_socket_path: $CRI_SOCKET_PATH" >> $IA_CONFIG_FILE
+      fi
+      if [ ! -z "$CHECK_CERT" ]; then
+        echo "* Setting SSL certificate check level"
+        echo "  ssl_verify_certificate: \"$CHECK_CERT\"" >> $IA_CONFIG_FILE
+      else
+        echo "  ssl_verify_certificate: \"true\"" >> $IA_CONFIG_FILE
+      fi
+
+      kubectl apply -f $IA_CONFIG_FILE --namespace=$NAMESPACE
+    fi
+
     AGENT_STRING="agent"
     if [ ! -z "$AGENT_SLIM" ]; then
         DAEMONSET_FILE="/tmp/sysdig-agent-slim-daemonset-v2.yaml"
@@ -308,6 +353,40 @@ function install_k8s_agent {
 
     echo "* Deploying the sysdig agent"
     kubectl apply -f $DAEMONSET_FILE --namespace=$NAMESPACE
+
+    echo -e "\nThe list of agent pods deployed in the namespace \"$NAMESPACE\" are:"
+    kubectl get pods -n $NAMESPACE | grep "sysdig-agent"
+
+    echo -e "\nMake sure the above pods all turn to \"Running\" state before continuing"
+    echo "Should any pod not reach the \"Running\" state, further info can be obtained from logs as follows"
+    echo "'kubectl logs <agent-pod-name> -n $NAMESPACE' "
+
+    if [ $INSTALL_ANALYZER -eq 1 ]; then
+      # Deploy Image Analyzer
+      IA_FILE=/tmp/sysdig-image-analyzer-daemonset.yaml
+      if [ ! -z "$IA_CUSTOM_PATH" ]; then
+        NL="\n"
+        if [[ $uname -eq "Darwin" ]]; then
+          NL=$'\\\n'
+        fi
+
+        IA_MATCH="Add custom volume here"
+        IA_INSERT_VOLUME="      - name: custom-volume${NL}        hostPath:${NL}          path: ${IA_CUSTOM_PATH}"
+
+        sed -i.bak -e "s|${IA_MATCH}|${IA_MATCH}${NL}${IA_INSERT_VOLUME}|" $IA_FILE
+
+        IA_MATCH="Add custom volume mount here"
+        IA_INSERT_VOLUME="        - mountPath: ${IA_CUSTOM_PATH}${NL}          name: custom-volume"
+
+        sed -i.bak -e "s|${IA_MATCH}|${IA_MATCH}${NL}${IA_INSERT_VOLUME}|" $IA_FILE
+      fi
+
+      echo "* Deploying the Image Analyzer"
+      kubectl apply -f $IA_FILE --namespace=$NAMESPACE
+
+      echo -e "\nThe list of Image Analyzers pods deployed in the namespace \"$NAMESPACE\" are:"
+      kubectl get pods -n $NAMESPACE | grep "image-analyzer"
+    fi
 }
 
 function remove_agent {
@@ -323,6 +402,14 @@ function remove_agent {
 
     echo "* Deleting the sysdig-agent serviceacccount"
     kubectl delete serviceaccount -n default sysdig-agent --namespace=$NAMESPACE
+
+    if [ "$(kubectl get pods -n $NAMESPACE | grep -c "image-analyzer")" -ge 1 ]; then
+      echo "* Deleting the sysdig-image-analyzer daemonset"
+      kubectl delete daemonset sysdig-image-analyzer --namespace=$NAMESPACE
+
+      echo "* Deleting the sysdig-image-analyzer configmap"
+      kubectl delete configmap sysdig-image-analyzer --namespace=$NAMESPACE
+    fi
 
     if [ $OPENSHIFT -eq 0 ]; then
         echo "* deleting the sysdig-agent clusterrolebinding"
@@ -464,6 +551,42 @@ case ${key} in
     -r|--remove)
         REMOVE_AGENT=1
         ;;
+    -am|--analysismanager)
+			if is_valid_value "${2}"; then
+				ANALYSIS_MANAGER="${2}"
+			else
+				echo "ERROR: no value provided for Analysis Manager option, use -h | --help for $(basename ${0}) Usage"
+				exit 1
+			fi
+			shift
+			;;
+		-ds|--dockersocket)
+			if is_valid_value "${2}"; then
+				DOCKER_SOCKET_PATH="${2}"
+			else
+				echo "ERROR: no value provided for docker socket path option, use -h | --help for $(basename ${0}) Usage"
+				exit 1
+			fi
+			shift
+			;;
+		-cs|--crisocket)
+			if is_valid_value "${2}"; then
+				CRI_SOCKET_PATH="${2}"
+			else
+				echo "ERROR: no value provided for CRI socket path option, use -h | --help for $(basename ${0}) Usage"
+				exit 1
+			fi
+			shift
+			;;
+		-cv|--customvolume)
+			if is_valid_value "${2}"; then
+				IA_CUSTOM_PATH="${2}"
+			else
+				echo "ERROR: no value provided for custom volume path option, use -h | --help for $(basename ${0}) Usage"
+				exit 1
+			fi
+			shift
+			;;
     -h|--help)
         help
         exit 1
