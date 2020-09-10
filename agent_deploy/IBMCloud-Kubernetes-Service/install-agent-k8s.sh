@@ -246,6 +246,9 @@ function install_k8s_agent {
         echo "    ssl_verify_certificate: true" >> $CONFIG_FILE
     fi
 
+    # Disable agent captures
+    echo -e "    sysdig_capture_enabled: false" >> $CONFIG_FILE
+
     if [ ! -z "$ADDITIONAL_CONF" ]; then
         echo "* Adding additional configuration to dragent.yaml"
         echo -e "    $ADDITIONAL_CONF" >> $CONFIG_FILE
