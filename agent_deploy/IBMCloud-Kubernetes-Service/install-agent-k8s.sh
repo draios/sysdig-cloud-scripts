@@ -289,7 +289,7 @@ function install_k8s_agent {
             SECRET_NAME=$(echo ${default_secret} | sed "s/default-/$NAMESPACE-/g")
 
             echo "Processing ${default_secret} as ${SECRET_NAME}"
-            kubectl get secret ${default_secret} -n default -o yaml --export | sed "s/name: default-/name: $NAMESPACE-/g" | kubectl -n $NAMESPACE apply -f -
+            kubectl get secret ${default_secret} -n default -o json | jq "del(.metadata.namespace,.metadata.resourceVersion,.metadata.uid) | .metadata.creationTimestamp=null | .metadata.name|=\"${SECRET_NAME}\"" | kubectl apply -n ${NAMESPACE} -f -
 
             echo "${INDENT}- name: $SECRET_NAME" >> $DAEMONSET_FILE
         done
