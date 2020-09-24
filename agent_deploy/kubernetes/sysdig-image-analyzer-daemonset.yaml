@@ -105,6 +105,12 @@ spec:
               name: sysdig-image-analyzer
               key: cri_socket_path
               optional: true
+        - name: CONTAINERD_SOCKET_PATH
+          valueFrom:
+            configMapKeyRef:
+              name: sysdig-image-analyzer
+              key: containerd_socket_path
+              optional: true
         - name: AM_COLLECTOR_ENDPOINT
           valueFrom:
             configMapKeyRef:
