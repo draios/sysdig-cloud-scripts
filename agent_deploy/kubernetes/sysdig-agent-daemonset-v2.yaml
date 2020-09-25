@@ -37,18 +37,36 @@ spec:
       - name: boot-vol
         hostPath:
           path: /boot
-      - name: modules-vol
+      - name: lib-vol
         hostPath:
-          path: /lib/modules
+          path: /lib
+      - name: lib64-vol
+        hostPath:
+          path: /lib64
       - name: usr-vol
         hostPath:
           path: /usr
       - name: run-vol
         hostPath:
           path: /run
-      - name: varrun-vol
+      - name: var-vol
         hostPath:
-          path: /var/run
+          path: /var
+      - name: home-vol
+        hostPath:
+          path: /home
+      - name: bin-vol
+        hostPath:
+          path: /bin
+      - name: sbin-vol
+        hostPath:
+          path: /sbin
+      - name: tmp-vol
+        hostPath:
+          path: /tmp
+      - name: etc-vol
+        hostPath:
+          path: /etc
       # Uncomment these lines if you'd like to map /root/ from the
       # host into the container. This can be useful to map
       # /root/.sysdig to pick up custom kernel modules.
@@ -108,16 +126,34 @@ spec:
         - mountPath: /host/boot
           name: boot-vol
           readOnly: true
-        - mountPath: /host/lib/modules
-          name: modules-vol
+        - mountPath: /host/lib
+          name: lib-vol
+          readOnly: true
+        - mountPath: /host/lib64
+          name: lib64-vol
           readOnly: true
         - mountPath: /host/usr
           name: usr-vol
           readOnly: true
         - mountPath: /host/run
           name: run-vol
-        - mountPath: /host/var/run
-          name: varrun-vol
+        - mountPath: /host/var
+          name: var-vol
+        - mountPath: /host/home
+          name: home-vol
+          readOnly: true
+        - mountPath: /host/bin
+          name: bin-vol
+          readOnly: true
+        - mountPath: /host/sbin
+          name: sbin-vol
+          readOnly: true
+        - mountPath: /host/tmp
+          name: tmp-vol
+          readOnly: true
+        - mountPath: /host/etc
+          name: etc-vol
+          readOnly: true
         - mountPath: /dev/shm
           name: dshm
         - mountPath: /opt/draios/etc/kubernetes/config
