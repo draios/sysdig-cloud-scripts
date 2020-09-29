@@ -42,12 +42,21 @@ spec:
       - name: usr-vol
         hostPath:
           path: /usr
+      # Linux bench requires /var/lib, /var/log, /var/tmp and /var/run
+      # We need to mount these subdirs seperately, i.e we can't simply mount /var, as
+      # /var/run is symlinked to /run on the host, so we mount /run to /var/run in the agent.
+      - name: vartmp-vol
+        hostPath:
+          path: /var/tmp
+      - name: varlog-vol
+        hostPath:
+          path: /var/log
+      - name: varlib-vol
+        hostPath:
+          path: /var/lib
       - name: run-vol
         hostPath:
-          path: /run
-      - name: var-vol
-        hostPath:
-          path: /var
+          path: /var/run
       - name: home-vol
         hostPath:
           path: /home
@@ -143,10 +152,17 @@ spec:
         - mountPath: /host/usr
           name: usr-vol
           readOnly: true
-        - mountPath: /host/run
+        - mountPath: /host/var/run
           name: run-vol
-        - mountPath: /host/var
-          name: var-vol
+        - mountPath: /host/var/log
+          name: varlog-vol
+          readOnly: true
+        - mountPath: /host/var/lib
+          name: varlib-vol
+          readOnly: true
+        - mountPath: /host/var/tmp
+          name: vartmp-vol
+          readOnly: true
         - mountPath: /host/home
           name: home-vol
           readOnly: true
