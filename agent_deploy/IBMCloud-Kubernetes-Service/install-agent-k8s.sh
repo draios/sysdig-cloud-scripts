@@ -143,7 +143,7 @@ function install_k8s_agent {
         fi
     fi
     if [ $fail -eq 1 ]; then
-        if [[ "$outbinding" =~ "AlreadyExists" ]]; then
+        if [[ "$outbinding" =~ "AlreadyExists" || "$outbinding" =~ "already exists" ]]; then
             echo "$outbinding. Continuing..."
         else
             echo "$outbinding"
@@ -155,7 +155,7 @@ function install_k8s_agent {
     fail=0
     outsecret=$(kubectl create secret generic sysdig-agent --from-literal=access-key=$ACCESS_KEY --namespace=$NAMESPACE 2>&1) || { fail=1 && echo "kubectl create secret failed!"; }
     if [ $fail -eq 1 ]; then
-        if [[ "$outsecret" =~ "AlreadyExists" ]]; then
+        if [[ "$outsecret" =~ "AlreadyExists" || "$outsecret" =~ "already exists" ]]; then
             echo "$outsecret. Re-creating secret..."
             kubectl delete secrets sysdig-agent --namespace=$NAMESPACE 2>&1
             kubectl create secret generic sysdig-agent --from-literal=access-key=$ACCESS_KEY --namespace=$NAMESPACE 2>&1
