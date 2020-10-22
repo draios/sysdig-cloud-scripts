@@ -1,0 +1,52 @@
+# Node labels and node taints can be combined to ensure only Sysdig platform pods run on a particular node, the example below show starting from the `tolerations` sections shows how to configure the installer to take advantage of labels and tolerations.
+size: medium
+# Replace with quay.io pull secrets provided by the sales team.
+quaypullsecret: <PLEASE_REPLACE>
+# Acceptable values here are awe|gke|none|hostPath, change this to none and configure storageClassName if you want to use an existing storageClass
+storageClassProvisioner: hostPath
+# Uncomment the below to specify an existing storageClass, if not configured a storageClass is created with the configured storageClassProvisioner
+# storageClassName: sysdig
+elasticsearch:
+  hostPathNodes:
+    # replace with the name section of kubectl get nodes
+    - my-awesome-node01
+    - my-awesome-node02
+    - my-awesome-node03
+sysdig:
+  mysql:
+    hostPathNodes:
+      # replace with the name section of kubectl get nodes
+      - my-awesome-node01
+  postgresql:
+    hostPathNodes:
+      # replace with the name section of kubectl get nodes
+      - my-awesome-node01
+  cassandra:
+    hostPathNodes:
+      # replace with the name section of kubectl get nodes
+      - my-awesome-node01
+      - my-awesome-node02
+      - my-awesome-node03
+  # Replace with domain name the api should be served on.
+  dnsName: <PLEASE_REPLACE>
+  admin:
+    username: pov@sysdig.com
+  # Replace with license provided by the sales team.
+  license: <PLEASE_REPLACE>
+
+  # Everything below here is the core piece of this configuration.
+
+  # Nodes needs to have been assigned the taint dedicated=sysdig:NoSchedule, e.g:
+  # kubectl taint my-awesome-node01 dedicated=sysdig:NoSchedule
+  # for the below to work.
+  tolerations:
+    - key: "dedicated"
+      operator: "Equal"
+      value: sysdig
+      effect: "NoSchedule"
+# Nodes needs to have been assigned labels role=sysdig for the below to work
+# e.g: kubectl label nodes my-awesome-node01 role=sysdig
+# for the below to work.
+nodeaffinityLabel:
+  key: role
+  value: sysdig

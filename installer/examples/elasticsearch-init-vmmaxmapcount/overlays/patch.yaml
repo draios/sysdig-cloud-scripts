@@ -1,0 +1,20 @@
+#This patchfile adds an initcontainer to ElasticSearch and sets vmmaxmap count in ES hosts
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: sysdigcloud-elasticsearch
+spec:
+  template:
+    spec:
+      initContainers:
+        - name: elasticsearch-init-vmmaxmapcount
+          image: quay.io/sysdig/elasticsearch:<CURRENT_ES_VERSION>
+          securityContext:
+            privileged: true
+            runAsUser: 0
+          command:
+            - sysctl
+            - -w
+          args:
+            - vm.max_map_count=262144

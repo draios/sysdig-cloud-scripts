@@ -1,0 +1,11 @@
+apps: monitor
+schema_version: 1.0.0
+size: small
+quaypullsecret: <PLEASE_REPLACE>
+storageClassProvisioner: aws
+sysdig:
+  ingressNetworking: loadbalancer
+  admin:
+    username: foo@bar.com
+  license: <PLEASE_REPLACE>
+  dnsName: foo.bar
