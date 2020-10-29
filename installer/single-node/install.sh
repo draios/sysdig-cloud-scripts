@@ -43,6 +43,11 @@ storageClassProvisioner: hostPath
 elasticsearch:
   hostPathNodes:
     - minikube
+hostPathCustomPaths:
+  cassandra: /var/lib/cassandra
+  elasticsearch: /var/lib/elasticsearch
+  mysql: /var/lib/mysql
+  postgresql: /var/lib/postgresql/data/pgdata
 sysdig:
   mysql:
     hostPathNodes:
