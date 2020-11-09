@@ -675,7 +675,7 @@ pvStorageSize:
 
 ```yaml
 sysdig:
-  activityAuditVersion: 3.5.1.7018
+  activityAuditVersion: 3.6.0.7691
 ```
 
 ## **sysdig.profilingVersion**
@@ -687,7 +687,7 @@ sysdig:
 
 ```yaml
 sysdig:
-  profilingVersion: 3.5.1.7018
+  profilingVersion: 3.6.0.7691
 ```
 
 ## **sysdig.anchoreVersion**
@@ -699,7 +699,7 @@ sysdig:
 
 ```yaml
 sysdig:
-  anchoreVersion: 0.6.1.6
+  anchoreVersion: 0.8.1.2
 ```
 
 ## **sysdig.accessKey**
@@ -1129,12 +1129,12 @@ sysdig:
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 3.5.1.7018<br>
+**Default**: 3.6.0.7691<br>
 **Example**:
 
 ```yaml
 sysdig:
-  monitorVersion: 3.5.1.7018
+  monitorVersion: 3.6.0.7691
 ```
 
 ## **sysdig.scanningVersion**
@@ -1144,12 +1144,12 @@ this is not configured it defaults to `sysdig.monitorVersion` **Do not modify
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 3.5.1.7018<br>
+**Default**: 3.6.0.7691<br>
 **Example**:
 
 ```yaml
 sysdig:
-  scanningVersion: 3.5.1.7018
+  scanningVersion: 3.6.0.7691
 ```
 
 ## **sysdig.sysdigAPIVersion**
@@ -1159,12 +1159,12 @@ this is not configured it defaults to `sysdig.monitorVersion` **Do not modify
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 3.5.1.7018<br>
+**Default**: 3.6.0.7691<br>
 **Example**:
 
 ```yaml
 sysdig:
-  sysdigAPIVersion: 3.5.1.7018
+  sysdigAPIVersion: 3.6.0.7691
 ```
 
 ## **sysdig.sysdigCollectorVersion**
@@ -1174,12 +1174,12 @@ this is not configured it defaults to `sysdig.monitorVersion` **Do not modify
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 3.5.1.7018<br>
+**Default**: 3.6.0.7691<br>
 **Example**:
 
 ```yaml
 sysdig:
-  sysdigCollectorVersion: 3.5.1.7018
+  sysdigCollectorVersion: 3.6.0.7691
 ```
 
 ## **sysdig.sysdigWorkerVersion**
@@ -1189,12 +1189,27 @@ this is not configured it defaults to `sysdig.monitorVersion` **Do not modify
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 3.5.1.7018<br>
+**Default**: 3.6.0.7691<br>
 **Example**:
 
 ```yaml
 sysdig:
-  sysdigWorkerVersion: 3.5.1.7018
+  sysdigWorkerVersion: 3.6.0.7691
+```
+
+## **sysdig.enableAlerter**
+**Required**: `false`<br>
+**Description**: This creates a separate deployment for Alerters while
+disabling this functionality in workers. **Do not modify this unless you
+know what you are doing as modifying it could have unintended
+consequences**<br>
+**Options**:`true|false`<br>
+**Default**: `false`<br>
+**Example**:
+
+```yaml
+sysdig:
+  enableAlerter: true
 ```
 
 ## **sysdig.mysqlHa**
@@ -1387,6 +1402,60 @@ sysdig:
   natsStreamingVersion: 0.16.2.1
 ```
 
+## **sysdig.nats.secure.enabled**
+**Required**: `false`<br>
+**Description**: NATS Streaming TLS enabled.<br>
+**Options**:<br>
+**Default**: true<br>
+**Example**:
+
+```yaml
+sysdig:
+  nats:
+    secure:
+      enabled: true
+```
+
+## **sysdig.nats.ha.enabled**
+**Required**: `false`<br>
+**Description**: NATS Streaming HA (High Availability) enabled.<br>
+**Options**:<br>
+**Default**: false<br>
+**Example**:
+
+```yaml
+sysdig:
+  nats:
+    ha:
+      enabled: false
+```
+
+## **sysdig.nats.urlha**
+**Required**: `false`<br>
+**Description**: NATS Streaming URL for HA deployment.<br>
+**Options**:<br>
+**Default**: nats://sysdigcloud-nats-streaming-cluster-0.sysdigcloud-nats-streaming-cluster:4222,nats://sysdigcloud-nats-streaming-cluster-1.sysdigcloud-nats-streaming-cluster:4222,nats://sysdigcloud-nats-streaming-cluster-2.sysdigcloud-nats-streaming-cluster:4222<br>
+**Example**:
+
+```yaml
+sysdig:
+  nats:
+    urlha: nats://sysdigcloud-nats-streaming-cluster-0.sysdigcloud-nats-streaming-cluster:4222,nats://sysdigcloud-nats-streaming-cluster-1.sysdigcloud-nats-streaming-cluster:4222,nats://sysdigcloud-nats-streaming-cluster-2.sysdigcloud-nats-streaming-cluster:4222
+```
+
+## **sysdig.nats.urltls**
+**Required**: `false`<br>
+**Description**: NATS Streaming URL for TLS enabled.<br>
+**Options**:<br>
+**Default**: nats://sysdigcloud-nats-streaming-tls:4222<br>
+**Example**:
+
+```yaml
+sysdig:
+  nats:
+    urltls: nats://sysdigcloud-nats-streaming-tls:4222
+```
+
 ## **sysdig.openshiftUrl**
 **Required**: `false`<br>
 **Description**: Openshift API url along with its port number, this is
@@ -1485,7 +1554,7 @@ sysdig:
 **Description**: Determines if a [web
 proxy](https://en.wikipedia.org/wiki/Proxy_server#Web_proxy_servers) should be
 used by Anchore for fetching CVE feed from
-[https://ancho.re](https://ancho.re.) and by the events forwarder to forward to HTTP based targets.<br>
+[https://api.sysdigcloud.com/api/scanning-feeds/v1/feeds](https://api.sysdigcloud.com/api/scanning-feeds/v1/feeds) and by the events forwarder to forward to HTTP based targets.<br>
 **Options**:<br>
 **Default**: `false`<br>
 
@@ -1597,6 +1666,108 @@ sysdig:
     enable: true
     user: alice
 ```
+## **sysdig.slack.client.id**
+**Required**: `false`<br>
+**Description**: Your Slack application client_id, needed for Sysdig Platform to send Slack notifications <br>
+**Options**:<br>
+**Default**: `awesomeclientid`<br>
+
+**Example**:
+
+```yaml
+sysdig:
+  slack:
+    client: 
+      id: 2255883163.123123123534
+```
+
+## **sysdig.slack.client.secret**
+**Required**: `false`<br>
+**Description**: Your Slack application client_secret, needed for Sysdig Platform to send Slack notifications <br>
+**Options**:<br>
+**Default**: `awesomeclientsecret`<br>
+
+**Example**:
+
+```yaml
+sysdig:
+  slack:
+    client: 
+      secret: 8a8af18123128acd312d12d12da
+```
+
+## **sysdig.slack.client.scope**
+**Required**: `false`<br>
+**Description**: Your Slack application scope, needed for Sysdig Platform to send Slack notifications <br>
+**Options**:<br>
+**Default**: `incoming-webhook`<br>
+
+**Example**:
+
+```yaml
+sysdig:
+  slack:
+    client: 
+      scope: incoming-webhook
+```
+
+## **sysdig.slack.client.endpoint**
+**Required**: `false`<br>
+**Description**: Your Slack application authorization endpoint, needed for Sysdig Platform to send Slack notifications <br>
+**Options**:<br>
+**Default**: `https://slack.com/oauth/v2/authorize` <br>
+
+**Example**:
+
+```yaml
+sysdig:
+  slack:
+    client: 
+      endpoint: https://slack.com/oauth/v2/authorize
+```
+
+## **sysdig.slack.client.oauth.endpoint**
+**Required**: `false`<br>
+**Description**: Your Slack application oauth endpoint, needed for Sysdig Platform to send Slack notifications <br>
+**Options**:<br>
+**Default**: `https://slack.com/api/oauth.v2.access` <br>
+
+**Example**:
+
+```yaml
+sysdig:
+  slack:
+    client: 
+      oauth:
+        endpoint: https://slack.com/api/oauth.v2.access
+```
+
+## **sysdig.inactivitySettings.trackerEnabled**
+**Required**: `false`<br>
+**Description**: Enables inactivity tracker. If the user performed no actions, they will be logged out automatically.<br>
+**Options**: `true|false`<br>
+**Default**: `false`<br>
+
+**Example**:
+```yaml
+sysdig:
+  inactivitySettings:
+    trackerEnabled: true
+```
+
+## **sysdig.inactivitySettings.trackerTimeout**
+**Required**: `false`<br>
+**Description**: Sets the timeout value (in seconds) for inactivity tracker.<br>
+**Options**: `60-1209600`<br>
+**Default**: `1800`<br>
+
+**Example**:
+```yaml
+sysdig:
+  inactivitySettings:
+    trackerTimeout: 900
+```
+
 
 ## **sysdig.secure.anchore.customCerts**
 **Required**: `false`<br>
@@ -2545,7 +2716,7 @@ sysdig:
 | cluster-size | limits |
 | ------------ | ------ |
 | small        | 4      |
-| medium       | 4      |
+| medium       | 8      |
 | large        | 16     |
 
 **Example**:
@@ -2567,7 +2738,7 @@ sysdig:
 | cluster-size | limits |
 | ------------ | ------ |
 | small        | 4Gi    |
-| medium       | 4Gi    |
+| medium       | 8Gi    |
 | large        | 16Gi   |
 
 
@@ -2590,7 +2761,7 @@ sysdig:
 | cluster-size | requests |
 | ------------ | -------- |
 | small        | 1        |
-| medium       | 1        |
+| medium       | 2        |
 | large        | 4        |
 
 **Example**:
@@ -2612,7 +2783,7 @@ sysdig:
 | cluster-size | requests |
 | ------------ | -------- |
 | small        | 1Gi      |
-| medium       | 1Gi      |
+| medium       | 2Gi      |
 | large        | 4Gi      |
 
 **Example**:
@@ -2621,6 +2792,95 @@ sysdig:
 sysdig:
   resources:
     worker:
+      requests:
+        memory: 200Mi
+```
+
+## **sysdig.resources.alerter.limits.cpu**
+**Required**: `false`<br>
+**Description**: The amount of cpu assigned to alerter pods<br>
+**Options**:<br>
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 4      |
+| medium       | 8      |
+| large        | 16     |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    alerter:
+      limits:
+        cpu: 2
+```
+
+## **sysdig.resources.alerter.limits.memory**
+**Required**: `false`<br>
+**Description**: The amount of memory assigned to alerter pods<br>
+**Options**:<br>
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 4Gi    |
+| medium       | 8Gi    |
+| large        | 16Gi   |
+
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    alerter:
+      limits:
+        memory: 10Mi
+```
+
+## **sysdig.resources.alerter.requests.cpu**
+**Required**: `false`<br>
+**Description**: The amount of cpu required to schedule alerter pods<br>
+**Options**:<br>
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 1        |
+| medium       | 2        |
+| large        | 4        |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    alerter:
+      requests:
+        cpu: 2
+```
+
+## **sysdig.resources.alerter.requests.memory**
+**Required**: `false`<br>
+**Description**: The amount of memory required to schedule alerter pods<br>
+**Options**:<br>
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 1Gi      |
+| medium       | 2Gi      |
+| large        | 4Gi      |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    alerter:
       requests:
         memory: 200Mi
 ```
@@ -3071,6 +3331,322 @@ sysdig:
         memory: 200Mi
 ```
 
+## **sysdig.resources.scanning-retention-mgr.limits.cpu**
+**Required**: `false`<br>
+**Description**: The amount of cpu assigned to scanning retention-mgr pods<br>
+**Options**:<br>
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 4      |
+| medium       | 4      |
+| large        | 4      |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanning-retention-mgr:
+      limits:
+        cpu: 2
+```
+
+## **sysdig.resources.scanning-retention-mgr.limits.memory**
+**Required**: `false`<br>
+**Description**: The amount of memory assigned to scanning retention-mgr pods<br>
+**Options**:<br>
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 4Gi    |
+| medium       | 4Gi    |
+| large        | 4Gi    |
+
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanning-retention-mgr:
+      limits:
+        memory: 10Mi
+```
+
+## **sysdig.resources.scanning-retention-mgr.requests.cpu**
+**Required**: `false`<br>
+**Description**: The amount of cpu required to schedule scanning retention-mgr pods<br>
+**Options**:<br>
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 500m     |
+| medium       | 1        |
+| large        | 1        |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanning-retention-mgr:
+      requests:
+        cpu: 2
+```
+
+## **sysdig.resources.scanning-retention-mgr.requests.memory**
+**Required**: `false`<br>
+**Description**: The amount of memory required to schedule scanning retention-mgr pods<br>
+**Options**:<br>
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 1Gi      |
+| medium       | 1Gi      |
+| large        | 1Gi      |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanning-retention-mgr:
+      requests:
+        memory: 200Mi
+```
+
+## **sysdig.secure.scanning.retentionMgr.cronjob**
+**Required**: `false`<br>
+**Description**: Retention manager Cronjob<br>
+**Options**:<br>
+**Default**: 0 3 * * *<br>
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanning:
+      retentionMgr:
+        cronjob: 0 3 * * *
+```
+
+## **sysdig.secure.scanning.retentionMgr.retentionPolicyMaxExecutionDuration**
+**Required**: `false`<br>
+**Description**: Max execution duration for the retention policy<br>
+**Options**:<br>
+**Default**: 23h<br>
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanning:
+      retentionMgr:
+        retentionPolicyMaxExecutionDuration: 23h
+```
+
+## **sysdig.secure.scanning.retentionMgr.retentionPolicyGracePeriodDuration**
+**Required**: `false`<br>
+**Description**: Grace period for the retention policy<br>
+**Options**:<br>
+**Default**: 168h<br>
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanning:
+      retentionMgr:
+        retentionPolicyGracePeriodDuration: 168h
+```
+
+## **sysdig.secure.scanning.retentionMgr.retentionPolicyArtificialDelayAfterDelete**
+**Required**: `false`<br>
+**Description**: Artifical delay after each image deletion<br>
+**Options**:<br>
+**Default**: 1s<br>
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanning:
+      retentionMgr:
+        retentionPolicyArtificialDelayAfterDelete: 1s
+```
+
+## **sysdig.secure.scanning.retentionMgr.scanningGRPCEndpoint**
+**Required**: `false`<br>
+**Description**: Scanning GRPC endpoint<br>
+**Options**:<br>
+**Default**: sysdigcloud-scanning-api:6000<br>
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanning:
+      retentionMgr:
+        scanningGRPCEndpoint: sysdigcloud-scanning-api:6000
+```
+
+## **sysdig.secure.scanning.retentionMgr.scanningDBEngine**
+**Required**: `false`<br>
+**Description**: Scanning DB engine<br>
+**Options**:<br>
+**Default**: mysql<br>
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanning:
+      retentionMgr:
+        scanningDBEngine: mysql
+```
+
+## **sysdig.secure.scanning.retentionMgr.defaultValues.datePolicy**
+**Required**: `false`<br>
+**Description**: Default value for the date policy<br>
+**Options**:<br>
+**Default**: 90<br>
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanning:
+      retentionMgr:
+        defaultValues:
+          datePolicy: 90
+```
+
+## **sysdig.secure.scanning.retentionMgr.defaultValues.tagsPolicy**
+**Required**: `false`<br>
+**Description**: Default value for the tags policy<br>
+**Options**:<br>
+**Default**: 5<br>
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanning:
+      retentionMgr:
+        defaultValues:
+          tagsPolicy: 5
+```
+
+## **sysdig.secure.scanning.retentionMgr.defaultValues.digestsPolicy**
+**Required**: `false`<br>
+**Description**: Default value for the digests policy<br>
+**Options**:<br>
+**Default**: 5<br>
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanning:
+      retentionMgr:
+        defaultValues:
+          digestsPolicy: 5
+```
+
+## **sysdig.resources.scanning-ve-janitor.limits.cpu**
+**Required**: `false`<br>
+**Description**: The amount of cpu assigned to scanning-ve-janitor cronjob<br>
+**Options**:<br>
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 300m   |
+| medium       | 500m   |
+| large        | 1      |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanning-ve-janitor:
+      limits:
+        cpu: 2
+```
+
+## **sysdig.resources.scanning-ve-janitor.limits.memory**
+**Required**: `false`<br>
+**Description**: The amount of memory assigned to scanning-ve-janitor cronjob<br>
+**Options**:<br>
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 256Mi  |
+| medium       | 2Gi    |
+| large        | 4Gi    |
+
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanning-ve-janitor:
+      limits:
+        memory: 10Mi
+```
+
+## **sysdig.resources.scanning-ve-janitor.requests.cpu**
+**Required**: `false`<br>
+**Description**: The amount of cpu required to schedule scanning-ve-janitor cronjob<br>
+**Options**:<br>
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 100m     |
+| medium       | 100m     |
+| large        | 100m     |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanning-ve-janitor:
+      requests:
+        cpu: 2
+```
+
+## **sysdig.resources.scanning-ve-janitor.requests.memory**
+**Required**: `false`<br>
+**Description**: The amount of memory required to schedule scanning-ve-janitor cronjob<br>
+**Options**:<br>
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 256Mi    |
+| medium       | 256Mi    |
+| large        | 256Mi    |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanning-ve-janitor:
+      requests:
+        memory: 200Mi
+```
+
 ## **sysdig.resources.policy-advisor.limits.cpu**
 **Required**: `false`<br>
 **Description**: The amount of cpu assigned to policy-advisor pods<br>
@@ -3158,6 +3734,274 @@ sysdig:
     policy-advisor:
       requests:
         memory: 200Mi
+```
+
+## **sysdig.resources.netsec-api.limits.cpu**
+**Required**: `false`<br>
+**Description**: The amount of cpu assigned to netsec-api pods<br>
+**Options**:<br>
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 1      |
+| medium       | 2      |
+| large        | 2      |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    netsec-api:
+      limits:
+        cpu: 1
+```
+
+## **sysdig.resources.netsec-api.limits.memory**
+**Required**: `false`<br>
+**Description**: The amount of memory assigned to netsec-api pods<br>
+**Options**:<br>
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 1Gi    |
+| medium       | 2Gi    |
+| large        | 2Gi    |
+
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    netsec-api:
+      limits:
+        memory: 1Gi
+```
+
+## **sysdig.resources.netsec-api.requests.cpu**
+**Required**: `false`<br>
+**Description**: The amount of cpu required to schedule netsec-api pods<br>
+**Options**:<br>
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 300m     |
+| medium       | 500m     |
+| large        | 1        |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    netsec-api:
+      requests:
+        cpu: 300m
+```
+
+## **sysdig.resources.netsec-api.requests.memory**
+**Required**: `false`<br>
+**Description**: The amount of memory required to schedule netsec-api pods<br>
+**Options**:<br>
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 1Gi      |
+| medium       | 1Gi      |
+| large        | 1Gi      |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    netsec-api:
+      requests:
+        memory: 1Gi
+```
+
+## **sysdig.resources.netsec-ingest.limits.cpu**
+**Required**: `false`<br>
+**Description**: The amount of cpu assigned to netsec-ingest pods<br>
+**Options**:<br>
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 1      |
+| medium       | 2      |
+| large        | 2      |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    netsec-ingest:
+      limits:
+        cpu: 1
+```
+
+## **sysdig.resources.netsec-ingest.limits.memory**
+**Required**: `false`<br>
+**Description**: The amount of memory assigned to netsec-ingest pods<br>
+**Options**:<br>
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 4Gi    |
+| medium       | 6Gi    |
+| large        | 8Gi    |
+
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    netsec-ingest:
+      limits:
+        memory: 4Gi
+```
+
+## **sysdig.resources.netsec-ingest.requests.cpu**
+**Required**: `false`<br>
+**Description**: The amount of cpu required to schedule netsec-ingest pods<br>
+**Options**:<br>
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 500m     |
+| medium       | 1        |
+| large        | 1        |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    netsec-ingest:
+      requests:
+        cpu: 500m
+```
+
+## **sysdig.resources.netsec-ingest.requests.memory**
+**Required**: `false`<br>
+**Description**: The amount of memory required to schedule to netsec-ingest pods<br>
+**Options**:<br>
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 1Gi    |
+| medium       | 2Gi    |
+| large        | 4Gi    |
+
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    netsec-ingest:
+      limits:
+        memory: 2Gi
+```
+
+## **sysdig.resources.netsec-janitor.limits.cpu**
+**Required**: `false`<br>
+**Description**: The amount of cpu assigned to netsec-janitor pods<br>
+**Options**:<br>
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 1      |
+| medium       | 2      |
+| large        | 2      |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    netsec-janitor:
+      limits:
+        cpu: 1
+```
+
+## **sysdig.resources.netsec-janitor.limits.memory**
+**Required**: `false`<br>
+**Description**: The amount of memory assigned to netsec-janitor pods<br>
+**Options**:<br>
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 1Gi    |
+| medium       | 2Gi    |
+| large        | 2Gi    |
+
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    netsec-janitor:
+      limits:
+        memory: 1Gi
+```
+
+## **sysdig.resources.netsec-janitor.requests.cpu**
+**Required**: `false`<br>
+**Description**: The amount of cpu required to schedule netsec-janitor pods<br>
+**Options**:<br>
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 300m     |
+| medium       | 500m     |
+| large        | 1        |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    netsec-janitor:
+      requests:
+        cpu: 1
+```
+
+## **sysdig.resources.netsec-janitor.requests.memory**
+**Required**: `false`<br>
+**Description**: The amount of memory required to schedule netsec-janitor pods<br>
+**Options**:<br>
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 1Gi      |
+| medium       | 1Gi      |
+| large        | 1Gi      |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    netsec-janitor:
+      requests:
+        memory: 1Gi
 ```
 
 ## **sysdig.resources.nats-streaming.limits.cpu**
@@ -4687,6 +5531,44 @@ sysdig:
   policyAdvisorReplicaCount: 20
 ```
 
+## **sysdig.netsecApiReplicaCount**
+**Required**: `false`<br>
+**Description**: Number of Netsec API replicas.<br>
+**Options**:<br>
+**Default**:<br>
+
+| cluster-size | count |
+| ------------ | ----- |
+| small        | 1     |
+| medium       | 1     |
+| large        | 1     |
+
+**Example**:
+
+```yaml
+sysdig:
+  netsecApiReplicaCount: 1
+```
+
+## **sysdig.netsecIngestReplicaCount**
+**Required**: `false`<br>
+**Description**: Number of Netsec Ingest replicas.<br>
+**Options**:<br>
+**Default**:<br>
+
+| cluster-size | count |
+| ------------ | ----- |
+| small        | 1     |
+| medium       | 1     |
+| large        | 1     |
+
+**Example**:
+
+```yaml
+sysdig:
+  netsecIngestReplicaCount: 1
+```
+
 ## **sysdig.anchoreCoreReplicaCount**
 **Required**: `false`<br>
 **Description**: Number of Anchore Core replicas.<br>
@@ -4763,6 +5645,26 @@ of `size` `small`.<br>
 ```yaml
 sysdig:
   workerReplicaCount: 7
+```
+
+## **sysdig.alerterReplicaCount**
+**Required**: `false`<br>
+**Description**: Number of Sysdig alerter replicas, this is a noop for clusters
+of `size` `small`.<br>
+**Options**:<br>
+**Default**:<br>
+
+| cluster-size | count |
+| ------------ | ----- |
+| small        | 1     |
+| medium       | 3     |
+| large        | 5     |
+
+**Example**:
+
+```yaml
+sysdig:
+  alerterReplicaCount: 7
 ```
 
 ## **sysdig.eventsGathererReplicaCount**
@@ -5051,6 +5953,20 @@ sysdig:
       -XX:-UseContainerSupport
 ```
 
+## **sysdig.alerter.jvmOptions**
+**Required**: `false`<br>
+**Description**: Custom configuration for Sysdig Alerter jvm.<br>
+**Options**:<br>
+**Default**:<br>
+**Example**:
+
+```yaml
+sysdig:
+  alerter:
+    jvmOptions: -Xms4G -Xmx4G -Ddraios.jvm-monitoring.ticker.enabled=true
+      -XX:-UseContainerSupport
+```
+
 ## **agent.apiKey**
 **Required**: `false`<br>
 **Description**: Sysdig Agent api key for running agents. Instructions for retrieving the api key can be found [here](https://docs.sysdig.com/en/agent-installation--overview-and-key.html).<br>
@@ -5200,6 +6116,18 @@ agent:
   capturesEnabled: false
 ```
 
+## **agent.feature_mode**
+**Required**: `false`<br>
+**Description**: TBD.<br>
+**Options**: `monitor|monitor_light|essentials|troubleshooting|secure`<br>
+**Default**: `monitor`<br>
+**Example**:
+
+```yaml
+agent:
+  feature_mode: troubleshooting
+```
+
 ## **agent.timezone**
 **Required**: `false`<br>
 **Description**: Set daemonset timezone.<br>
@@ -5249,6 +6177,34 @@ agent:
 agent:
   proxy:
     noProxy: your-awesome-no-proxy.com
+```
+
+## **agent.snaplenPortRange.start**
+**Required**: `false`<br>
+**Description**: Starting port in the range of ports to enable a larger snaplen on.<br>
+_**Note**: This should only be set if you push a lot of statsd metrics._<br>
+**Options**: <br>
+**Default**: `0`<br>
+**Example**:
+
+```yaml
+agent:
+  snaplenPortRange:
+    start: "8125"
+```
+
+## **agent.snaplenPortRange.end**
+**Required**: `false`<br>
+**Description**: Ending port in the range of ports to enable a larger snaplen on.<br>
+_**Note**: This should only be set if you push a lot of statsd metrics._<br>
+**Options**: <br>
+**Default**: `0`<br>
+**Example**:
+
+```yaml
+agent:
+  snaplenPortRange:
+    start: "8125"
 ```
 
 ## **agent.customKernelModules.enabled**
@@ -5413,7 +6369,7 @@ agent:
 **Description**: The maximum number of tags per prometheus metric that the Agent will save from a scraped target.<br>
 _**Note**: This setting is dependent on `agent.prometheus.enabled` being set to true._<br>
 **Options**: <br>
-**Default**: `200`<br>
+**Default**: `40`<br>
 **Example**:
 
 ```yaml
@@ -5909,4 +6865,70 @@ agent:
   resources:
     watchdog:
       cointerface: 1024
+```
+
+## **sysdig.eventsForwarderEnabledIntegrations**
+**Required**: `false`<br>
+**Description**: List of enabled integrations, e.g. "MCM,QRADAR"<br>
+**Options**:<br>
+**Default**: ""<br>
+**Example**:
+
+```yaml
+sysdig:
+  eventsForwarderEnabledIntegrations: "MCM,QRADAR"
+```
+
+## **sysdig.scanningAnalysiscollectorConcurrentUploads**
+**Required**: `false`<br>
+**Description**: Number of concurrent uploads for Scanning Analysis Collector<br>
+**Options**:<br>
+**Default**: "5"<br>
+**Example**:
+
+```yaml
+sysdig:
+  scanningAnalysiscollectorConcurrentUploads: 5
+```
+
+## **sysdig.secure.scanning.veJanitor.cronjob**
+**Required**: `false`<br>
+**Description**: Cronjob schedule<br>
+**Options**:<br>
+**Default**: "0 0 * * *"<br>
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    veJanitor:
+      cronjob: "5 0 * * *"
+```
+
+## **sysdig.secure.scanning.veJanitor.anchoreDBsslmode**
+**Required**: `false`<br>
+**Description**: Anchore db ssl mode. More info: https://www.postgresql.org/docs/9.1/libpq-ssl.html<br>
+**Options**:<br>
+**Default**: "disable"<br>
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    veJanitor:
+      anchoreDBsslmode: "disable"
+```
+
+## **sysdig.secure.scanning.veJanitor.scanningDbEngine**
+**Required**: `false`<br>
+**Description**: which scanning database engine to use. <br>
+**Options**: mysql<br>
+**Default**: "mysql"<br>
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    veJanitor:
+      scanningDbEngine: "mysql"
 ```

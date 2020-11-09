@@ -202,11 +202,11 @@ the installation machine.
 - Follow the Docker Log In to quay.io steps under the Access Requirements section.
 - Pull the image containing the self-extracting tar:
   ```bash
-  docker pull quay.io/sysdig/installer:3.5.1-1-uber
+  docker pull quay.io/sysdig/installer:3.6.0-1-uber
   ```
 - Extract the tarball:
   ```bash
-  docker create --name uber_image quay.io/sysdig/installer:3.5.1-1-uber
+  docker create --name uber_image quay.io/sysdig/installer:3.6.0-1-uber
   docker cp uber_image:/sysdig_installer.tar.gz .
   docker rm uber_image
   ```
