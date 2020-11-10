@@ -147,3 +147,15 @@ spec:
               name: sysdig-image-analyzer
               key: debug
               optional: true
+        - name: HTTP_PROXY
+          valueFrom:
+            configMapKeyRef:
+              key: proxy_url
+              name: sysdig-image-analyzer
+              optional: true
+        - name: NO_PROXY
+          valueFrom:
+            configMapKeyRef:
+              key: no_proxy
+              name: sysdig-image-analyzer
+              optional: true
