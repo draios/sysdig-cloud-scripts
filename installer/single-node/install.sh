@@ -286,7 +286,16 @@ EOF
   installJq
   installMiniKube
   installKubectl
+  setSystemctlVmMaxMapCount
+
   set -e
+}
+
+function setSystemctlVmMaxMapCount() {
+    #set for running ElasticSearch as non-root
+    VM_MAX_MAP_COUNT=${VM_MAX_MAP_COUNT:-262144}
+    readonly VM_MAX_MAP_COUNT
+    sysctl -w vm.max_map_count="${VM_MAX_MAP_COUNT}"
 }
 
 function startDocker() {
