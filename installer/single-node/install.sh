@@ -287,8 +287,17 @@ EOF
   installMiniKube
   installKubectl
   setSystemctlVmMaxMapCount
+  writeEtcHosts
 
   set -e
+}
+
+function writeEtcHosts() {
+  if ! grep -q "127.0.0.1 ${DNSNAME}" /etc/hosts; then
+    #for sni agents to connect to collector via 127.0.0.1
+    echo -e "\n#setting hostname for agents to connect" >> /etc/hosts
+    echo -e "127.0.0.1 ${DNSNAME}" >> /etc/hosts
+  fi
 }
 
 function setSystemctlVmMaxMapCount() {
