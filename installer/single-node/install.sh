@@ -32,6 +32,7 @@ DNSNAME="PLACEHOLDER"
 AIRGAP_BUILD="false"
 AIRGAP_INSTALL="false"
 RUN_INSTALLER="false"
+DELETE_SYSDIG="false"
 INSTALLER_BINARY="installer"
 
 function writeValuesYaml() {
@@ -368,6 +369,18 @@ function runInstaller() {
 
 function __main() {
 
+  if [[ "${DELETE_SYSDIG}" == "true" ]]; then
+    data_directories=$(kubectl get pv -o json | jq '.items[].spec.hostPath.path')
+    kubectl delete ns sysdig || true
+    kubectl delete pv --all || true
+    for data_directory in ${data_directories}
+    do
+      echo "deleteing ${data_directory}"
+      rm -rf "${data_directory}"
+    done
+    exit 0
+  fi
+
   if [[ "${RUN_INSTALLER}" == "true" ]]; then
     #single node installer just runs installer and returns early
     ${INSTALLER_BINARY} deploy
@@ -412,12 +425,17 @@ while [[ $# -gt 0 ]]; do
       shift # past argument
       shift # past value
       ;;
+    -d | --delete-sysdig)
+      DELETE_SYSDIG="true"
+      shift # past value
+      ;;
     -h | --help)
       echo "Help..."
       echo "-a | --airgap-builder to specify airgap builder"
       echo "-i | --airgap-install to run as airgap install mode"
       echo "-r | --run-installer  to run the installer alone"
       echo "-q | --quaypullsecret followed by quaysecret to specify airgap builder"
+      echo "-d | --delete-sysdig deletes sysdig namespace, persistent volumes and data from disk"
       shift # past argument
       exit 0
       ;;

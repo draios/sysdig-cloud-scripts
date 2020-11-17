@@ -28,6 +28,19 @@ platform is intended to run on, then run:
 sudo ./install.sh
 ```
 
+## Help
+
+```bash
+sudo ./install.sh -h
+#prints help
+Help...
+-a | --airgap-builder to specify airgap builder
+-i | --airgap-install to run as airgap install mode
+-r | --run-installer  to run the installer alone
+-q | --quaypullsecret followed by quaysecret to specify airgap builder
+-d | --delete-sysdig deletes sysdig namespace, persistent volumes and data from disk
+```
+
 This will prompt for quay pull secrets, sysdig license and domain name(in ec2
 this is the public hostname for the instance). It will install dependencies
 run the installer and create a sysdig platform. It also logs everything you
