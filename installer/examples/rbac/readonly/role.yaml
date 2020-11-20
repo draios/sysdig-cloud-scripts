@@ -1,0 +1,54 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: sysdigcloud
+  name: installer-readonly
+rules:
+  - apiGroups: 
+      - 'extensions'
+    resources: 
+      - ingresses
+    verbs:
+      - get
+      - list
+  - apiGroups:
+      - '*'
+    resources:
+      - cronjobs
+      - configmaps
+      - deployments
+      - daemonsets
+      - jobs
+      - namespaces
+      - pods
+      - persistentvolumeclaims
+      - secrets
+      - services
+      - serviceaccounts
+      - statefulsets
+    verbs:
+      - get
+      - list
+#  - apiGroups:
+#      - '*'
+#    resources:
+#      - storageclasses
+#    verbs:
+#      - get
+#      - list
+  - apiGroups:
+      - '*'
+    resources:
+      - namespace
+    verbs:
+      - get
+      - list
+  - apiGroups:
+      - rbac.authorization.k8s.io
+    resources:
+      - roles
+      - rolebindings
+    verbs:
+      - get
+      - list
