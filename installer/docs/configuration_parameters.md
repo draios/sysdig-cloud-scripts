@@ -675,7 +675,7 @@ pvStorageSize:
 
 ```yaml
 sysdig:
-  activityAuditVersion: 3.6.0.7691
+  activityAuditVersion: 3.6.1.7758
 ```
 
 ## **sysdig.profilingVersion**
@@ -687,7 +687,7 @@ sysdig:
 
 ```yaml
 sysdig:
-  profilingVersion: 3.6.0.7691
+  profilingVersion: 3.6.1.7758
 ```
 
 ## **sysdig.anchoreVersion**
@@ -699,7 +699,7 @@ sysdig:
 
 ```yaml
 sysdig:
-  anchoreVersion: 0.8.1.2
+  anchoreVersion: 0.8.1.8
 ```
 
 ## **sysdig.accessKey**
@@ -1129,12 +1129,12 @@ sysdig:
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 3.6.0.7691<br>
+**Default**: 3.6.1.7758<br>
 **Example**:
 
 ```yaml
 sysdig:
-  monitorVersion: 3.6.0.7691
+  monitorVersion: 3.6.1.7758
 ```
 
 ## **sysdig.scanningVersion**
@@ -1144,12 +1144,12 @@ this is not configured it defaults to `sysdig.monitorVersion` **Do not modify
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 3.6.0.7691<br>
+**Default**: 3.6.1.7758<br>
 **Example**:
 
 ```yaml
 sysdig:
-  scanningVersion: 3.6.0.7691
+  scanningVersion: 3.6.1.7758
 ```
 
 ## **sysdig.sysdigAPIVersion**
@@ -1159,12 +1159,12 @@ this is not configured it defaults to `sysdig.monitorVersion` **Do not modify
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 3.6.0.7691<br>
+**Default**: 3.6.1.7758<br>
 **Example**:
 
 ```yaml
 sysdig:
-  sysdigAPIVersion: 3.6.0.7691
+  sysdigAPIVersion: 3.6.1.7758
 ```
 
 ## **sysdig.sysdigCollectorVersion**
@@ -1174,12 +1174,12 @@ this is not configured it defaults to `sysdig.monitorVersion` **Do not modify
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 3.6.0.7691<br>
+**Default**: 3.6.1.7758<br>
 **Example**:
 
 ```yaml
 sysdig:
-  sysdigCollectorVersion: 3.6.0.7691
+  sysdigCollectorVersion: 3.6.1.7758
 ```
 
 ## **sysdig.sysdigWorkerVersion**
@@ -1189,12 +1189,12 @@ this is not configured it defaults to `sysdig.monitorVersion` **Do not modify
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 3.6.0.7691<br>
+**Default**: 3.6.1.7758<br>
 **Example**:
 
 ```yaml
 sysdig:
-  sysdigWorkerVersion: 3.6.0.7691
+  sysdigWorkerVersion: 3.6.1.7758
 ```
 
 ## **sysdig.enableAlerter**
