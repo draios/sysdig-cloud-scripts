@@ -133,7 +133,7 @@ elif [[ "$VARIANT" == "kops" ]]; then
     fi
 
     echo "Fetching current kops cluster configuration..."
-    kops get cluster -o yaml > cluster-current.yaml
+    kops get cluster $KOPS_CLUSTER_NAME -o yaml > cluster-current.yaml
 
     echo "Adding webhook configuration/audit policy to cluster configuration..."
 
@@ -159,7 +159,7 @@ $(cat audit-policy.yaml | sed -e 's/^/          /')
         auditWebhookConfigFile: /var/lib/k8s_audit/webhook-config.yaml
 EOF
 
-    yq m -a cluster-current.yaml merge.yaml > cluster.yaml
+    yq m -a=append cluster-current.yaml merge.yaml > cluster.yaml
 
     echo "Configuring kops with the new cluster configuration..."
     kops replace -f cluster.yaml
