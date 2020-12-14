@@ -390,6 +390,7 @@ function __main() {
   if [[ "${DELETE_SYSDIG}" == "true" ]]; then
     data_directories=$(kubectl get pv -o json | jq -r '.items[].spec.hostPath.path')
     kubectl delete ns sysdig || true
+    kubectl delete ns agent || true
     kubectl delete pv --all || true
     for data_directory in ${data_directories}
     do
