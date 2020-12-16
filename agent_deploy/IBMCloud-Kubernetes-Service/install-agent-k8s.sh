@@ -604,6 +604,9 @@ case ${key} in
         fi
         shift
         ;;
+    -ia|--imageanalyzer)
+        INSTALL_ANALYZER=1
+        ;;
     -h|--help)
         help
         exit 1
