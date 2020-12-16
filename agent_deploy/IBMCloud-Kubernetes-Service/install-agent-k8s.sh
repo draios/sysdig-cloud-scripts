@@ -80,12 +80,13 @@ function help {
     echo " -as : if provided, use agent-slim and agent-kmodule with the daemonset"
     echo " -r  : if provided, will remove the sysdig agent's daemonset, configmap, clusterrolebinding,"
     echo "       serviceacccount and secret from the specified namespace"
+    echo " -ia : if provided, will install the Node Image Analyzer"
     echo " -aws : if provided, will support AWS cluster name parsing and not use ICR"
     echo " -am : Analysis Manager endpoint for Sysdig Secure"
     echo " -ds : docker socket for Image Analyzer"
     echo " -cs : CRI socket for Image Analyzer"
+    echo " -cd : CRI-containerd socket for Image Analyzer"
     echo " -cv : custom volume for Image Analyzer"
-    echo " -ia : if not provided, will skip Image Analyzer installation"
     echo " -h  : print this usage and exit"
     echo
     exit 1
@@ -282,6 +283,10 @@ function install_k8s_agent {
       if [ ! -z "$CRI_SOCKET_PATH" ]; then
         echo "* Setting CRI socket path"
         echo "  cri_socket_path: $CRI_SOCKET_PATH" >> $IA_CONFIG_FILE
+      fi
+      if [ ! -z "$CRI_CONTAINERD_SOCKET_PATH" ]; then
+        echo "* Setting CRI-containerd socket path"
+        echo "  containerd_socket_path: $CRI_CONTAINERD_SOCKET_PATH" >> $IA_CONFIG_FILE
       fi
       if [ ! -z "$CHECK_CERT" ]; then
         echo "* Setting SSL certificate check level"
@@ -555,41 +560,50 @@ case ${key} in
         REMOVE_AGENT=1
         ;;
     -am|--analysismanager)
-			if is_valid_value "${2}"; then
-				ANALYSIS_MANAGER="${2}"
-			else
-				echo "ERROR: no value provided for Analysis Manager option, use -h | --help for $(basename ${0}) Usage"
-				exit 1
-			fi
-			shift
-			;;
-		-ds|--dockersocket)
-			if is_valid_value "${2}"; then
-				DOCKER_SOCKET_PATH="${2}"
-			else
-				echo "ERROR: no value provided for docker socket path option, use -h | --help for $(basename ${0}) Usage"
-				exit 1
-			fi
-			shift
-			;;
-		-cs|--crisocket)
-			if is_valid_value "${2}"; then
-				CRI_SOCKET_PATH="${2}"
-			else
-				echo "ERROR: no value provided for CRI socket path option, use -h | --help for $(basename ${0}) Usage"
-				exit 1
-			fi
-			shift
-			;;
-		-cv|--customvolume)
-			if is_valid_value "${2}"; then
-				IA_CUSTOM_PATH="${2}"
-			else
-				echo "ERROR: no value provided for custom volume path option, use -h | --help for $(basename ${0}) Usage"
-				exit 1
-			fi
-			shift
-			;;
+        if is_valid_value "${2}"; then
+            ANALYSIS_MANAGER="${2}"
+        else
+            echo "ERROR: no value provided for Analysis Manager option, use -h | --help for $(basename ${0}) Usage"
+            exit 1
+        fi
+        shift
+        ;;
+    -ds|--dockersocket)
+        if is_valid_value "${2}"; then
+            DOCKER_SOCKET_PATH="${2}"
+        else
+            echo "ERROR: no value provided for docker socket path option, use -h | --help for $(basename ${0}) Usage"
+            exit 1
+        fi
+        shift
+        ;;
+    -cs|--crisocket)
+        if is_valid_value "${2}"; then
+            CRI_SOCKET_PATH="${2}"
+        else
+            echo "ERROR: no value provided for CRI socket path option, use -h | --help for $(basename ${0}) Usage"
+            exit 1
+        fi
+        shift
+        ;;
+    -cd|--cricontainerdsocket)
+        if is_valid_value "${2}"; then
+            CRI_CONTAINERD_SOCKET_PATH="${2}"
+        else
+            echo "ERROR: no value provided for CRI-containerd socket path option, use -h | --help for $(basename ${0}) Usage"
+            exit 1
+        fi
+        shift
+        ;;
+    -cv|--customvolume)
+        if is_valid_value "${2}"; then
+            IA_CUSTOM_PATH="${2}"
+        else
+            echo "ERROR: no value provided for custom volume path option, use -h | --help for $(basename ${0}) Usage"
+            exit 1
+        fi
+        shift
+        ;;
     -h|--help)
         help
         exit 1
