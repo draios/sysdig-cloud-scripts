@@ -1020,6 +1020,18 @@ sysdig:
   elasticsearchVersion: 5.6.16.18
 ```
 
+## **sysdig.elasticsearch6Version**
+**Required**: `false`<br>
+**Description**: The docker image tag of Elasticsearch 6.<br>
+**Options**:<br>
+**Default**: 6.8.6.6<br>
+**Example**:
+
+```yaml
+sysdig:
+  elasticsearchVersion: 6.8.6.6
+```
+
 ## **sysdig.haproxyVersion**
 **Required**: `false`<br>
 **Description**: The docker image tag of HAProxy ingress controller. The
