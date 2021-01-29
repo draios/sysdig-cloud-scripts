@@ -9,3 +9,7 @@ data:
   # http_proxy: "http://proxy_server:8080"
   # https_proxy: "https://proxy_server:8080"
   # no_proxy: "127.0.0.1,localhost,192.168.0.0/16,172.16.0.0/12,10.0.0.0/8"
+
+  # The endpoint to the Scanning Analysis collector
+  # Required: yes
+  #collector_endpoint: https://app.sysdigcloud.com/internal/scanning/scanning-analysis-collector
