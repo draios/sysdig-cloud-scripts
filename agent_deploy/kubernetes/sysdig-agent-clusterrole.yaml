@@ -9,6 +9,7 @@ rules:
   - pods
   - replicationcontrollers
   - services
+  - endpoints
   - events
   - limitranges
   - namespaces
@@ -16,8 +17,6 @@ rules:
   - resourcequotas
   - persistentvolumes
   - persistentvolumeclaims
-  - configmaps
-  - secrets
   verbs:
   - get
   - list

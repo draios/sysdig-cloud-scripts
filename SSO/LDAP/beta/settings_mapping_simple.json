@@ -1,0 +1,80 @@
+{
+    "ldapTeamMapping": [
+      {
+        "ldapFilterSettings": {
+          "searchFilter": "(&(objectClass=organizationalPerson)(memberOf=CN=Sysdig Viewers,CN=Users,DC=example,DC=local)(sAMAccountName=*))",
+          "searchBase": "cn=Users"
+        },
+        "teams": [
+          "Viewers"
+        ],
+        "teamRole": "ROLE_TEAM_READ",
+        "usernameAttribute": "sAMAccountName"
+      },
+      {
+        "ldapFilterSettings": {
+          "searchFilter": "(&(objectClass=organizationalPerson)(memberOf=CN=Sysdig Editors,CN=Users,DC=example,DC=local)(sAMAccountName=*))",
+          "searchBase": "cn=Users"
+        },
+        "teams": [
+          "Editors1",
+          "Editors2"
+        ],
+        "teamRole": "ROLE_TEAM_EDIT",
+        "usernameAttribute": "sAMAccountName"
+      },
+      {
+        "ldapFilterSettings": {
+          "searchFilter": "(&(objectClass=organizationalPerson)(givenName=Mary))",
+          "searchBase": "cn=Users"
+        },
+        "teams": [
+          "Mixed"
+        ],
+        "teamRole": "ROLE_TEAM_EDIT",
+        "usernameAttribute": "sAMAccountName"
+      },
+      {
+        "ldapFilterSettings": {
+          "searchFilter": "(&(objectClass=organizationalPerson)(sAMAccountName=jdoe))",
+          "searchBase": "cn=Users"
+        },
+        "teams": [
+          "Mixed"
+        ],
+        "teamRole": "ROLE_TEAM_READ",
+        "usernameAttribute": "sAMAccountName"
+      }
+    ],
+    "teamDefinitions": [
+      {
+        "name": "Mixed",
+        "products": ["SDC"],
+        "show": "host"
+      },
+      {
+        "name": "Viewers",
+        "products": ["SDC"],
+        "show": "host"
+      },
+      {
+        "name": "Editors1",
+        "products": ["SDC"],
+        "show": "host"
+      },
+      {
+        "name": "Editors2",
+        "products": ["SDC"],
+        "theme": "#FF5C49",
+        "show": "container",
+        "filter": "container.image contains \"mysql\"",
+        "canUseSysdigCapture": false,
+        "canUseCustomEvents": false,
+        "canUseAwsMetrics": false,
+        "entryPoint": {
+          "module": "Dashboards"
+        }
+      }
+    ],
+    "dryRun": true
+}
