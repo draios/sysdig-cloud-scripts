@@ -47,7 +47,7 @@ spec:
       terminationGracePeriodSeconds: 5
       containers:
       - name: sysdig-image-analyzer
-        image: docker.io/sysdig/node-image-analyzer:latest
+        image: quay.io/sysdig/node-image-analyzer:latest
         securityContext:
           # The privileged flag is necessary for OCP 4.x and other Kubernetes setups that deny host filesystem access to
           # running containers by default regardless of volume mounts. In those cases, access to the CRI socket would fail.
