@@ -25,6 +25,11 @@ spec:
         hostPath:
           path: /etc/os-release
           type: FileOrCreate
+### uncomment for minikube
+#      - name: etc-version
+#        hostPath:
+#          path: /etc/VERSION
+#          type: FileOrCreate
       - name: dshm
         emptyDir:
           medium: Memory
@@ -99,6 +104,10 @@ spec:
         - mountPath: /etc/modprobe.d
           name: modprobe-d
           readOnly: true
+### uncomment for minikube
+#        - mountPath: /host/etc/VERSION
+#          name: etc-version
+#          readOnly: true
         - mountPath: /host/dev
           name: dev-vol
           readOnly: false

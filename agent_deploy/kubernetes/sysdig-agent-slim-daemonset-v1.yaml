@@ -21,6 +21,11 @@ spec:
       - name: modprobe-d
         hostPath:
           path: /etc/modprobe.d
+### uncomment for minikube
+#      - name: etc-version
+#        hostPath:
+#          path: /etc/VERSION
+#          type: FileOrCreate
       - name: dshm
         emptyDir:
           medium: Memory
@@ -68,6 +73,10 @@ spec:
           limits:
             memory: 512Mi
         volumeMounts:
+### uncomment for minikube
+#        - mountPath: /host/etc/VERSION
+#          name: etc-version
+#          readOnly: true
         - mountPath: /host/boot
           name: boot-vol
           readOnly: true
