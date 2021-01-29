@@ -73,7 +73,7 @@ spec:
       terminationGracePeriodSeconds: 5
       containers:
       - name: sysdig-agent
-        image: quay.io/sysdig/agent:latest
+        image: quay.io/sysdig/agent
         imagePullPolicy: Always
         securityContext:
           privileged: true
