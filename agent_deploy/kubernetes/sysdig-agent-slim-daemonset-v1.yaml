@@ -55,7 +55,7 @@ spec:
       terminationGracePeriodSeconds: 5
       initContainers:
       - name: sysdig-agent-kmodule
-        image: sysdig/agent-kmodule
+        image: quay.io/sysdig/agent-kmodule
         imagePullPolicy: Always
         securityContext:
           privileged: true
@@ -82,7 +82,7 @@ spec:
           readOnly: true
       containers:
       - name: sysdig-agent
-        image: sysdig/agent-slim
+        image: quay.io/sysdig/agent-slim
         imagePullPolicy: Always
         securityContext:
           privileged: true
