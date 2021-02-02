@@ -67,7 +67,7 @@ spec:
       terminationGracePeriodSeconds: 5
       initContainers:
       - name: sysdig-agent-kmodule
-        image: sysdig/agent-kmodule
+        image: quay.io/sysdig/agent-kmodule
         imagePullPolicy: Always
         securityContext:
           privileged: true
@@ -98,7 +98,7 @@ spec:
       - name: sysdig-agent
         # WARNING: the agent-slim release is currently dependent on the above
         # initContainer and thus only functions correctly in a kubernetes cluster 
-        image: sysdig/agent-slim
+        image: quay.io/sysdig/agent-slim
         imagePullPolicy: Always
         securityContext:
           privileged: true
