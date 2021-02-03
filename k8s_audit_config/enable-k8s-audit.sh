@@ -84,8 +84,8 @@ elif [[ "$VARIANT" == "gke" ]]; then
     fi
 
     echo "Creating k8s secret containing service account keys..."
-    kubectl delete secret stackdriver-webhook-bridge || true
-    kubectl create secret generic stackdriver-webhook-bridge --from-file=key.json="$PWD"/swb-logs-reader-key.json
+    kubectl delete secret stackdriver-webhook-bridge -n sysdig-agent|| true
+    kubectl create secret generic stackdriver-webhook-bridge --from-file=key.json="$PWD"/swb-logs-reader-key.json -n sysdig-agent
 
     echo "Deploying stackdriver-webhook-bridge to sysdig-agent namespace..."
     curl -LO https://raw.githubusercontent.com/sysdiglabs/stackdriver-webhook-bridge/master/stackdriver-webhook-bridge.yaml
