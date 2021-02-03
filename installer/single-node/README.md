@@ -21,9 +21,6 @@ installer single-node
 
 ## Usage
 
-Copy the [script](./install.sh) to the machine that sysdig
-platform is intended to run on, then run:
-
 ```bash
 sudo ./install.sh
 ```
