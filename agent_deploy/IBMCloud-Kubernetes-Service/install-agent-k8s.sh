@@ -312,8 +312,8 @@ function install_k8s_agent {
     # For AWS do not use IBM Cloud Container Registry
     if [ $AWS -eq 0 ]; then
         for agent_name in ${AGENT_NAMES}; do
-            # Use IBM Cloud Container Registry instead of docker.io
-            sed -i.bak -e "s|\( *image: \)sysdig/${agent_name}|\1icr.io/ext/sysdig/${agent_name}:${AGENT_VERSION}|g" $DAEMONSET_FILE
+            # Use IBM Cloud Container Registry instead of docker.io or quay.io
+            sed -i.bak -e "s|\( *image: \)\(quay.io/\)*sysdig/${agent_name}\(.*\)|\1icr.io/ext/sysdig/${agent_name}:${AGENT_VERSION}|g" $DAEMONSET_FILE
         done
 
         ICR_SECRET_EXIST=$(kubectl -n default get secret -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' | grep -qE "default-icr-io|all-icr-io" || echo 1)
@@ -350,8 +350,8 @@ function install_k8s_agent {
         done
     else
         for agent_name in ${AGENT_NAMES}; do
-            # Use IBM Cloud Container Registry instead of docker.io
-            sed -i.bak -e "s|\( *image: \)sysdig/${agent_name}|\1sysdig/${agent_name}:${AGENT_VERSION}|g" $DAEMONSET_FILE
+            # Use IBM Cloud Container Registry instead of docker.io or quay.io
+            sed -i.bak -e "s|\( *image: \)\(quay.io/\)*sysdig/${agent_name}\(.*\)|\1sysdig/${agent_name}:${AGENT_VERSION}|g" $DAEMONSET_FILE
         done
 
     fi
