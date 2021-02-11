@@ -298,10 +298,10 @@ function install_k8s_agent {
       kubectl apply -f $IA_CONFIG_FILE --namespace=$NAMESPACE
     fi
 
-    AGENT_STRING="agent"
+    AGENT_NAMES="agent"
     if [ ! -z "$AGENT_SLIM" ]; then
         DAEMONSET_FILE="/tmp/sysdig-agent-slim-daemonset-v2.yaml"
-        AGENT_STRING="agent-slim"
+        AGENT_NAMES="agent-slim agent-kmodule"
     else
         DAEMONSET_FILE="/tmp/sysdig-agent-daemonset-v2.yaml"
     fi
@@ -311,8 +311,10 @@ function install_k8s_agent {
 
     # For AWS do not use IBM Cloud Container Registry
     if [ $AWS -eq 0 ]; then
-        # Use IBM Cloud Container Registry instead of docker.io
-        sed -i.bak -e "s|\( *image: \)sysdig/${AGENT_STRING}|\1icr.io/ext/sysdig/${AGENT_STRING}:${AGENT_VERSION}|g" $DAEMONSET_FILE
+        for agent_name in ${AGENT_NAMES}; do
+            # Use IBM Cloud Container Registry instead of docker.io
+            sed -i.bak -e "s|\( *image: \)sysdig/${agent_name}|\1icr.io/ext/sysdig/${agent_name}:${AGENT_VERSION}|g" $DAEMONSET_FILE
+        done
 
         ICR_SECRET_EXIST=$(kubectl -n default get secret -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' | grep -qE "default-icr-io|all-icr-io" || echo 1)
         if [ "$ICR_SECRET_EXIST" = 1 ]; then
@@ -347,7 +349,11 @@ function install_k8s_agent {
             echo "${INDENT}- name: $SECRET_NAME" >> $DAEMONSET_FILE
         done
     else
-        sed -i.bak -e "s|\( *image: \)sysdig/${AGENT_STRING}|\1sysdig/${AGENT_STRING}:${AGENT_VERSION}|g" $DAEMONSET_FILE
+        for agent_name in ${AGENT_NAMES}; do
+            # Use IBM Cloud Container Registry instead of docker.io
+            sed -i.bak -e "s|\( *image: \)sysdig/${agent_name}|\1sysdig/${agent_name}:${AGENT_VERSION}|g" $DAEMONSET_FILE
+        done
+
     fi
     # Add label for Sysdig instance
     if [ ! -z "$SYSDIG_INSTANCE_NAME" ]; then
