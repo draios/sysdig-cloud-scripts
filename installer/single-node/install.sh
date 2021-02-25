@@ -57,6 +57,7 @@ sysdig:
     hostPathNodes:
       - minikube
   cassandra:
+    jvmOptions: -Xmx500m -Xms500m
     hostPathNodes:
       - minikube
   dnsName: $DNSNAME
