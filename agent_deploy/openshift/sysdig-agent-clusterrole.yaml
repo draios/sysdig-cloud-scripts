@@ -16,6 +16,7 @@ rules:
   - resourcequotas
   - persistentvolumes
   - persistentvolumeclaims
+  - endpoints
   verbs:
   - get
   - list
