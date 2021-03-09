@@ -38,11 +38,8 @@ function download_yamls {
     curl -s -o /tmp/sysdig-agent-configmap.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/master/agent_deploy/kubernetes/sysdig-agent-configmap.yaml
     echo "* Downloading Sysdig daemonset v2 yaml"
     curl -s -o /tmp/sysdig-agent-daemonset-v2.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/master/agent_deploy/kubernetes/sysdig-agent-daemonset-v2.yaml
-    echo "* Downloading Sysdig agent-slim daemonset v2 yaml"
-    curl -s -o /tmp/sysdig-agent-slim-daemonset-v2.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/master/agent_deploy/kubernetes/sysdig-agent-slim-daemonset-v2.yaml
     echo "* Downloading Sysdig kmod-thin-agent-slim daemonset"
-    curl -s -o /tmp/sysdig-kmod-thin-agent-slim-daemonset.yaml.bak https://raw.githubusercontent.com/0snug0/sysdig-cloud-scripts/master/agent_deploy/kubernetes/sysdig-kmod-thin-agent-slim-daemonset.yaml
-
+    curl -s -o /tmp/sysdig-kmod-thin-agent-slim-daemonset.yaml https://raw.githubusercontent.com/0snug0/sysdig-cloud-scripts/master/agent_deploy/kubernetes/sysdig-kmod-thin-agent-slim-daemonset.yaml
     if [ $INSTALL_ANALYZER -eq 1 ]; then
       echo "* Downloading Sysdig Image Analyzer config map yaml"
       curl -H 'Cache-Control: no-cache' -s -o /tmp/sysdig-image-analyzer-configmap.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/master/agent_deploy/kubernetes/sysdig-image-analyzer-configmap.yaml
@@ -80,7 +77,7 @@ function help {
     echo " -np : if provided, do not enable the Prometheus collector.  Defaults to enabling Prometheus collector"
     echo " -sn : if provided, name of the sysdig instance (optional)"
     echo " -op : if provided, perform the installation using the OpenShift command line"
-    echo " -af : if provided, use agent-full install of slim-agent"
+    echo " -af : if provided, use agent-full instead of agent-slim"
     echo " -r  : if provided, will remove the sysdig agent's daemonset, configmap, clusterrolebinding,"
     echo "       serviceacccount and secret from the specified namespace"
     echo " -ia : if provided, will install the Node Image Analyzer"
@@ -301,12 +298,12 @@ function install_k8s_agent {
       kubectl apply -f $IA_CONFIG_FILE --namespace=$NAMESPACE
     fi
 
-    AGENT_STRING="agent"
     if [ ! -z "$AGENT_FULL" ]; then
         DAEMONSET_FILE="/tmp/sysdig-agent-daemonset-v2.yaml"
         AGENT_STRING="agent"
     else
         DAEMONSET_FILE="/tmp/sysdig-kmod-thin-agent-slim-daemonset.yaml"
+        AGENT_STRING="agent-slim"
     fi
 
     # -i.bak argument used for compatibility between mac (-i '') and linux (simply -i)
