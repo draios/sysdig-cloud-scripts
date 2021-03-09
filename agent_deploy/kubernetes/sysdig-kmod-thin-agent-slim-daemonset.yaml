@@ -1,5 +1,4 @@
-### WARNING: this file is supported from Sysdig Agent 0.80.0
-# apiVersion: extensions/v1beta1  # If you are in Kubernetes version 1.8 or less please use this line instead of the following one
+### WARNING: this file is supported from Sysdig Agent 11.0.0
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -74,7 +73,7 @@ spec:
         resources:
           requests:
             cpu: 1000m
-            memory: 384Mi
+            memory: 512Mi
           limits:
             memory: 512Mi
         volumeMounts:
@@ -110,7 +109,7 @@ spec:
             memory: 512Mi
           limits:
             cpu: 2000m
-            memory: 1536Mi
+            memory: 3072Mi
         readinessProbe:
           exec:
             command: [ "test", "-e", "/opt/draios/logs/running" ]
