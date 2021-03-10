@@ -39,7 +39,7 @@ function download_yamls {
     echo "* Downloading Sysdig daemonset v2 yaml"
     curl -s -o /tmp/sysdig-agent-daemonset-v2.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/master/agent_deploy/kubernetes/sysdig-agent-daemonset-v2.yaml
     echo "* Downloading Sysdig kmod-thin-agent-slim daemonset"
-    curl -s -o /tmp/sysdig-kmod-thin-agent-slim-daemonset.yaml https://raw.githubusercontent.com/0snug0/sysdig-cloud-scripts/master/agent_deploy/kubernetes/sysdig-kmod-thin-agent-slim-daemonset.yaml
+    curl -s -o /tmp/sysdig-kmod-thin-agent-slim-daemonset.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/master/agent_deploy/kubernetes/sysdig-kmod-thin-agent-slim-daemonset.yaml
     if [ $INSTALL_ANALYZER -eq 1 ]; then
       echo "* Downloading Sysdig Image Analyzer config map yaml"
       curl -H 'Cache-Control: no-cache' -s -o /tmp/sysdig-image-analyzer-configmap.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/master/agent_deploy/kubernetes/sysdig-image-analyzer-configmap.yaml
