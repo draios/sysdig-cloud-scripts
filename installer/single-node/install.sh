@@ -395,7 +395,7 @@ function __main() {
     kubectl delete pv --all || true
     for data_directory in ${data_directories}
     do
-      echo "deleteing ${data_directory}"
+      echo "deleting ${data_directory}"
       rm -rf "${data_directory}"
     done
     exit 0
