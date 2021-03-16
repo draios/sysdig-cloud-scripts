@@ -299,10 +299,12 @@ function install_k8s_agent {
       kubectl apply -f $IA_CONFIG_FILE --namespace=$NAMESPACE
     fi
 
-    if [ ! -z "$AGENT_FULL" ]; then
+    if [ $AGENT_FULL -eq 1 ]; then
+        echo "Full agent selected "
         DAEMONSET_FILE="/tmp/sysdig-agent-daemonset-v2.yaml"
         AGENT_STRING="agent"
     else
+        echo "Slim agent selected "
         DAEMONSET_FILE="/tmp/sysdig-kmod-thin-agent-slim-daemonset.yaml"
         AGENT_STRING="agent-slim"
     fi
@@ -450,6 +452,7 @@ OPENSHIFT=0
 INSTALL_ANALYZER=0
 AGENT_VERSION="latest"
 AWS=0
+AGENT_FULL=0
 
 while [[ ${#} > 0 ]]
 do
@@ -557,7 +560,7 @@ case ${key} in
         ;;
     -as|--agent-slim)
         AGENT_FULL=0
-        echo "Using agent-slim option is deprecated, please stop using it as it can be removed soon"
+        echo "Using --agent-slim option is deprecated, please stop using it as it can be removed soon"
         ;;
     -aws|--aws)
         AWS=1
