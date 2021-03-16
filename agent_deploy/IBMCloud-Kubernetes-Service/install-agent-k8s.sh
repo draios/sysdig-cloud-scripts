@@ -62,7 +62,7 @@ function help {
     echo "Usage: $(basename ${0}) -a | --access_key <value> [-t | --tags <value>] [-c | --collector <value>] \ "
     echo "                [-cp | --collector_port <value>] [-s | --secure <value>] [-cc | --check_certificate <value>] \ "
     echo "                [-ns | --namespace | --project <value>] [-ac | --additional_conf <value>] [-np | --no-prometheus] \ "
-    echo "                [-sn | --sysdig_instance_name <value>] [-op | --openshift] [-af | --agent-full] \ "
+    echo "                [-sn | --sysdig_instance_name <value>] [-op | --openshift] [-af | --agent-full] [-as | --agent-slim] \ "
     echo "                [-ia | --imageanalyzer ] [-am | --analysismanager <value>] [-ds | --dockersocket <value>] [-cs | --crisocket <value>] [-cv | --customvolume <value>] \ "
     echo "                [-av | --agent-version <value>] [ -r | --remove ] [ -aws | --aws ] [-h | --help]"
     echo ""
@@ -77,6 +77,7 @@ function help {
     echo " -np : if provided, do not enable the Prometheus collector.  Defaults to enabling Prometheus collector"
     echo " -sn : if provided, name of the sysdig instance (optional)"
     echo " -op : if provided, perform the installation using the OpenShift command line"
+    echo " -as : if provided, use agent-slim (this is the default agent). Note: this option is deprecated, please stop using it as it can be removed soon"
     echo " -af : if provided, use agent-full instead of agent-slim"
     echo " -r  : if provided, will remove the sysdig agent's daemonset, configmap, clusterrolebinding,"
     echo "       serviceacccount and secret from the specified namespace"
@@ -553,6 +554,10 @@ case ${key} in
         ;;
     -af|--agent-full)
         AGENT_FULL=1
+        ;;
+    -as|--agent-slim)
+        AGENT_FULL=0
+        echo "Using agent-slim option is deprecated, please stop using it as it can be removed soon"
         ;;
     -aws|--aws)
         AWS=1
