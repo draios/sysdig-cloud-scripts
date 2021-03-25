@@ -77,7 +77,7 @@ function help {
     echo " -np : if provided, do not enable the Prometheus collector.  Defaults to enabling Prometheus collector"
     echo " -sn : if provided, name of the sysdig instance (optional)"
     echo " -op : if provided, perform the installation using the OpenShift command line"
-    echo " -as : if provided, use agent-slim (this is the default agent). Note: this option is deprecated"
+    echo " -as : if provided, use agent-slim (this is the default agent). Note: this option is not required"
     echo " -af : if provided, use agent-full instead of agent-slim"
     echo " -r  : if provided, will remove the sysdig agent's daemonset, configmap, clusterrolebinding,"
     echo "       serviceacccount and secret from the specified namespace"
@@ -560,7 +560,7 @@ case ${key} in
         ;;
     -as|--agent-slim)
         AGENT_FULL=0
-        echo "Using --agent-slim option is deprecated, please stop using it as it can be removed soon"
+        echo "Using --agent-slim option (this is the default option). Note: this option is not required"
         ;;
     -aws|--aws)
         AWS=1
