@@ -419,7 +419,7 @@ function pullImagesSysdigImages() {
   for image in "${images[@]}"; do
     if [[ -z $(docker images -q "$image") ]]; then
       logger info "Pulling $image"
-      docker pull "$image"
+      docker pull "$image" || true
     else
       echo "$image is present"
     fi
