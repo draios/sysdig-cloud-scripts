@@ -69,6 +69,14 @@ sysdig:
       requests:
         cpu: 500m
         memory: 1Gi
+    apiNginx:
+      requests:
+        cpu: 50m
+        memory: 100Mi
+    apiEmailRenderer:
+      requests:
+        cpu: 50m
+        memory: 100Mi
     cassandra:
       requests:
         cpu: 500m
@@ -85,6 +93,50 @@ sysdig:
       requests:
         cpu: 500m
         memory: 1Gi
+    anchore-catalog:
+      requests:
+        cpu: 500m
+        memory: 500Mi
+    anchore-policy-engine:
+      requests:
+        cpu: 500m
+        memory: 500Mi
+    anchore-worker:
+      requests:
+        cpu: 500m
+        memory: 500Mi
+    scanning-api:
+      requests:
+        cpu: 500m
+        memory: 500Mi
+    scanningalertmgr:
+      requests:
+        cpu: 500m
+        memory: 500Mi
+    scanning-retention-mgr:
+      requests:
+        cpu: 500m
+        memory: 500Mi
+    secure-prometheus:
+      requests:
+        cpu: 500m
+        memory: 500Mi
+    netsec-api:
+      requests:
+        cpu: 300m
+        memory: 500Mi
+    netsec-ingest:
+      requests:
+        cpu: 500m
+        memory: 500Mi
+    policy-advisor:
+      requests:
+        cpu: 500m
+        memory: 500Mi
+    scanning-reporting-worker:
+      requests:
+        cpu: 500m
+        memory: 500Mi
 EOM
 }
 
