@@ -232,24 +232,24 @@ spec:
           - name: DEBUG
             valueFrom:
               configMapKeyRef:
-                name: sysdig-image-analyzer
+                name: sysdig-benchmark-runner
                 key: debug
                 optional: true
           - name: HTTP_PROXY
             valueFrom:
               configMapKeyRef:
                 key: http_proxy
-                name: sysdig-image-analyzer
+                name: sysdig-benchmark-runner
                 optional: true
           - name: HTTPS_PROXY
             valueFrom:
               configMapKeyRef:
                 key: https_proxy
-                name: sysdig-image-analyzer
+                name: sysdig-benchmark-runner
                 optional: true
           - name: NO_PROXY
             valueFrom:
               configMapKeyRef:
                 key: no_proxy
-                name: sysdig-image-analyzer
+                name: sysdig-benchmark-runner
                 optional: true
