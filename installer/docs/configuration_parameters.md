@@ -720,7 +720,7 @@ pvStorageSize:
 
 ```yaml
 sysdig:
-  activityAuditVersion: 4.0.0.9075
+  activityAuditVersion: 4.0.0.9120
 ```
 
 ## **sysdig.profilingVersion**
@@ -732,7 +732,7 @@ sysdig:
 
 ```yaml
 sysdig:
-  profilingVersion: 4.0.0.9075
+  profilingVersion: 4.0.0.9120
 ```
 
 ## **sysdig.anchoreVersion**
@@ -1233,12 +1233,12 @@ sysdig:
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 4.0.0.9075<br>
+**Default**: 4.0.0.9120<br>
 **Example**:
 
 ```yaml
 sysdig:
-  monitorVersion: 4.0.0.9075
+  monitorVersion: 4.0.0.9120
 ```
 
 ## **sysdig.scanningVersion**
@@ -1248,12 +1248,12 @@ this is not configured it defaults to `sysdig.monitorVersion` **Do not modify
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 4.0.0.9075<br>
+**Default**: 4.0.0.9120<br>
 **Example**:
 
 ```yaml
 sysdig:
-  scanningVersion: 4.0.0.9075
+  scanningVersion: 4.0.0.9120
 ```
 
 ## **sysdig.sysdigAPIVersion**
@@ -1263,12 +1263,12 @@ this is not configured it defaults to `sysdig.monitorVersion` **Do not modify
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 4.0.0.9075<br>
+**Default**: 4.0.0.9120<br>
 **Example**:
 
 ```yaml
 sysdig:
-  sysdigAPIVersion: 4.0.0.9075
+  sysdigAPIVersion: 4.0.0.9120
 ```
 
 ## **sysdig.sysdigCollectorVersion**
@@ -1278,12 +1278,12 @@ this is not configured it defaults to `sysdig.monitorVersion` **Do not modify
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 4.0.0.9075<br>
+**Default**: 4.0.0.9120<br>
 **Example**:
 
 ```yaml
 sysdig:
-  sysdigCollectorVersion: 4.0.0.9075
+  sysdigCollectorVersion: 4.0.0.9120
 ```
 
 ## **sysdig.sysdigWorkerVersion**
@@ -1293,12 +1293,12 @@ this is not configured it defaults to `sysdig.monitorVersion` **Do not modify
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 4.0.0.9075<br>
+**Default**: 4.0.0.9120<br>
 **Example**:
 
 ```yaml
 sysdig:
-  sysdigWorkerVersion: 4.0.0.9075
+  sysdigWorkerVersion: 4.0.0.9120
 ```
 
 ## **sysdig.enableAlerter**
