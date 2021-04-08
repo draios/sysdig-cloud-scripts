@@ -224,7 +224,7 @@ spec:
             valueFrom:
               configMapKeyRef:
                 name: sysdig-benchmark-runner
-                key: skip_tls
+                key: kubernetes_cluster_name
           - name: KUBERNETES_NODE_NAME
             valueFrom:
               fieldRef:
