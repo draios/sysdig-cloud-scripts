@@ -219,12 +219,13 @@ spec:
             valueFrom:
               configMapKeyRef:
                 name: sysdig-benchmark-runner
-                key: skip_tls
+                key: ssl_verify_certificate
           - name: KUBERNETES_CLUSTER_NAME
             valueFrom:
               configMapKeyRef:
                 name: sysdig-benchmark-runner
                 key: kubernetes_cluster_name
+                optional: true
           - name: KUBERNETES_NODE_NAME
             valueFrom:
               fieldRef:
