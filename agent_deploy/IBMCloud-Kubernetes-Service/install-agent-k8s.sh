@@ -38,8 +38,8 @@ function download_yamls {
     curl -s -o /tmp/sysdig-agent-configmap.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/master/agent_deploy/kubernetes/sysdig-agent-configmap.yaml
     echo "* Downloading Sysdig daemonset v2 yaml"
     curl -s -o /tmp/sysdig-agent-daemonset-v2.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/master/agent_deploy/kubernetes/sysdig-agent-daemonset-v2.yaml
-    echo "* Downloading Sysdig agent-slim daemonset v2 yaml"
-    curl -s -o /tmp/sysdig-agent-slim-daemonset-v2.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/master/agent_deploy/kubernetes/sysdig-agent-slim-daemonset-v2.yaml
+    echo "* Downloading Sysdig kmod-thin-agent-slim daemonset"
+    curl -s -o /tmp/sysdig-kmod-thin-agent-slim-daemonset.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/master/agent_deploy/kubernetes/sysdig-kmod-thin-agent-slim-daemonset.yaml
     if [ $INSTALL_ANALYZER -eq 1 ]; then
       echo "* Downloading Sysdig Image Analyzer config map yaml"
       curl -H 'Cache-Control: no-cache' -s -o /tmp/sysdig-image-analyzer-configmap.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/master/agent_deploy/kubernetes/sysdig-image-analyzer-configmap.yaml
@@ -62,7 +62,7 @@ function help {
     echo "Usage: $(basename ${0}) -a | --access_key <value> [-t | --tags <value>] [-c | --collector <value>] \ "
     echo "                [-cp | --collector_port <value>] [-s | --secure <value>] [-cc | --check_certificate <value>] \ "
     echo "                [-ns | --namespace | --project <value>] [-ac | --additional_conf <value>] [-np | --no-prometheus] \ "
-    echo "                [-sn | --sysdig_instance_name <value>] [-op | --openshift] [-as | --agent-slim] \ "
+    echo "                [-sn | --sysdig_instance_name <value>] [-op | --openshift] [-af | --agent-full] [-as | --agent-slim] \ "
     echo "                [-ia | --imageanalyzer ] [-am | --analysismanager <value>] [-ds | --dockersocket <value>] [-cs | --crisocket <value>] [-cv | --customvolume <value>] \ "
     echo "                [-av | --agent-version <value>] [ -r | --remove ] [ -aws | --aws ] [-h | --help]"
     echo ""
@@ -77,7 +77,8 @@ function help {
     echo " -np : if provided, do not enable the Prometheus collector.  Defaults to enabling Prometheus collector"
     echo " -sn : if provided, name of the sysdig instance (optional)"
     echo " -op : if provided, perform the installation using the OpenShift command line"
-    echo " -as : if provided, use agent-slim and agent-kmodule with the daemonset"
+    echo " -as : if provided, use agent-slim (this is the default agent). Note: this option is not required"
+    echo " -af : if provided, use agent-full instead of agent-slim"
     echo " -r  : if provided, will remove the sysdig agent's daemonset, configmap, clusterrolebinding,"
     echo "       serviceacccount and secret from the specified namespace"
     echo " -ia : if provided, will install the Node Image Analyzer"
@@ -298,12 +299,14 @@ function install_k8s_agent {
       kubectl apply -f $IA_CONFIG_FILE --namespace=$NAMESPACE
     fi
 
-    AGENT_STRING="agent"
-    if [ ! -z "$AGENT_SLIM" ]; then
-        DAEMONSET_FILE="/tmp/sysdig-agent-slim-daemonset-v2.yaml"
-        AGENT_STRING="agent-slim"
-    else
+    if [ $AGENT_FULL -eq 1 ]; then
+        echo "Full agent selected "
         DAEMONSET_FILE="/tmp/sysdig-agent-daemonset-v2.yaml"
+        AGENT_STRING="agent"
+    else
+        echo "Slim agent selected "
+        DAEMONSET_FILE="/tmp/sysdig-kmod-thin-agent-slim-daemonset.yaml"
+        AGENT_STRING="agent-slim"
     fi
 
     # -i.bak argument used for compatibility between mac (-i '') and linux (simply -i)
@@ -449,6 +452,7 @@ OPENSHIFT=0
 INSTALL_ANALYZER=0
 AGENT_VERSION="latest"
 AWS=0
+AGENT_FULL=0
 
 while [[ ${#} > 0 ]]
 do
@@ -551,8 +555,12 @@ case ${key} in
     -op|--openshift)
         OPENSHIFT=1
         ;;
+    -af|--agent-full)
+        AGENT_FULL=1
+        ;;
     -as|--agent-slim)
-        AGENT_SLIM=1
+        AGENT_FULL=0
+        echo "Using --agent-slim option (this is the default option). Note: this option is not required"
         ;;
     -aws|--aws)
         AWS=1
