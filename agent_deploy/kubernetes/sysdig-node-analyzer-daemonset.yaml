@@ -45,12 +45,8 @@ spec:
       - name: root-vol
         hostPath:
           path: /
-      # Needed to run Benchmarks. This mount is read-write.
-      # Benchmarks are executed on the host, and to do sothe benchmarking binaries are copied onto the host filesystem
-      # temporarily.
       - name: tmp-vol
-        hostPath:
-          path: /tmp
+        emptyDir: {}
       tolerations:
         - effect: NoSchedule
           key: node-role.kubernetes.io/master
