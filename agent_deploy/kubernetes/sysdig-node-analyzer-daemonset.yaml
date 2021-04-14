@@ -41,7 +41,7 @@ spec:
           optional: true
       # Needed to run Benchmarks. This mount is read-only.
       # Benchmarks include numerous checks that run tests against config files in the host filesystem. There are also
-      # checks that test various host configurations such as loaded modules and ebnabled security features.
+      # checks that test various host configurations such as loaded modules and enabled security features.
       - name: root-vol
         hostPath:
           path: /
@@ -54,7 +54,7 @@ spec:
       serviceAccount: sysdig-agent
       terminationGracePeriodSeconds: 5
       # Use the Host Network Namespace.
-      # This is required by the Benchmark container to determine the hostname and host mac
+      # This is required by the Benchmark container to determine the hostname and host mac address
       hostNetwork: true
       # Use the Host PID namespace.
       # This is required for Kubernetes benchmarks, as they contain tests that check Kubernetes processes running on
