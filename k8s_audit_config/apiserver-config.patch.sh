@@ -68,10 +68,12 @@ elif [ "${VARIANT}" == "minishift-3.11" ]; then
 elif [[ "${VARIANT}" == minikube* ]]; then
 
 	sudo mkdir -p /var/lib/k8s_audit
+	cp "${SCRIPTDIR}/webhook-config.yaml" /var/lib/k8s_audit/webhook-config.yaml
 	if [[ "${VARIANT}" == *1.12* ]]; then
-		cp "${SCRIPTDIR}/webhook-config.yaml" /var/lib/k8s_audit/webhook-config.yaml
+		cp "${SCRIPTDIR}/audit-policy.yaml" /var/lib/k8s_audit/audit-policy.yaml
+	else
+		cp "${SCRIPTDIR}/audit-policy-v2.yaml" /var/lib/k8s_audit/audit-policy.yaml
 	fi
-	cp "${SCRIPTDIR}/audit-policy.yaml" /var/lib/k8s_audit/audit-policy.yaml
 
 	APISERVER_PREFIX="    -"
 	APISERVER_LINE="- kube-apiserver"
@@ -92,14 +94,8 @@ elif [[ "${VARIANT}" == minikube* ]]; then
 			echo "$APISERVER_PREFIX --audit-policy-file=/var/lib/k8s_audit/audit-policy.yaml" >>"$TMPFILE"
 			echo "$APISERVER_PREFIX --audit-log-maxbackup=1" >>"$TMPFILE"
 			echo "$APISERVER_PREFIX --audit-log-maxsize=10" >>"$TMPFILE"
-			if [[ "${VARIANT}" == *1.13* ]]; then
-				echo "$APISERVER_PREFIX --audit-dynamic-configuration" >> "$TMPFILE"
-				echo "$APISERVER_PREFIX --feature-gates=DynamicAuditing=true" >> "$TMPFILE"
-				echo "$APISERVER_PREFIX --runtime-config=auditregistration.k8s.io/v1alpha1=true" >> "$TMPFILE"
-			else
-				echo "$APISERVER_PREFIX --audit-webhook-config-file=/var/lib/k8s_audit/webhook-config.yaml" >>"$TMPFILE"
-				echo "$APISERVER_PREFIX --audit-webhook-batch-max-wait=5s" >>"$TMPFILE"
-			fi
+			echo "$APISERVER_PREFIX --audit-webhook-config-file=/var/lib/k8s_audit/webhook-config.yaml" >>"$TMPFILE"
+			echo "$APISERVER_PREFIX --audit-webhook-batch-max-wait=5s" >>"$TMPFILE"
 			;;
 		*"volumeMounts:"*)
 			echo "    - mountPath: /var/lib/k8s_audit/" >>"$TMPFILE"
@@ -119,7 +115,7 @@ elif [[ "${VARIANT}" == minikube* ]]; then
 elif [[ "${VARIANT}" == "rke-1.13" ]]; then
 	echo "Copying audit-policy.yaml to /var/lib/k8s_audit/audit-policy.yaml"
 	sudo mkdir -p /var/lib/k8s_audit
-	cp "$SCRIPTDIR"/audit-policy.yaml /var/lib/k8s_audit/audit-policy.yaml
+	cp "$SCRIPTDIR"/audit-policy-v2.yaml /var/lib/k8s_audit/audit-policy.yaml
 	cp "$SCRIPTDIR"/webhook-config.yaml /var/lib/k8s_audit/webhook-config.yaml
 else
 	fatal "Unknown variant $VARIANT"
