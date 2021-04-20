@@ -149,7 +149,7 @@ $(cat webhook-config.yaml | sed -e 's/^/          /')
         path: /var/lib/k8s_audit/audit-policy.yaml
         roles: [Master]
         content: |
-$(cat audit-policy.yaml | sed -e 's/^/          /')
+$(cat audit-policy-v2.yaml | sed -e 's/^/          /')
     kubeAPIServer:
         auditLogPath: /var/lib/k8s_audit/audit.log
         auditLogMaxBackups: 1
