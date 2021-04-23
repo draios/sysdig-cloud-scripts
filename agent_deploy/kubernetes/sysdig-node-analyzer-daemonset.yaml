@@ -17,6 +17,10 @@ spec:
         app: sysdig-node-analyzer
     spec:
       volumes:
+      - name: sysdig-agent-config
+        configMap:
+          name: sysdig-agent
+          optional: true
       # Needed for cri-o image inspection.
       # cri-o and especially OCP 4.x by default use containers/storage to handle images, and this makes sure that the
       # analyzer has access to the configuration. This file is mounted read-only.
@@ -195,6 +199,8 @@ spec:
             cpu: 250m
             memory: 128Mi
         volumeMounts:
+          - mountPath: /opt/draios/etc/kubernetes/config
+            name: sysdig-agent-config
           - mountPath: /host
             name: root-vol
             readOnly: true
