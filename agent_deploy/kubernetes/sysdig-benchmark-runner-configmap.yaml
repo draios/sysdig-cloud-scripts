@@ -5,9 +5,6 @@ metadata:
 data:
   debug: "false"
 
-  # Optional:
-  # kubernetes_cluster_name: <Name of your cluster>
-
   # Set and customize the following to enable proxy support
   # http_proxy: "http://proxy_server:8080"
   # https_proxy: "https://proxy_server:8080"
