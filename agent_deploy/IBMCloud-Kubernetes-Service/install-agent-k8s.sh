@@ -687,6 +687,14 @@ if [ -f /etc/debian_version ]; then
             fi
             ;;
 
+        "elementary")
+            if [ $VERSION -ge 5 ]; then
+                install_curl_deb
+            else
+                unsupported
+            fi
+            ;;
+
         "Debian")
             if [ $VERSION -ge 6 ]; then
                 install_curl_deb
