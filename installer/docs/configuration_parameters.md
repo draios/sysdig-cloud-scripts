@@ -744,7 +744,7 @@ sysdig:
 
 ```yaml
 sysdig:
-  anchoreVersion: 0.8.1.18
+  anchoreVersion: 0.8.1.21
 ```
 
 ## **sysdig.accessKey**
@@ -5515,6 +5515,96 @@ sysdig:
     scanning:
       reporting:
         storagePostgresRetentionDays: 1
+```
+
+## **sysdig.secure.scanning.reporting.storageS3Bucket**
+**Required**: `false`<br>
+**Description**: The bucket name where reports will be saved (required when using `s3` driver)<br>
+**Options**: <br>
+**Default**: <br>
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanning:
+      reporting:
+        storageS3Bucket: secure-scanning-reporting
+```
+
+## **sysdig.secure.scanning.reporting.storageS3Prefix**
+**Required**: `false`<br>
+**Description**: The object name prefix (directory) used when saving reports in a S3 bucket<br>
+**Options**: <br>
+**Default**: <br>
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanning:
+      reporting:
+        storageS3Prefix: reports
+```
+
+## **sysdig.secure.scanning.reporting.storageS3Endpoint**
+**Required**: `false`<br>
+**Description**: The service endpoint of a S3-compatible storage (required when using `s3` driver in a non-AWS deployment)<br>
+**Options**: <br>
+**Default**: <br>
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanning:
+      reporting:
+        storageS3Endpoint: s3.example.com
+```
+
+## **sysdig.secure.scanning.reporting.storageS3Region**
+**Required**: `false`<br>
+**Description**: The AWS region where the S3 bucket is created (required when using `s3` driver in a AWS deployment)<br>
+**Options**: <br>
+**Default**: <br>
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanning:
+      reporting:
+        storageS3Region: us-east-1
+```
+
+## **sysdig.secure.scanning.reporting.storageS3AccessKeyID**
+**Required**: `false`<br>
+**Description**: The Access Key ID used to authenticate with a S3-compatible storage (required when using `s3` driver in a non-AWS deployment)<br>
+**Options**: <br>
+**Default**: <br>
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanning:
+      reporting:
+        storageS3AccessKeyID: AKIAIOSFODNN7EXAMPLE
+```
+
+## **sysdig.secure.scanning.reporting.storageS3SecretAccessKey**
+**Required**: `false`<br>
+**Description**: The Secret Access Key used to authenticate with a S3-compatible storage (required when using `s3` driver in a non-AWS deployment)<br>
+**Options**: <br>
+**Default**: <br>
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanning:
+      reporting:
+        storageS3SecretAccessKey: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
 ```
 
 ## **sysdig.secure.scanning.reporting.workerSleepTime**
