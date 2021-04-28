@@ -315,7 +315,7 @@ function install_k8s_agent {
     # -i.bak argument used for compatibility between mac (-i '') and linux (simply -i)
     sed -i.bak -e "s|# serviceAccount: sysdig-agent|serviceAccount: sysdig-agent|" $DAEMONSET_FILE
 
-    # For AWS do not use IBM Cloud Container Registry
+    # For IBM use IBM Cloud Container Registry
     if [ $AWS -eq 0 ]; then
         for agent_name in ${AGENT_NAMES}; do
             # Use IBM Cloud Container Registry instead of docker.io or quay.io
@@ -358,8 +358,8 @@ function install_k8s_agent {
         done
     else
         for agent_name in ${AGENT_NAMES}; do
-            # Use IBM Cloud Container Registry instead of docker.io or quay.io
-            sed -i.bak -e "s|\( *image: \)\(quay.io/\)*sysdig/${agent_name}\(.*\)|\1sysdig/${agent_name}:${AGENT_VERSION}|g" $DAEMONSET_FILE
+            # Don't use IBM Cloud Container Registry when not running in IBM. Only append the version
+            sed -i.bak -e "s|\( *image: \)\(quay.io/\)*sysdig/${agent_name}\(.*\)|\1\2sysdig/${agent_name}:${AGENT_VERSION}|g" $DAEMONSET_FILE
         done
     fi
 
