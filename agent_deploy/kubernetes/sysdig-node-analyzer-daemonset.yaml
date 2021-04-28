@@ -2,21 +2,25 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: sysdig-image-analyzer
+  name: sysdig-node-analyzer
   labels:
-    app: sysdig-image-analyzer
+    app: sysdig-node-analyzer
 spec:
   selector:
     matchLabels:
-      app: sysdig-image-analyzer
+      app: sysdig-node-analyzer
   updateStrategy:
     type: RollingUpdate
   template:
     metadata:
       labels:
-        app: sysdig-image-analyzer
+        app: sysdig-node-analyzer
     spec:
       volumes:
+      - name: sysdig-agent-config
+        configMap:
+          name: sysdig-agent
+          optional: true
       # Needed for cri-o image inspection.
       # cri-o and especially OCP 4.x by default use containers/storage to handle images, and this makes sure that the
       # analyzer has access to the configuration. This file is mounted read-only.
@@ -30,10 +34,6 @@ spec:
       - name: var-lib-containers-vol
         hostPath:
           path: /var/lib/containers
-      # Needed for some IBM OpenShift clusters which symlink /var/run/containers/storage to contents of /var/data by default
-      - name: vardata-vol
-        hostPath:
-          path: /var/data
       # Needed for socket access
       - name: varrun-vol
         hostPath:
@@ -43,12 +43,27 @@ spec:
         configMap:
           name: sysdig-image-analyzer
           optional: true
+      # Needed to run Benchmarks. This mount is read-only.
+      # Benchmarks include numerous checks that run tests against config files in the host filesystem. There are also
+      # checks that test various host configurations such as loaded modules and enabled security features.
+      - name: root-vol
+        hostPath:
+          path: /
+      - name: tmp-vol
+        emptyDir: {}
       tolerations:
         - effect: NoSchedule
           key: node-role.kubernetes.io/master
       # The following line is necessary for RBAC
       serviceAccount: sysdig-agent
       terminationGracePeriodSeconds: 5
+      # Use the Host Network Namespace.
+      # This is required by the Benchmark container to determine the hostname and host mac address
+      hostNetwork: true
+      # Use the Host PID namespace.
+      # This is required for Kubernetes benchmarks, as they contain tests that check Kubernetes processes running on
+      # the host
+      hostPID: true
       containers:
       - name: sysdig-image-analyzer
         image: quay.io/sysdig/node-image-analyzer
@@ -72,8 +87,6 @@ spec:
           readOnly: true
         - mountPath: /var/lib/containers
           name: var-lib-containers-vol
-        - mountPath: /var/data
-          name: vardata-vol
         # Add custom volume mount here
         env:
         - name: ACCESS_KEY
@@ -171,3 +184,69 @@ spec:
               key: no_proxy
               name: sysdig-image-analyzer
               optional: true
+      - name: sysdig-benchmark-runner
+        image: quay.io/sysdig/compliance-benchmark-runner
+        imagePullPolicy: Always
+        securityContext:
+          # The privileged flag is necessary for OCP 4.x and other Kubernetes setups that deny host filesystem access to
+          # running containers by default regardless of volume mounts. In those cases, the benchmark process would fail.
+          privileged: true
+        resources:
+          limits:
+            cpu: 500m
+            memory: 256Mi
+          requests:
+            cpu: 250m
+            memory: 128Mi
+        volumeMounts:
+          - mountPath: /opt/draios/etc/kubernetes/config
+            name: sysdig-agent-config
+          - mountPath: /host
+            name: root-vol
+            readOnly: true
+          - mountPath: /host/tmp
+            name: tmp-vol
+        env:
+          - name: ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: sysdig-agent
+                key: access-key
+          - name: BACKEND_ENDPOINT
+            valueFrom:
+              configMapKeyRef:
+                name: sysdig-benchmark-runner
+                key: collector_endpoint
+          - name: BACKEND_VERIFY_TLS
+            valueFrom:
+              configMapKeyRef:
+                name: sysdig-benchmark-runner
+                key: ssl_verify_certificate
+          - name: KUBERNETES_NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          - name: DEBUG
+            valueFrom:
+              configMapKeyRef:
+                name: sysdig-benchmark-runner
+                key: debug
+                optional: true
+          - name: HTTP_PROXY
+            valueFrom:
+              configMapKeyRef:
+                key: http_proxy
+                name: sysdig-benchmark-runner
+                optional: true
+          - name: HTTPS_PROXY
+            valueFrom:
+              configMapKeyRef:
+                key: https_proxy
+                name: sysdig-benchmark-runner
+                optional: true
+          - name: NO_PROXY
+            valueFrom:
+              configMapKeyRef:
+                key: no_proxy
+                name: sysdig-benchmark-runner
+                optional: true
