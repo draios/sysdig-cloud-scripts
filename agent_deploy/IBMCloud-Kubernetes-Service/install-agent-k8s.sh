@@ -147,7 +147,8 @@ function install_k8s_agent {
         echo "* Creating sysdig-agent clusterrole and binding"
         kubectl apply -f /tmp/sysdig-agent-clusterrole.yaml
         fail=0
-        outbinding=$(kubectl create clusterrolebinding sysdig-agent --clusterrole=sysdig-agent --serviceaccount=$NAMESPACE:sysdig-agent --namespace=$NAMESPACE 2>&1) || { fail=1 && echo "kubectl create clusterrolebinding failed!"; }
+        outbinding=$(kubectl create clusterrolebinding sysdig-agent --clusterrole=sysdig-agent --serviceaccount=$NAMESPACE:sysdig-agent --namespace=$NAMESPACE 2>&1) || \
+          { fail=1 && echo "kubectl create clusterrolebinding failed!"; }
     else
         echo "* Creating sysdig-agent access policies"
         fail=0
@@ -303,19 +304,23 @@ function install_k8s_agent {
         echo "Full agent selected "
         DAEMONSET_FILE="/tmp/sysdig-agent-daemonset-v2.yaml"
         AGENT_STRING="agent"
+        AGENT_NAMES="agent"
     else
         echo "Slim agent selected "
         DAEMONSET_FILE="/tmp/sysdig-kmod-thin-agent-slim-daemonset.yaml"
         AGENT_STRING="agent-slim"
+        AGENT_NAMES="agent-slim agent-kmodule"
     fi
 
     # -i.bak argument used for compatibility between mac (-i '') and linux (simply -i)
     sed -i.bak -e "s|# serviceAccount: sysdig-agent|serviceAccount: sysdig-agent|" $DAEMONSET_FILE
 
-    # For AWS do not use IBM Cloud Container Registry
+    # For IBM use IBM Cloud Container Registry
     if [ $AWS -eq 0 ]; then
-        # Use IBM Cloud Container Registry instead of docker.io
-        sed -i.bak -e "s|\( *image: \)sysdig/${AGENT_STRING}|\1icr.io/ext/sysdig/${AGENT_STRING}:${AGENT_VERSION}|g" $DAEMONSET_FILE
+        for agent_name in ${AGENT_NAMES}; do
+            # Use IBM Cloud Container Registry instead of docker.io or quay.io
+            sed -i.bak -e "s|\( *image: \).*sysdig/${agent_name}\(.*\)|\1icr.io/ext/sysdig/${agent_name}:${AGENT_VERSION}|g" $DAEMONSET_FILE
+        done
 
         ICR_SECRET_EXIST=$(kubectl -n default get secret -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' | grep -qE "default-icr-io|all-icr-io" || echo 1)
         if [ "$ICR_SECRET_EXIST" = 1 ]; then
@@ -345,13 +350,19 @@ function install_k8s_agent {
             SECRET_NAME=$(echo ${default_secret} | sed "s/default-/$NAMESPACE-/g")
 
             echo "Processing ${default_secret} as ${SECRET_NAME}"
-            kubectl get secret ${default_secret} -n default -o json | jq "del(.metadata.namespace,.metadata.resourceVersion,.metadata.uid) | .metadata.creationTimestamp=null | .metadata.name|=\"${SECRET_NAME}\"" | kubectl apply -n ${NAMESPACE} -f -
+            kubectl get secret ${default_secret} -n default -o json | \
+              jq "del(.metadata.namespace,.metadata.resourceVersion,.metadata.uid) | .metadata.creationTimestamp=null | .metadata.name|=\"${SECRET_NAME}\"" | \
+              kubectl apply -n ${NAMESPACE} -f -
 
             echo "${INDENT}- name: $SECRET_NAME" >> $DAEMONSET_FILE
         done
     else
-        sed -i.bak -e "s|\( *image: \)sysdig/${AGENT_STRING}|\1sysdig/${AGENT_STRING}:${AGENT_VERSION}|g" $DAEMONSET_FILE
+        for agent_name in ${AGENT_NAMES}; do
+            # Don't use IBM Cloud Container Registry when not running in IBM. Force quay.io and append the version
+            sed -i.bak -e "s|\( *image: \).*sysdig/${agent_name}\(.*\)|\1quay,io/sysdig/${agent_name}:${AGENT_VERSION}|g" $DAEMONSET_FILE
+        done
     fi
+
     # Add label for Sysdig instance
     if [ ! -z "$SYSDIG_INSTANCE_NAME" ]; then
        sed -i.bak -e 's/^\( *\)labels:$/&\
