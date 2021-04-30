@@ -6,8 +6,7 @@ data:
   debug: "false"
 
   # Set the following to choose your scanning schedule
-  # XXX set a sensible default (see discussion)
-  # schedule: "@daily"
+  schedule: "@dailydefault"
 
   # Set and customize the following to enable proxy support
   # http_proxy: "http://proxy_server:8080"
