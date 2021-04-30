@@ -34,6 +34,10 @@ spec:
       - name: var-lib-containers-vol
         hostPath:
           path: /var/lib/containers
+      # Needed for some IBM OpenShift clusters which symlink /var/run/containers/storage to contents of /var/data by default
+      - name: vardata-vol
+        hostPath:
+          path: /var/data
       # Needed for socket access
       - name: varrun-vol
         hostPath:
@@ -87,6 +91,8 @@ spec:
           readOnly: true
         - mountPath: /var/lib/containers
           name: var-lib-containers-vol
+        - mountPath: /var/data
+          name: vardata-vol
         # Add custom volume mount here
         env:
         - name: ACCESS_KEY
