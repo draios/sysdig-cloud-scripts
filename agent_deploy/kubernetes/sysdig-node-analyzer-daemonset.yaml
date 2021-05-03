@@ -34,6 +34,10 @@ spec:
       - name: var-lib-containers-vol
         hostPath:
           path: /var/lib/containers
+      # Needed for some IBM OpenShift clusters which symlink /var/run/containers/storage to contents of /var/data by default
+      - name: vardata-vol
+        hostPath:
+          path: /var/data
       # Needed for socket access
       - name: varrun-vol
         hostPath:
@@ -77,7 +81,7 @@ spec:
             cpu: 500m
             memory: 1536Mi
           requests:
-            cpu: 250m
+            cpu: 150m
             memory: 512Mi
         volumeMounts:
         - mountPath: /var/run
@@ -87,6 +91,8 @@ spec:
           readOnly: true
         - mountPath: /var/lib/containers
           name: var-lib-containers-vol
+        - mountPath: /var/data
+          name: vardata-vol
         # Add custom volume mount here
         env:
         - name: ACCESS_KEY
@@ -184,6 +190,102 @@ spec:
               key: no_proxy
               name: sysdig-image-analyzer
               optional: true
+      - name: sysdig-host-analyzer
+        image: quay.io/sysdig/host-analyzer:latest
+        securityContext:
+          # The privileged flag is necessary for OCP 4.x and other Kubernetes setups that deny host filesystem access to
+          # running containers by default regardless of volume mounts. In those cases, access to any host related components
+          # would fail
+          privileged: true
+        imagePullPolicy: Always
+        resources:
+          limits:
+            cpu: 500m
+            memory: 1536Mi
+          requests:
+            cpu: 150m
+            memory: 512Mi
+        volumeMounts:
+        - mountPath: /host
+          name: root-vol
+          readOnly: true
+        env:
+        - name: ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: sysdig-agent
+              key: access-key
+        - name: AM_COLLECTOR_ENDPOINT
+          valueFrom:
+            configMapKeyRef:
+              name: sysdig-host-analyzer
+              key: collector_endpoint
+        - name: AM_COLLECTOR_TIMEOUT
+          valueFrom:
+            configMapKeyRef:
+              name: sysdig-host-analyzer
+              key: collector_timeout
+              optional: true
+        - name: SCHEDULE
+          valueFrom:
+            configMapKeyRef:
+              name: sysdig-host-analyzer
+              key: schedule
+              optional: true
+        - name: ANALYZE_AT_STARTUP
+          valueFrom:
+            configMapKeyRef:
+              name: sysdig-host-analyzer
+              key: analyze_at_startup
+              optional: true
+        - name: HOST_BASE
+          valueFrom:
+            configMapKeyRef:
+              name: sysdig-host-analyzer
+              key: host_base
+              optional: true
+        - name: DIRS_TO_SCAN
+          valueFrom:
+            configMapKeyRef:
+              name: sysdig-host-analyzer
+              key: dirs_to_scan
+              optional: true
+        - name: MAX_SEND_ATTEMPTS
+          valueFrom:
+            configMapKeyRef:
+              name: sysdig-host-analyzer
+              key: max_send_attempts
+              optional: true
+        - name: VERIFY_CERTIFICATE
+          valueFrom:
+            configMapKeyRef:
+              name: sysdig-host-analyzer
+              key: ssl_verify_certificate
+              optional: true
+        - name: DEBUG
+          valueFrom:
+            configMapKeyRef:
+              name: sysdig-host-analyzer
+              key: debug
+              optional: true
+        - name: HTTP_PROXY
+          valueFrom:
+            configMapKeyRef:
+              key: http_proxy
+              name: sysdig-host-analyzer
+              optional: true
+        - name: HTTPS_PROXY
+          valueFrom:
+            configMapKeyRef:
+              key: https_proxy
+              name: sysdig-host-analyzer
+              optional: true
+        - name: NO_PROXY
+          valueFrom:
+            configMapKeyRef:
+              key: no_proxy
+              name: sysdig-host-analyzer
+              optional: true
       - name: sysdig-benchmark-runner
         image: quay.io/sysdig/compliance-benchmark-runner
         imagePullPolicy: Always
@@ -196,7 +298,7 @@ spec:
             cpu: 500m
             memory: 256Mi
           requests:
-            cpu: 250m
+            cpu: 150m
             memory: 128Mi
         volumeMounts:
           - mountPath: /opt/draios/etc/kubernetes/config
