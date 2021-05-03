@@ -324,6 +324,7 @@ spec:
               configMapKeyRef:
                 name: sysdig-benchmark-runner
                 key: ssl_verify_certificate
+                optional: true
           - name: KUBERNETES_NODE_NAME
             valueFrom:
               fieldRef:
