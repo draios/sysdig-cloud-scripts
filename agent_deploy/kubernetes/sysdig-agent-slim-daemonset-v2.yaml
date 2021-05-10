@@ -61,6 +61,10 @@ spec:
       # uncommenting, as eBPF is recommended for only a few configurations.
       #- name: bpf-probes
       #  emptyDir: {}
+      #- name: osrel
+      #  hostPath:
+      #    path: /etc/os-release
+      #    type: FileOrCreate
       hostNetwork: true
       hostPID: true
       tolerations:
@@ -107,6 +111,9 @@ spec:
         # uncommenting, as eBPF is recommended for only a few configurations.
         #- mountPath: /root/.sysdig
         #  name: bpf-probes
+        #- mountPath: /host/etc/os-release
+        #  name: osrel
+        #  readOnly: true
       containers:
       - name: sysdig-agent
         # WARNING: the agent-slim release is currently dependent on the above
