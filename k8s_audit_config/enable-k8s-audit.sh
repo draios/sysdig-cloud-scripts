@@ -149,7 +149,7 @@ $(cat webhook-config.yaml | sed -e 's/^/          /')
         path: /var/lib/k8s_audit/audit-policy.yaml
         roles: [Master]
         content: |
-$(cat audit-policy.yaml | sed -e 's/^/          /')
+$(cat audit-policy-v2.yaml | sed -e 's/^/          /')
     kubeAPIServer:
         auditLogPath: /var/lib/k8s_audit/audit.log
         auditLogMaxBackups: 1
@@ -184,7 +184,7 @@ prepare_audit_sink_config
 echo "***Copying apiserver config patch script/supporting files to apiserver..."
 $SSH_CMD "rm -rf /tmp/enable_k8s_audit && mkdir -p /tmp/enable_k8s_audit"
 
-for f in apiserver-config.patch.sh audit-policy.yaml webhook-config.yaml; do
+for f in apiserver-config.patch.sh audit-policy.yaml audit-policy-v2.yaml webhook-config.yaml; do
     echo "   $f"
     copy_using_cmd "${COPY_CMD}" $f /tmp/enable_k8s_audit/$f
 done
@@ -242,16 +242,6 @@ elif [ "$VARIANT" == "openshift-3.11" ]; then
     echo "**Restarting API Server.."
     $SSH_CMD sudo /usr/local/bin/master-restart api
     $SSH_CMD sudo /usr/local/bin/master-restart controllers
-elif [[ "${VARIANT}" == "minikube-1.13" ]]; then
-    echo "Waiting for api server to restart..."
-    RC=1
-    while [ $RC -ne "0" ]; do
-        sleep 5
-        kubectl get nodes
-        RC=$?
-    done
-    echo "Creating dynamic audit sink..."
-    kubectl apply -f audit-sink.yaml
 elif [[ "${VARIANT}" == "rke-1.13" ]]; then
     echo "Modifying ${RKE_CLUSTER_YAML} to add audit policy/webhook configuration..."
     yq w "${RKE_CLUSTER_YAML}" services.kube-api.extra_args.audit-policy-file /var/lib/k8s_audit/audit-policy.yaml \
