@@ -57,6 +57,14 @@ spec:
       - name: sysdig-agent-secrets
         secret:
           secretName: sysdig-agent
+      # This section is for eBPF support. Please refer to Sysdig Support before
+      # uncommenting, as eBPF is recommended for only a few configurations.
+      #- name: bpf-probes
+      #  emptyDir: {}
+      #- name: osrel
+      #  hostPath:
+      #    path: /etc/os-release
+      #    type: FileOrCreate
       hostNetwork: true
       hostPID: true
       tolerations:
@@ -77,6 +85,11 @@ spec:
             memory: 384Mi
           limits:
             memory: 512Mi
+        # This section is for eBPF support. Please refer to Sysdig Support before
+        # uncommenting, as eBPF is recommended for only a few configurations.
+        #env:
+        #  - name: SYSDIG_BPF_PROBE
+        #    value: ""
         volumeMounts:
         - mountPath: /etc/modprobe.d
           name: modprobe-d
@@ -94,6 +107,13 @@ spec:
         - mountPath: /host/usr
           name: usr-vol
           readOnly: true
+        # This section is for eBPF support. Please refer to Sysdig Support before
+        # uncommenting, as eBPF is recommended for only a few configurations.
+        #- mountPath: /root/.sysdig
+        #  name: bpf-probes
+        #- mountPath: /host/etc/os-release
+        #  name: osrel
+        #  readOnly: true
       containers:
       - name: sysdig-agent
         # WARNING: the agent-slim release is currently dependent on the above
@@ -115,6 +135,11 @@ spec:
           exec:
             command: [ "test", "-e", "/opt/draios/logs/running" ]
           initialDelaySeconds: 10
+        # This section is for eBPF support. Please refer to Sysdig Support before
+        # uncommenting, as eBPF is recommended for only a few configurations.
+        #env:
+        #  - name: SYSDIG_BPF_PROBE
+        #    value: ""
         volumeMounts:
         - mountPath: /host/dev
           name: dev-vol
@@ -132,3 +157,7 @@ spec:
           name: sysdig-agent-config
         - mountPath: /opt/draios/etc/kubernetes/secrets
           name: sysdig-agent-secrets
+        # This section is for eBPF support. Please refer to Sysdig Support before
+        # uncommenting, as eBPF is recommended for only a few configurations.
+        #- mountPath: /root/.sysdig
+        #  name: bpf-probes
