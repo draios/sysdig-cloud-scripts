@@ -711,30 +711,6 @@ pvStorageSize:
     nats: 10Gi
 ```
 
-## **sysdig.activityAuditVersion**
-**Required**: `false`<br>
-**Description**: Docker image tag of Activity Audit services.<br>
-**Options**:<br>
-**Default**: [`sysdig.monitorVersion`](#sysdigmonitorversion)<br>
-**Example**:
-
-```yaml
-sysdig:
-  activityAuditVersion: 4.0.0.9120
-```
-
-## **sysdig.profilingVersion**
-**Required**: `false`<br>
-**Description**: Docker image tag of Profiling services.<br>
-**Options**:<br>
-**Default**: [`sysdig.monitorVersion`](#sysdigmonitorversion)<br>
-**Example**:
-
-```yaml
-sysdig:
-  profilingVersion: 4.0.0.9120
-```
-
 ## **sysdig.anchoreVersion**
 **Required**: `false`<br>
 **Description**: The docker image tag of the Sysdig Anchore Core.<br>
@@ -1233,27 +1209,27 @@ sysdig:
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 4.0.0.9120<br>
+**Default**: 3.5.1.7018<br>
 **Example**:
 
 ```yaml
 sysdig:
-  monitorVersion: 4.0.0.9120
+  monitorVersion: 3.5.1.7018
 ```
 
-## **sysdig.scanningVersion**
+## **sysdig.secureVersion**
 **Required**: `false`<br>
-**Description**: The docker image tag of the Sysdig Scanning components, if
-this is not configured it defaults to `sysdig.monitorVersion` **Do not modify
+**Description**: The docker image tag of the Sysdig Secure, if this is not 
+configured it defaults to `sysdig.monitorVersion` **Do not modify
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 4.0.0.9120<br>
+**Default**: 3.5.1.7018<br>
 **Example**:
 
 ```yaml
 sysdig:
-  scanningVersion: 4.0.0.9120
+  secureVersion: 3.5.1.7018
 ```
 
 ## **sysdig.sysdigAPIVersion**
@@ -1263,12 +1239,12 @@ this is not configured it defaults to `sysdig.monitorVersion` **Do not modify
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 4.0.0.9120<br>
+**Default**: 3.5.1.7018<br>
 **Example**:
 
 ```yaml
 sysdig:
-  sysdigAPIVersion: 4.0.0.9120
+  sysdigAPIVersion: 3.5.1.7018
 ```
 
 ## **sysdig.sysdigCollectorVersion**
@@ -1278,12 +1254,12 @@ this is not configured it defaults to `sysdig.monitorVersion` **Do not modify
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 4.0.0.9120<br>
+**Default**: 3.5.1.7018<br>
 **Example**:
 
 ```yaml
 sysdig:
-  sysdigCollectorVersion: 4.0.0.9120
+  sysdigCollectorVersion: 3.5.1.7018
 ```
 
 ## **sysdig.sysdigWorkerVersion**
@@ -1293,12 +1269,12 @@ this is not configured it defaults to `sysdig.monitorVersion` **Do not modify
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 4.0.0.9120<br>
+**Default**: 3.5.1.7018<br>
 **Example**:
 
 ```yaml
 sysdig:
-  sysdigWorkerVersion: 4.0.0.9120
+  sysdigWorkerVersion: 3.5.1.7018
 ```
 
 ## **sysdig.enableAlerter**
@@ -1880,7 +1856,7 @@ sysdig:
 
 ## **sysdig.postgresDatabases.policies**
 **Required**: `false`<br>
-**Description**: A map containing database connection details for external postgresql instance used as `policies` database. To use in conjunction with `sysdig.postgresql.external`. Only relevant if `sysdig.postgresDatabases.useNonAdminUsers` is configured.<br>
+**Description**: A map containing database connection details for external postgresql instance used as `policies` database. To use in conjunction with `sysdig.postgresql.external`.<br>
 **Example**:
 
 ```yaml
@@ -1888,7 +1864,6 @@ sysdig:
   postgresql:
     external: true
   postgresDatabases:
-    useNonAdminUsers: true
     policies:
       host: my-policies-db-external.com
       port: 5432
@@ -2017,7 +1992,7 @@ sysdig:
 
 ## **sysdig.postgresDatabases.beacon**
 **Required**: `false`<br>
-**Description**: A map containing database connection details for external postgresql instance used as `beacon` database. To use in conjunction with `sysdig.postgresql.external`. Only relevant if `sysdig.postgresql.primary` is configured.<br>
+**Description**: A map containing database connection details for external postgresql instance used as `beacon` database. To use in conjunction with `sysdig.postgresql.external`. Only relevant if `sysdig.postgresql.primary` is configured and Beacon for IBM PlatformMetrics is enabled.<br>
 **Example**:
 
 ```yaml
@@ -2032,6 +2007,29 @@ sysdig:
       db: beacon_db
       username: beacon_user
       password: my_beacon_user_password
+      sslmode: disable
+      admindb: root_db
+      adminusername: root_user
+      adminpassword: my_root_user_password
+```
+
+## **sysdig.postgresDatabases.promBeacon**
+**Required**: `false`<br>
+**Description**: A map containing database connection details for external postgresql instance used as `promBeacon` database. To use in conjunction with `sysdig.postgresql.external`. Only relevant if `sysdig.postgresql.primary` is configured and Generalized Beacon is enabled.<br>
+**Example**:
+
+```yaml
+sysdig:
+  postgresql:
+    primary: true
+    external: true
+  postgresDatabases:
+    promBeacon:
+      host: my-prom-beacon-db-external.com
+      port: 5432
+      db: prom_beacon_db
+      username: prom_beacon_user
+      password: my_prom_beacon_user_password
       sslmode: disable
       admindb: root_db
       adminusername: root_user
