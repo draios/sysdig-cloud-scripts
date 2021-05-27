@@ -21,5 +21,4 @@ data:
   
   # uncomment the following line to use a self-signed cert for backend communication
   # ssl_verify_certificate: "false"
-  host_base: "/host"
   dirs_to_scan: "/etc,/var/lib/dpkg,/usr/local,/usr/lib/sysimage/rpm,/var/lib/rpm,/lib/apk/db"
