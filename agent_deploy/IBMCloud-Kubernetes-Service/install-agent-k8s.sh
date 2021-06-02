@@ -359,7 +359,7 @@ function install_k8s_agent {
     else
         for agent_name in ${AGENT_NAMES}; do
             # Don't use IBM Cloud Container Registry when not running in IBM. Force quay.io and append the version
-            sed -i.bak -e "s|\( *image: \).*sysdig/${agent_name}\(.*\)|\1quay,io/sysdig/${agent_name}:${AGENT_VERSION}|g" $DAEMONSET_FILE
+            sed -i.bak -e "s|\( *image: \).*sysdig/${agent_name}\(.*\)|\1quay.io/sysdig/${agent_name}:${AGENT_VERSION}|g" $DAEMONSET_FILE
         done
     fi
 
