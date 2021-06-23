@@ -182,7 +182,7 @@ function install_k8s_agent {
 
     CONFIG_FILE=/tmp/sysdig-agent-configmap.yaml
 
-    echo "* Retreiving the IKS Cluster ID and Cluster Name"
+    echo "* Retrieving the Cluster ID and Cluster Name"
     IKS_CLUSTER_ID=$(kubectl get cm -n kube-system cluster-info -o yaml | grep ' "cluster_id": ' | cut -d'"' -f4)
     if [ $OPENSHIFT -eq 0 ]; then
         CLUSTER_NAME=$(kubectl config current-context)
