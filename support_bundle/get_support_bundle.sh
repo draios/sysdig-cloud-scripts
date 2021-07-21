@@ -41,7 +41,7 @@ for object in svc deployment sts pvc daemonset ingress replicaset; do
     done
 done
 
-kubectl ${KUBE_OPTS} get configmap sysdigcloud-config -o yaml | grep -v password > ${LOG_DIR}/config.yaml
+kubectl ${KUBE_OPTS} get configmap sysdigcloud-config -o yaml | grep -v password > ${LOG_DIR}/config.yaml || true
 
 BUNDLE_NAME=$(date +%s)_sysdig_cloud_support_bundle.tgz
 tar czf ${BUNDLE_NAME} ${LOG_DIR}
