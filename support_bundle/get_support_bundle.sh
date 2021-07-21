@@ -25,12 +25,14 @@ command='tar czf - /logs/ /opt/draios/ /var/log/sysdigcloud/ /var/log/cassandra/
 for pod in ${SYSDIGCLOUD_PODS}; do
     echo "Getting support logs for ${pod}"
     mkdir -p ${LOG_DIR}/${pod}
-    kubectl ${KUBE_OPTS} get pod ${pod} -o json > ${LOG_DIR}/${pod}/kubectl-describe.json
-    containers=$(kubectl ${KUBE_OPTS} get pod ${pod} -o json | jq -r '.spec.containers[].name')
-    for container in ${containers}; do
-        kubectl ${KUBE_OPTS} logs ${pod} -c ${container} > ${LOG_DIR}/${pod}/${container}-kubectl-logs.txt
-        kubectl ${KUBE_OPTS} exec ${pod} -c ${container} -- bash -c "${command}" > ${LOG_DIR}/${pod}/${container}-support-files.tgz || true
-    done
+    kubectl ${KUBE_OPTS} get pod ${pod} --ignore-not-found -o json > ${LOG_DIR}/${pod}/kubectl-describe.json
+    containers=$(kubectl ${KUBE_OPTS} get pod ${pod} --ignore-not-found -o json | jq -r '.spec.containers[].name')
+    if ! [[ -z {$containers} ]]; then
+        for container in ${containers}; do
+            kubectl ${KUBE_OPTS} logs ${pod} -c ${container} > ${LOG_DIR}/${pod}/${container}-kubectl-logs.txt
+            kubectl ${KUBE_OPTS} exec ${pod} -c ${container} -- bash -c "${command}" > ${LOG_DIR}/${pod}/${container}-support-files.tgz || true
+        done
+    fi
 done
 
 for object in svc deployment sts pvc daemonset ingress replicaset; do
