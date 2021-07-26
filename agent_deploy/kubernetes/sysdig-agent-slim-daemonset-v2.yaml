@@ -66,6 +66,7 @@ spec:
       #    path: /etc/os-release
       #    type: FileOrCreate
       hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
       hostPID: true
       tolerations:
         - effect: NoSchedule

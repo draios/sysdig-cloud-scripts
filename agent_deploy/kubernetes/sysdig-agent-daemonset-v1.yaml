@@ -51,6 +51,7 @@ spec:
         hostPath:
           path: /var/run
       hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
       hostPID: true
       tolerations:
         - effect: NoSchedule

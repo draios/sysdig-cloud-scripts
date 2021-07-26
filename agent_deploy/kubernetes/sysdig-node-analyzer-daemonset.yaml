@@ -64,6 +64,7 @@ spec:
       # Use the Host Network Namespace.
       # This is required by the Benchmark container to determine the hostname and host mac address
       hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
       # Use the Host PID namespace.
       # This is required for Kubernetes benchmarks, as they contain tests that check Kubernetes processes running on
       # the host
