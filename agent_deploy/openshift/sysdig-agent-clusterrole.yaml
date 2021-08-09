@@ -9,6 +9,7 @@ rules:
   - pods
   - replicationcontrollers
   - services
+  - endpoints
   - events
   - limitranges
   - namespaces
@@ -44,6 +45,14 @@ rules:
   resources:
   - cronjobs
   - jobs
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - networkpolicies
   verbs:
   - get
   - list
