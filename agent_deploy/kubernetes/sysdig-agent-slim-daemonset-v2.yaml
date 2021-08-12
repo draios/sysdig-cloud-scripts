@@ -66,6 +66,7 @@ spec:
       #    path: /etc/os-release
       #    type: FileOrCreate
       #- name: sys-tracing
+      #  hostPath:
       #    path: /sys/kernel/debug
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
@@ -119,6 +120,7 @@ spec:
         #  readOnly: true
         #- mountPath: /sys/kernel/debug
         #  name: sys-tracing
+        #  readOnly: true
       containers:
       - name: sysdig-agent
         # WARNING: the agent-slim release is currently dependent on the above
@@ -168,3 +170,4 @@ spec:
         #  name: bpf-probes
         #- mountPath: /sys/kernel/debug
         #  name: sys-tracing
+        #  readOnly: true

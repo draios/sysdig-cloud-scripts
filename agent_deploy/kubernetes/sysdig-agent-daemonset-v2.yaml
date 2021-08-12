@@ -69,9 +69,8 @@ spec:
           secretName: sysdig-agent
       # This section is for eBPF support. Please refer to Sysdig Support before
       # uncommenting, as eBPF is recommended for only a few configurations.
-      #- name: bpf-probes
-      #  emptyDir: {}
       #- name: sys-tracing
+      #  hostPath:
       #    path: /sys/kernel/debug
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
@@ -149,9 +148,8 @@ spec:
         #  name: host-root-vol
         # This section is for eBPF support. Please refer to Sysdig Support before
         # uncommenting, as eBPF is recommended for only a few configurations.
-        #- mountPath: /root/.sysdig
-        #  name: bpf-probes
         #- mountPath: /sys/kernel/debug
         #  name: sys-tracing
+        #  readOnly: true
 
 
