@@ -47,12 +47,8 @@ elasticsearch:
 hostPathCustomPaths:
   cassandra: /var/lib/cassandra
   elasticsearch: /var/lib/elasticsearch
-  mysql: /var/lib/mysql
   postgresql: /var/lib/postgresql/data/pgdata
 sysdig:
-  mysql:
-    hostPathNodes:
-      - minikube
   postgresql:
     hostPathNodes:
       - minikube
