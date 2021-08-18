@@ -54,12 +54,12 @@ spec:
       - name: varrun-vol
         hostPath:
           path: /var/run
-      # Uncomment these lines if you'd like to map /root/ from the
-      # host into the container. This can be useful to map
-      # /root/.sysdig to pick up custom kernel modules.
-      #- name: host-root-vol
-      #  hostPath:
-      #    path: /root
+### Uncomment these lines if you'd like to map /root/ from the
+#   host into the container. This can be useful to map
+#   /root/.sysdig to pick up custom kernel modules.
+#     - name: host-root-vol
+#       hostPath:
+#         path: /root
       - name: sysdig-agent-config
         configMap:
           name: sysdig-agent
@@ -67,6 +67,11 @@ spec:
       - name: sysdig-agent-secrets
         secret:
           secretName: sysdig-agent
+      # This section is for eBPF support. Please refer to Sysdig Support before
+      # uncommenting, as eBPF is recommended for only a few configurations.
+      #- name: sys-tracing
+      #  hostPath:
+      #    path: /sys/kernel/debug
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
       hostPID: true
@@ -136,8 +141,15 @@ spec:
         - mountPath: /host/etc/os-release
           name: osrel
           readOnly: true
-        # Uncomment these lines if you'd like to map /root/ from the
-        # host into the container. This can be useful to map
-        # /root/.sysdig to pick up custom kernel modules.
-        #- mountPath: /root
-        #  name: host-root-vol
+### Uncomment these lines if you'd like to map /root/ from the
+#   host into the container. This can be useful to map
+#   /root/.sysdig to pick up custom kernel modules.
+#       - mountPath: /root
+#         name: host-root-vol
+        # This section is for eBPF support. Please refer to Sysdig Support before
+        # uncommenting, as eBPF is recommended for only a few configurations.
+        #- mountPath: /sys/kernel/debug
+        #  name: sys-tracing
+        #  readOnly: true
+
+

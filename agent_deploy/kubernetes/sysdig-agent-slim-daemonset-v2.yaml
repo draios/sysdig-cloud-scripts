@@ -65,6 +65,9 @@ spec:
       #  hostPath:
       #    path: /etc/os-release
       #    type: FileOrCreate
+      #- name: sys-tracing
+      #  hostPath:
+      #    path: /sys/kernel/debug
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
       hostPID: true
@@ -115,6 +118,9 @@ spec:
         #- mountPath: /host/etc/os-release
         #  name: osrel
         #  readOnly: true
+        #- mountPath: /sys/kernel/debug
+        #  name: sys-tracing
+        #  readOnly: true
       containers:
       - name: sysdig-agent
         # WARNING: the agent-slim release is currently dependent on the above
@@ -162,3 +168,6 @@ spec:
         # uncommenting, as eBPF is recommended for only a few configurations.
         #- mountPath: /root/.sysdig
         #  name: bpf-probes
+        #- mountPath: /sys/kernel/debug
+        #  name: sys-tracing
+        #  readOnly: true
