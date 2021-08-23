@@ -14,8 +14,6 @@ rules:
   - limitranges
   - namespaces
   - nodes
-  - nodes/metrics
-  - nodes/proxy
   - resourcequotas
   - persistentvolumes
   - persistentvolumeclaims
@@ -70,7 +68,13 @@ rules:
   - get
   - list
   - watch
-- nonResourceURLs:
-  - /metrics
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
   verbs:
   - get
+  - list
+  - create
+  - update
+  - watch
