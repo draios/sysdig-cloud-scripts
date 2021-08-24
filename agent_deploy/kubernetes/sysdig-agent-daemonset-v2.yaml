@@ -85,12 +85,13 @@ spec:
         resources:
           # Resources needed are subjective to the actual workload.
           # Please refer to Sysdig Support for more info.
+          # See also: https://docs.sysdig.com/en/tuning-sysdig-agent.html
           requests:
-            cpu: 600m
-            memory: 512Mi
+            cpu: 1000m
+            memory: 1024Mi
           limits:
-            cpu: 2000m
-            memory: 1536Mi
+            cpu: 1000m
+            memory: 1024Mi
         readinessProbe:
           exec:
             command: [ "test", "-e", "/opt/draios/logs/running" ]
