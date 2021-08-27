@@ -72,8 +72,8 @@ apps: monitor secure
 **Description**: The URL of the airgapped (internal) docker registry. This URL
 is used for installations where the Kubernetes cluster can not pull images
 directly from Quay. See [airgap instructions
-multi-homed](usage.md#airgap-installation-with-installation-machine-multi-homed)
-and [full airgap instructions](../usage.md#full-airgap-installation) for more
+multi-homed](../README.md#airgapped-with-multi-homed-installation-machine)
+and [full airgap instructions](../README.md#full-airgap-install) for more
 details.<br>
 **Options**:<br>
 **Default**:<br>
@@ -124,7 +124,7 @@ airgapped_registry_username: bob+alice
 ## **deployment**
 **Required**: `false`<br>
 **Description**: The name of the Kubernetes installation.<br>
-**Options**: `iks|kubernetes|openshift`<br>
+**Options**: `iks|kubernetes|openshift|goldman`<br>
 **Default**: `kubernetes`<br>
 **Example**:
 
@@ -319,6 +319,33 @@ If TLS Encrpytion is enabled Installer does the following in the provided order:
 ```yaml
 elasticsearch:
   useES6: true
+```
+
+## **elasticsearch.enableMetrics**
+**Required**: `false`<br>
+**Description**:
+Allow Elasticsearch to export prometheus metrics.
+
+**Options**: `true|false`<br>
+**Default**: `false`<br>
+**Example**:
+
+```yaml
+elasticsearch:
+  enableMetrics: true
+```
+
+## **sysdig.elasticsearchExporterVersion**
+**Required**: `false`<br>
+**Description**: Docker image tag of Elasticsearch Metrics Exporter, relevant when configured
+`elasticsearch.enableMetrics` is `true`.<br>
+**Options**:<br>
+**Default**: v1.2.0<br>
+**Example**:
+
+```yaml
+sysdig:
+  elasticsearchExporterVersion: v1.2.0
 ```
 
 ## **elasticsearch.tlsencryption.adminUser**
@@ -711,40 +738,16 @@ pvStorageSize:
     nats: 10Gi
 ```
 
-## **sysdig.activityAuditVersion**
-**Required**: `false`<br>
-**Description**: Docker image tag of Activity Audit services.<br>
-**Options**:<br>
-**Default**: [`sysdig.monitorVersion`](#sysdigmonitorversion)<br>
-**Example**:
-
-```yaml
-sysdig:
-  activityAuditVersion: 4.0.3.10243
-```
-
-## **sysdig.profilingVersion**
-**Required**: `false`<br>
-**Description**: Docker image tag of Profiling services.<br>
-**Options**:<br>
-**Default**: [`sysdig.monitorVersion`](#sysdigmonitorversion)<br>
-**Example**:
-
-```yaml
-sysdig:
-  profilingVersion: 4.0.3.10243
-```
-
 ## **sysdig.anchoreVersion**
 **Required**: `false`<br>
 **Description**: The docker image tag of the Sysdig Anchore Core.<br>
 **Options**:<br>
-**Default**: 0.8.1.30<br>
+**Default**: 0.8.1.32<br>
 **Example**:
 
 ```yaml
 sysdig:
-  anchoreVersion: 0.8.1.30
+  anchoreVersion: 0.8.1.32
 ```
 
 ## **sysdig.accessKey**
@@ -827,23 +830,49 @@ sysdig:
     bucketName: my_awesome_bucket
 ```
 
-## **sysdig.cassandraVersion**
+## **sysdig.s3.capturesFolder**
 **Required**: `false`<br>
-**Description**: The docker image tag of Cassandra.<br>
-**Options**: <br>
-**Default**: 2.1.21.13<br>
+**Description**: Name of the folder in S3 bucket to be used for storing captures, this option is ignored if
+[`sysdig.s3.enabled`](#sysdigs3enabled) is not configured.<br>
+**Options**:<br>
+**Default**:<br>
 **Example**:
 
 ```yaml
 sysdig:
-  cassandraVersion: 2.1.21.16
+  s3:
+    capturesFolder: my_captures_folder
+```
+
+## **sysdig.cassandraVersion**
+**Required**: `false`<br>
+**Description**: The docker image tag of Cassandra.<br>
+**Options**: <br>
+**Default**: 2.1.22.4<br>
+**Example**:
+
+```yaml
+sysdig:
+  cassandraVersion: 2.1.22.4
+```
+
+## **sysdig.cassandraExporterVersion**
+**Required**: `false`<br>
+**Description**: The docker `image tag` of Cassandra's Prometheus JMX exporter. Default image: `<registry>/<repository>/promcat-jmx-exporter:latest` <br>
+**Options**: <br>
+**Default**: latest<br>
+**Example**:
+
+```yaml
+sysdig:
+  cassandraExporterVersion: latest
 ```
 
 ## **sysdig.cassandra.useCassandra3**
 **Required**: `false`<br>
 **Description**: Use Cassandra 3 instead of Cassandra 2. Only available for fresh installs from 4.0.<br>
 **Options**: `true|false`<br>
-**Default**: `false`<br>
+**Default**: `true`<br>
 **Example**:
 
 ```yaml
@@ -856,12 +885,12 @@ sysdig:
 **Required**: `false`<br>
 **Description**: Specify the image version of Cassandra 3.x. Ignored if `sysdig.useCassandra3` is not set to `true`. Only supported in fresh installs from 4.0<br>
 **Options**: <br>
-**Default**: `3.11.7.0`<br>
+**Default**: `3.11.11.1`<br>
 **Example**:
 
 ```yaml
 sysdig:
-  cassandra3Version: 3.11.7.0
+  cassandra3Version: 3.11.11.1
 ```
 
 ## **sysdig.cassandra.external**
@@ -918,6 +947,19 @@ sysdig:
  cassandra:
    secure: true
    ssl: true
+```
+
+## **sysdig.cassandra.enableMetrics**
+**Required**: `false`<br>
+**Description**: Enables cassandra exporter as sidecar. Defaults to `false` for all Cassandra installs (available from 4.0)<br>
+**Options**: `true|false`<br>
+**Default**: `false`<br>
+**Example**:
+
+```yaml
+sysdig:
+ cassandra:
+   enableMetrics: true
 ```
 
 ## **sysdig.cassandra.user**
@@ -1116,12 +1158,12 @@ sysdig:
 **Required**: `false`<br>
 **Description**: The docker image tag of Elasticsearch.<br>
 **Options**:<br>
-**Default**: 6.8.6.6<br>
+**Default**: 6.8.6.12<br>
 **Example**:
 
 ```yaml
 sysdig:
-  elasticsearch6Version: 6.8.6.6
+  elasticsearch6Version: 6.8.6.12
 ```
 
 ## **sysdig.haproxyVersion**
@@ -1233,27 +1275,27 @@ sysdig:
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 4.0.3.10243<br>
+**Default**: 5.0.0.10244<br>
 **Example**:
 
 ```yaml
 sysdig:
-  monitorVersion: 4.0.3.10243
+  monitorVersion: 5.0.0.10244
 ```
 
-## **sysdig.scanningVersion**
+## **sysdig.secureVersion**
 **Required**: `false`<br>
-**Description**: The docker image tag of the Sysdig Scanning components, if
-this is not configured it defaults to `sysdig.monitorVersion` **Do not modify
+**Description**: The docker image tag of the Sysdig Secure, if this is not 
+configured it defaults to `sysdig.monitorVersion` **Do not modify
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 4.0.3.10243<br>
+**Default**: 5.0.0.10244<br>
 **Example**:
 
 ```yaml
 sysdig:
-  scanningVersion: 4.0.3.10243
+  secureVersion: 5.0.0.10244
 ```
 
 ## **sysdig.sysdigAPIVersion**
@@ -1263,12 +1305,12 @@ this is not configured it defaults to `sysdig.monitorVersion` **Do not modify
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 4.0.3.10243<br>
+**Default**: 5.0.0.10244<br>
 **Example**:
 
 ```yaml
 sysdig:
-  sysdigAPIVersion: 4.0.3.10243
+  sysdigAPIVersion: 5.0.0.10244
 ```
 
 ## **sysdig.sysdigCollectorVersion**
@@ -1278,12 +1320,12 @@ this is not configured it defaults to `sysdig.monitorVersion` **Do not modify
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 4.0.3.10243<br>
+**Default**: 5.0.0.10244<br>
 **Example**:
 
 ```yaml
 sysdig:
-  sysdigCollectorVersion: 4.0.3.10243
+  sysdigCollectorVersion: 5.0.0.10244
 ```
 
 ## **sysdig.sysdigWorkerVersion**
@@ -1293,12 +1335,12 @@ this is not configured it defaults to `sysdig.monitorVersion` **Do not modify
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 4.0.3.10243<br>
+**Default**: 5.0.0.10244<br>
 **Example**:
 
 ```yaml
 sysdig:
-  sysdigWorkerVersion: 4.0.3.10243
+  sysdigWorkerVersion: 5.0.0.10244
 ```
 
 ## **sysdig.enableAlerter**
@@ -1554,24 +1596,36 @@ sysdig:
 **Required**: `false`<br>
 **Description**: Docker image tag of the Prometheus exporter for NATS.<br>
 **Options**:<br>
-**Default**: 0.6.0.1<br>
+**Default**: 0.7.0.1<br>
 **Example**:
 
 ```yaml
 sysdig:
-  natsExporterVersion: 0.6.0.1
+  natsExporterVersion: 0.7.0.1
 ```
 
 ## **sysdig.natsStreamingVersion**
 **Required**: `false`<br>
 **Description**: Docker image tag of NATS streaming.<br>
 **Options**:<br>
-**Default**: 0.16.2.1<br>
+**Default**: 0.22.0.2<br>
 **Example**:
 
 ```yaml
 sysdig:
-  natsStreamingVersion: 0.16.2.1
+  natsStreamingVersion: 0.22.0.2
+```
+
+## **sysdig.natsStreamingInitVersion**
+**Required**: `false`<br>
+**Description**: Docker image tag of NATS streaming init.<br>
+**Options**:<br>
+**Default**: 0.22.0.2<br>
+**Example**:
+
+```yaml
+sysdig:
+  natsStreamingInitVersion: 0.22.0.2
 ```
 
 ## **sysdig.nats.secure.enabled**
@@ -1701,7 +1755,7 @@ sysdig:
 ## **sysdig.postgresVersion**
 **Required**: `false`<br>
 **Description**: Docker image tag of Postgres, relevant when configured `apps`
-is `monitor secure`.<br>
+is `monitor secure` and when `postgres.HA.enabled` is false.<br>
 **Options**:<br>
 **Default**: 10.6.11<br>
 **Example**:
@@ -1813,6 +1867,250 @@ sysdig:
       - my-cool-host1.com
 ```
 
+## **sysdig.postgresql.pgParameters**
+**Required**: `false`<br>
+**Description**: a dictionary of Postgres parameter names and values to apply to the cluster
+**Options**:<br>
+**Default**: ``<br>
+
+**Example**:
+
+```yaml
+sysdig:
+  postgresql:      
+    pgParameters:
+      max_connections: '1024'
+      shared_buffers: '110MB'
+```
+
+
+## **sysdig.postgresql.ha.enabled**
+**Required**: `false`<br>
+**Description**: true if you want to deploy postgreSQL in HA mode.
+**Options**: `true|false`<br>
+**Default**: `false`<br>
+
+**Example**:
+
+```yaml
+sysdig:
+  postgresql:
+    ha:
+      enabled: true
+```
+
+## **sysdig.postgresql.ha.spiloVersion**
+**Required**: `false`<br>
+**Description**: Docker image tag of the postgreSQL node in HA mode.
+**Options**:<br>
+**Default**: `2.0-p7`<br>
+
+**Example**:
+
+```yaml
+sysdig:
+  postgresql:
+    ha:
+      spiloVersion: 2.0-p7
+```
+
+## **sysdig.postgresql.ha.operatorVersion**
+**Required**: `false`<br>
+**Description**: Docker image tag of the postgreSQL operator pod that orchestrate postgreSQL nodes in HA mode.
+**Options**:<br>
+**Default**: `v1.6.3`<br>
+
+**Example**:
+
+```yaml
+sysdig:
+  postgresql:
+    ha:
+      operatorVersion: v1.6.3
+```
+
+## **sysdig.postgresql.ha.exporterVersion**
+**Required**: `false`<br>
+**Description**: Docker image tag of the prometheus exporter for postgreSQL in HA mode.
+**Options**:<br>
+**Default**: `latest`<br>
+
+**Example**:
+
+```yaml
+sysdig:
+  postgresql:
+    ha:
+      exporterVersion: v0.3
+```
+
+## **sysdig.postgresql.ha.clusterDomain**
+**Required**: `false`<br>
+**Description**: dns domain inside the cluster. Needed by the postgres operator to select the correct kubernetes api endpoint.
+**Options**:<br>
+**Default**: `cluster.local`<br>
+
+**Example**:
+
+```yaml
+sysdig:
+  postgresql:
+    ha:
+      clusterDomain: cluster.local
+```
+
+## **sysdig.postgresql.ha.replicas**
+**Required**: `false`<br>
+**Description**: number of replicas for postgreSQL nodes in HA mode.
+**Options**:<br>
+**Default**: `3`<br>
+
+**Example**:
+
+```yaml
+sysdig:
+  postgresql:
+    ha:
+      replicas: 3
+```
+
+
+## **sysdig.postgresql.ha.enableExporter**
+**Required**: `false`<br>
+**Description**: Docker image tag of the prometheus exporter for postgreSQL in HA mode.
+**Options**:<br>
+**Default**: `true`<br>
+
+**Example**:
+
+```yaml
+sysdig:
+  postgresql:
+    ha:
+      enableExporter: true
+```
+
+## **sysdig.postgresql.ha.migrate.retryCount**
+**Required**: `false`<br>
+**Description**: If true a sidecar prometheus exporter for postgres in HA mode is created.
+**Options**: `true|false`<br>
+**Default**: `3600`<br>
+
+**Example**:
+
+```yaml
+sysdig:
+  postgresql:
+    ha:
+      migrate:
+        retryCount: 3600
+```
+
+## **sysdig.postgresql.ha.migrate.retrySleepSeconds**
+**Required**: `false`<br>
+**Description**: Wait time between checks for the migration job from postgreSQL in single mode to HA mode.
+**Options**:<br>
+**Default**: `10`<br>
+
+**Example**:
+
+```yaml
+sysdig:
+  postgresql:
+    ha:
+      migrate:
+        retrySleepSeconds: 10
+```
+
+## **sysdig.postgresql.ha.migrate.retainBackup**
+**Required**: `false`<br>
+**Description**: If true the statefulset and pvc of the postgreSQL in single node mode is not deleted after the migration to HA mode.
+**Options**: `true|false`<br>
+**Default**: `true`<br>
+
+**Example**:
+
+```yaml
+sysdig:
+  postgresql:
+    ha:
+      migrate:
+        retainBackup: true
+```
+
+## **sysdig.postgresql.ha.migrate.migrationJobImageVersion**
+**Required**: `false`<br>
+**Description**: Docker image tag of the migration job from postgres single node to HA mode.
+**Options**:<br>
+**Default**: `postgres-to-postgres-ha-0.0.4`<br>
+
+**Example**:
+
+```yaml
+sysdig:
+  postgresql:
+    ha:
+      migrate:
+        migrationJobImageVersion: v0.1
+```
+
+## **sysdig.postgresql.ha.customTls.enabled**
+**Required**: `false`<br>
+**Description**: If set to true will pass to the target pg crd the option to add
+custom certificates and CA
+**Options**: `true|false`<br>
+**Default**: `false`<br>
+
+**Example**:
+
+```yaml
+sysdig:
+  postgresql:
+    ha:
+      customTls:
+       enabled: true
+```
+
+## **sysdig.postgresql.ha.customTls.crtSecretName**
+**Required**: `false`<br>
+**Description**: in case of customtls enabled it's the name of the k8s secret
+that container certificate and key that will be used in postgres HA for ssl
+NOTE: the certficate and key files must be called `tls.crt` and `tls.key`
+**Options**: `secret-name`<br>
+**Default**: `nil`<br>
+
+**Example**:
+
+```yaml
+sysdig:
+  postgresql:
+    ha:
+      customTls:
+       enabled: true
+       crtSecretName: sysdigcloud-postgres-tls-crt
+```
+
+## **sysdig.postgresql.ha.customTls.caSecretName**
+**Required**: `false`<br>
+**Description**: in case of customtls enabled it's the name of the k8s secret
+that container the CA certificate that will be used in postgres HA for ssl
+NOTE: the CA certificate file must be called `ca.crt`
+**Options**: `secret-name`<br>
+**Default**: `nil`<br>
+
+**Example**:
+
+```yaml
+sysdig:
+  postgresql:
+    ha:
+      customTls:
+       enabled: true
+       crtSecretName: sysdigcloud-postgres-tls-crt
+       caSecretName: sysdigcloud-postgres-tls-ca
+
+```
+
 ## **sysdig.postgresDatabases.useNonAdminUsers**
 **Required**: `false`<br>
 **Description**: If set, the services will connect to `anchore` and `profiling` databases in non-root mode: this also means that `anchore` and `profiling` connection details and credentials will be fetched from `sysdigcloud-postgres-config` configmap and `sysdigcloud-postgres-secret` secret, instead of `sysdigcloud-config` configmap and `sysdigcloud-anchore` secret. It only works if `sysdig.postgresql.external` is set.<br>
@@ -1880,7 +2178,7 @@ sysdig:
 
 ## **sysdig.postgresDatabases.policies**
 **Required**: `false`<br>
-**Description**: A map containing database connection details for external postgresql instance used as `policies` database. To use in conjunction with `sysdig.postgresql.external`. Only relevant if `sysdig.postgresDatabases.useNonAdminUsers` is configured.<br>
+**Description**: A map containing database connection details for external postgresql instance used as `policies` database. To use in conjunction with `sysdig.postgresql.external`.<br>
 **Example**:
 
 ```yaml
@@ -1888,7 +2186,6 @@ sysdig:
   postgresql:
     external: true
   postgresDatabases:
-    useNonAdminUsers: true
     policies:
       host: my-policies-db-external.com
       port: 5432
@@ -2017,7 +2314,7 @@ sysdig:
 
 ## **sysdig.postgresDatabases.beacon**
 **Required**: `false`<br>
-**Description**: A map containing database connection details for external postgresql instance used as `beacon` database. To use in conjunction with `sysdig.postgresql.external`. Only relevant if `sysdig.postgresql.primary` is configured.<br>
+**Description**: A map containing database connection details for external postgresql instance used as `beacon` database. To use in conjunction with `sysdig.postgresql.external`. Only relevant if `sysdig.postgresql.primary` is configured and Beacon for IBM PlatformMetrics is enabled.<br>
 **Example**:
 
 ```yaml
@@ -2032,6 +2329,29 @@ sysdig:
       db: beacon_db
       username: beacon_user
       password: my_beacon_user_password
+      sslmode: disable
+      admindb: root_db
+      adminusername: root_user
+      adminpassword: my_root_user_password
+```
+
+## **sysdig.postgresDatabases.promBeacon**
+**Required**: `false`<br>
+**Description**: A map containing database connection details for external postgresql instance used as `promBeacon` database. To use in conjunction with `sysdig.postgresql.external`. Only relevant if `sysdig.postgresql.primary` is configured and Generalized Beacon is enabled.<br>
+**Example**:
+
+```yaml
+sysdig:
+  postgresql:
+    primary: true
+    external: true
+  postgresDatabases:
+    promBeacon:
+      host: my-prom-beacon-db-external.com
+      port: 5432
+      db: prom_beacon_db
+      username: prom_beacon_user
+      password: my_prom_beacon_user_password
       sslmode: disable
       admindb: root_db
       adminusername: root_user
@@ -8011,6 +8331,18 @@ sysdig:
     certificate:
       key: certs/collector.key
 ```
+## **sysdig.worker.enabled**
+**Required**: `false`<br>
+**Description**: Enables Sysdig Worker component<br>
+**Options**:`true|false`<br>
+**Default**: `true`<br>
+**Example**:
+
+```yaml
+sysdig:
+  worker:
+    enabled: true
+```
 
 ## **sysdig.worker.jvmOptions**
 **Required**: `false`<br>
@@ -9090,7 +9422,7 @@ sysdig:
 
 ## **sysdig.metadataService.enabled**
 **Required**: `false`<br>
-**Description**: This creates a deployment for Metadata-Service
+**Description**: Whether to enable metadata-service or not
 **Do not modify this unless you
 know what you are doing as modifying it could have unintended
 consequences**<br>
@@ -9225,6 +9557,157 @@ sysdig:
   metadataServiceVersion: 1.0.1.12
 ```
 
+## **sysdig.helmRenderer.enabled**
+**Required**: `false`<br>
+**Description**: Whether to enable helm-renderer or not
+**Do not modify this unless you
+know what you are doing as modifying it could have unintended
+consequences**<br>
+**Options**:`true|false`<br>
+**Default**: `false`<br>
+**Example**:
+
+```yaml
+sysdig:
+  helmRenderer:
+    enabled: true
+```
+
+## **sysdig.resources.helmRenderer.limits.cpu**
+**Required**: `false`<br>
+**Description**: The amount of cpu assigned to helmRenderer pods<br>
+**Options**:<br>
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 4      |
+| medium       | 8      |
+| large        | 16     |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    helmRenderer:
+      limits:
+        cpu: 2
+```
+
+## **sysdig.resources.helmRenderer.limits.memory**
+**Required**: `false`<br>
+**Description**: The amount of memory assigned to helmRenderer pods<br>
+**Options**:<br>
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 4Gi    |
+| medium       | 8Gi    |
+| large        | 16Gi   |
+
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    helmRenderer:
+      limits:
+        memory: 10Mi
+```
+
+## **sysdig.resources.helmRenderer.requests.cpu**
+**Required**: `false`<br>
+**Description**: The amount of cpu required to schedule helmRenderer pods<br>
+**Options**:<br>
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 1        |
+| medium       | 2        |
+| large        | 4        |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    helmRenderer:
+      requests:
+        cpu: 2
+```
+
+## **sysdig.resources.helmRenderer.requests.memory**
+**Required**: `false`<br>
+**Description**: The amount of memory required to schedule helmRenderer pods<br>
+**Options**:<br>
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 1Gi      |
+| medium       | 2Gi      |
+| large        | 4Gi      |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    helmRenderer:
+      requests:
+        memory: 200Mi
+```
+
+## **sysdig.helmRendererReplicaCount**
+**Required**: `false`<br>
+**Description**: Number of Sysdig helmRenderer replicas, this is a noop for clusters
+of `size` `small`.<br>
+**Options**:<br>
+**Default**:<br>
+
+| cluster-size | count |
+| ------------ | ----- |
+| small        | 2     |
+| medium       | 6     |
+| large        | 10    |
+
+**Example**:
+
+```yaml
+sysdig:
+  helmRendererReplicaCount: 4
+```
+
+## **sysdig.helmRendererVersion**
+**Required**: `false`<br>
+**Description**: Docker image tag of helmRenderer, relevant when `sysdig.helmRenderer.enabled` is `true`.<br>
+**Options**:<br>
+**Default**: 0.1.32<br>
+**Example**:
+
+```yaml
+sysdig:
+  helmRendererVersion: 0.1.32
+```
+
+## **sysdig.secure.activityAudit.enabled**
+**Required**: `false`<br>
+**Description**: Enable activity audit for Sysdig secure.<br>
+**Options**:<br>
+**Default**: true<br>
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    activityAudit:
+      enabled: true
+```
+
 ## **sysdig.secure.activityAudit.janitor.retentionDays**
 **Required**: `false`<br>
 **Description**: Retention period for Activity Audit data.<br>
@@ -9238,6 +9721,147 @@ sysdig:
     activityAudit:
       janitor:
         retentionDays: 90
+```
+
+## **sysdig.secure.anchore.enabled**
+**Required**: `false`<br>
+**Description**: Enable anchore for Sysdig Secure.<br>
+**Options**:<br>
+**Default**: true<br>
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    anchore:
+      enabled: true
+```
+
+## **sysdig.secure.compliance.enabled**
+**Required**: `false`<br>
+**Description**: Enable compliance for Sysdig Secure.<br>
+**Options**:<br>
+**Default**: true<br>
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    compliance:
+      enabled: true
+```
+
+## **sysdig.secure.netsec.enabled**
+**Required**: `false`<br>
+**Description**: Enable netsec for Sysdig Secure.<br>
+**Options**:<br>
+**Default**: true<br>
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    netsec:
+      enabled: true
+```
+
+## **sysdig.secure.overview.enabled**
+**Required**: `false`<br>
+**Description**: Enable overview for Sysdig Secure.<br>
+**Options**:<br>
+**Default**: true<br>
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    overview:
+      enabled: true
+```
+
+## **sysdig.secure.padvisor.enabled**
+**Required**: `false`<br>
+**Description**: Enable policy advisor for Sysdig Secure.<br>
+**Options**:<br>
+**Default**: true<br>
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    padvisor:
+      enabled: true
+```
+
+## **sysdig.secure.profiling.enabled**
+**Required**: `false`<br>
+**Description**: Enable profiling for Sysdig Secure.<br>
+**Options**:<br>
+**Default**: true<br>
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    profiling:
+      enabled: true
+```
+
+## **sysdig.secure.scanning.reporting.enabled**
+**Required**: `false`<br>
+**Description**: Enable reporting for Sysdig Secure.<br>
+**Options**:<br>
+**Default**: true<br>
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanning:
+      reporting:
+        enabled: true
+```
+
+## **sysdig.secure.scanning.enabled**
+**Required**: `false`<br>
+**Description**: Enable scanning for Sysdig Secure.<br>
+**Options**:<br>
+**Default**: true<br>
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanning:
+      enabled: true
+```
+
+## **sysdig.secure.events.enabled**
+**Required**: `false`<br>
+**Description**: Enable events for Sysdig Secure.<br>
+**Options**:<br>
+**Default**: true<br>
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    events:
+      enabled: true
+```
+
+## **sysdig.secure.eventsForwarder.enabled**
+**Required**: `false`<br>
+**Description**: Enable events forwarder for Sysdig Secure.<br>
+**Options**:<br>
+**Default**: true<br>
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    eventsForwarder:
+      enabled: true
 ```
 
 ## **sysdig.resources.rapid-response-connector.limits.cpu**
