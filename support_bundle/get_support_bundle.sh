@@ -29,7 +29,13 @@ for pod in ${SYSDIGCLOUD_PODS}; do
     containers=$(kubectl ${KUBE_OPTS} get pod ${pod} -o json | jq -r '.spec.containers[].name')
     for container in ${containers}; do
         kubectl ${KUBE_OPTS} logs ${pod} -c ${container} > ${LOG_DIR}/${pod}/${container}-kubectl-logs.txt
-        kubectl ${KUBE_OPTS} exec ${pod} -c ${container} -- bash -c "${command}" > ${LOG_DIR}/${pod}/${container}-support-files.tgz || true
+        if kubectl ${KUBE_OPTS} exec ${pod} -c ${container} -- bash -c "pwd" > /dev/null 2>&1; then
+            shell="bash"
+        else
+            echo "using sh instead of bash"
+            shell="sh"
+        fi
+        kubectl ${KUBE_OPTS} exec ${pod} -c ${container} -- ${shell} -c "${command}" > ${LOG_DIR}/${pod}/${container}-support-files.tgz || true
     done
 done
 
