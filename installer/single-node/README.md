@@ -58,7 +58,6 @@ Tested on:
 Should work fine on:
 - amazon linux
 - centos 7
-- centos 8
 - debian buster
 - debian stretch
 - ubuntu xenial
@@ -139,3 +138,12 @@ Enable verbose logging and stdout.
 ```bash
 ovftool --X:logToConsole --X:logLevel=verbose -st=VMX /tmp/ovf/vmx_template.vmx sysdig-pov-image.ovf
 ```
+
+## Base AMI for VMDK
+
+- this is the AMI used as base to produce the VMDK
+
+
+|       AMI Name         |          id           |
+| ---------------------- | --------------------- |
+| CentOS 7.8.2003 x86_64 | ami-06cf02a98a61f9f5e |

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -euo pipefail
+set -euox pipefail
 
 # globals
 MINIMUM_CPUS=16
@@ -32,6 +32,8 @@ DNSNAME="PLACEHOLDER"
 AIRGAP_BUILD="false"
 AIRGAP_INSTALL="false"
 RUN_INSTALLER="false"
+IP_ADDRESS="PLACEHOLDER"
+GATEWAY="PLACEHOLDER"
 DELETE_SYSDIG="false"
 INSTALLER_BINARY="installer"
 
@@ -134,6 +136,18 @@ sysdig:
         cpu: 500m
         memory: 500Mi
 EOM
+
+#append airgap config to values.yaml - sets up feeds db & slim agent
+if [[ "$AIRGAP_INSTALL" == "true" ]]; then
+  cat << EOM >> values.yaml
+  secure:
+    scanning:
+      feedsEnabled: true
+agent:
+  useSlim: true
+EOM
+fi
+
 }
 
 function checkCPU() {
@@ -185,6 +199,16 @@ function askQuestions() {
     printf "\n"
     read -rp $'Provide domain name, this domain name should resolve to this node on port 443 and 6443: \n' DNSNAME
     printf "\n"
+    if [[ "${AIRGAP_INSTALL}" == "true" ]]; then
+      if systemctl is-active --quiet sysdig-networking; then
+        echo "skipping static ip section. sysdig-networking service is active"
+      else
+        read -rp $'Provide provide a static ip with mask (eg. 192.168.100.10/24)  for this instance: \n' IP_ADDRESS
+        printf "\n"
+        read -rp $'Provide gateway address (eg. 192.168.100.254): \n' GATEWAY
+        printf "\n"
+      fi
+    fi
   else
     local -r quayPullSecret="${QUAYPULLSECRET}"
     if [[ "$quayPullSecret" == "PLACEHOLDER" ]]; then
@@ -228,23 +252,18 @@ function installDebianDeps() {
 }
 
 function installCentOSDeps() {
-  local -r version=$1
   yum remove -y docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-engine
   yum -y update
   yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-  if [[ $version == 8 ]]; then
-    yum install -y yum-utils device-mapper-persistent-data lvm2 curl
-  else
-    yum install -y yum-utils device-mapper-persistent-data lvm2 curl
-  fi
+  yum install -y yum-utils device-mapper-persistent-data lvm2 curl
   # Copied from https://github.com/kubernetes/kops/blob/b92babeda277df27b05236d852b5c0dc0803ce5d/nodeup/pkg/model/docker.go#L758-L764
   yum install -y http://vault.centos.org/7.6.1810/extras/x86_64/Packages/container-selinux-2.68-1.el7.noarch.rpm
   yum install -y https://download.docker.com/linux/centos/7/x86_64/stable/Packages/docker-ce-18.06.3.ce-3.el7.x86_64.rpm
-  yum install -y "kernel-devel-$(uname -r)"
+  yum install -y kernel-devel kernel-headers
+
 }
 
 function installRhelOSDeps() {
-  local -r version=$1
   yum remove -y docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-engine
   yum -y update
   yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
@@ -381,6 +400,46 @@ EOF
   systemctl start docker0-promisc
 }
 
+function writeStaticIpScript(){
+  local -r interface=$1
+  cat << EOF > /usr/bin/setup-sysdig-networking.sh
+#!/bin/bash
+
+/sbin/ip link set ${interface} up
+/sbin/ip address add ${IP_ADDRESS} dev ${interface}
+/sbin/route add default gw ${GATEWAY}  ${interface}
+EOF
+  chmod 755 /usr/bin/setup-sysdig-networking.sh
+}
+
+function setupSystemdUnit(){
+  local -r interface=$1
+  cat << EOF > /usr/lib/systemd/system/sysdig-networking.service
+[Unit]
+Description=Setup sysdig networking
+After=network.service
+Wants=network.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/setup-sysdig-networking.sh
+ExecStop=/sbin/ip link set ${interface} down
+RemainAfterExit=true
+StandardOutput=journal
+
+[Install]
+WantedBy=multi-user.target
+EOF
+  systemctl enable sysdig-networking
+  systemctl start  sysdig-networking
+}
+
+function setupStaticIp(){
+  local -r interface=$(grep -v -E "veth|lo|docker0" /proc/net/dev | tail -n+3 | cut -d ":" -f1)
+  writeStaticIpScript "${interface}"
+  setupSystemdUnit "${interface}"
+}
+
 function startMinikube() {
   export MINIKUBE_HOME="/root"
   export KUBECONFIG="/root/.kube/config"
@@ -393,9 +452,9 @@ function startMinikube() {
 function fixIptables() {
   echo "Fixing iptables ..."
   ### Install iptables rules because minikube locks out external access
-  iptables -I INPUT -t filter -p tcp --dport 443 -j ACCEPT
-  iptables -I INPUT -t filter -p tcp --dport 6443 -j ACCEPT
-  iptables -I INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+  iptables -I INPUT -t filter -p tcp --dport 443 -j ACCEPT -w 60
+  iptables -I INPUT -t filter -p tcp --dport 6443 -j ACCEPT -w 60
+  iptables -I INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT -w 60
 }
 
 function pullImagesSysdigImages() {
@@ -428,6 +487,8 @@ function runInstaller() {
   if [[ "${AIRGAP_BUILD}" == "true" ]]; then
     dockerLogin
     pullImagesSysdigImages
+    yum install -y python-pip
+    pip install yq
   else
     writeValuesYaml
     ${INSTALLER_BINARY} deploy
@@ -459,6 +520,14 @@ function __main() {
   if [[ "${AIRGAP_INSTALL}" != "true" ]]; then
     installDeps
     setDocker0Promisc
+  fi
+  #use user provided answers to setup static ip
+  if [[ "${AIRGAP_INSTALL}" == "true" ]]; then
+    if systemctl is-active --quiet sysdig-networking; then
+      echo "sysdig-networking is active skipping setupStaticIp"
+    else
+      setupStaticIp
+    fi
   fi
   #minikube needs to run to set the correct context & ip during airgap run
   startMinikube
