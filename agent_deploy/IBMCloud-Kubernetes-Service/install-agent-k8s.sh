@@ -32,7 +32,6 @@ function install_curl_rpm {
 }
 
 function download_yamls {
-    WORKDIR=$(mktemp -d /tmp/sysdig-agent-k8s.XXXXXX)
     echo "* Downloading yamls files to the temp directory: $WORKDIR"
     echo "* Downloading Sysdig cluster role yaml"
     curl -s -o $WORKDIR/sysdig-agent-clusterrole.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/master/agent_deploy/kubernetes/sysdig-agent-clusterrole.yaml
@@ -432,11 +431,10 @@ function install_k8s_agent {
        sed -i.bak -e 's/^\( *\)labels:$/&\
 \1  sysdig-instance: '$SYSDIG_INSTANCE_NAME'/' $DAEMONSET_FILE
     fi
-    rm -f $DAEMONSET_FILE.bak
-
 
     echo "* Deploying the sysdig agent"
     kubectl apply -f $DAEMONSET_FILE --namespace=$NAMESPACE
+    sleep 5 # So we gave some time to create the pods and show something meaningful in the next command
 
     echo -e "\nThe list of agent pods deployed in the namespace \"$NAMESPACE\" are:"
     kubectl get pods -n $NAMESPACE | grep "sysdig-agent"
@@ -467,11 +465,12 @@ function install_k8s_agent {
 
       echo "* Deploying the Image Analyzer"
       kubectl apply -f $IA_FILE --namespace=$NAMESPACE
+      sleep 5 # So we gave some time to create the pods and show something meaningful in the next command
 
       echo -e "\nThe list of Image Analyzers pods deployed in the namespace \"$NAMESPACE\" are:"
       kubectl get pods -n $NAMESPACE | grep "image-analyzer"
     elif [ $INSTALL_NODE_ANALYZER -eq 1 ]; then
-        # Deploy Image Analyzer
+        # Deploy Node Analyzer
         NA_FILE=$WORKDIR/sysdig-node-analyzer-daemonset.yaml
         if [ ! -z "$NA_CUSTOM_PATH" ]; then
             NL="\n"
@@ -492,6 +491,7 @@ function install_k8s_agent {
 
         echo "* Deploying the Node Analyzer"
         kubectl apply -f $NA_FILE --namespace=$NAMESPACE
+        sleep 5 # So we gave some time to create the pods and show something meaningful in the next command
 
         echo -e "\nThe list of Node Analyzer pods deployed in the namespace \"$NAMESPACE\" are:"
         kubectl get pods -n $NAMESPACE | grep "node-analyzer"
@@ -512,13 +512,13 @@ function remove_agent {
     echo "* Deleting the sysdig-agent serviceacccount"
     kubectl delete serviceaccount -n default sysdig-agent --namespace=$NAMESPACE
 
-    if [ "$(kubectl get pods -n $NAMESPACE | grep -c "image-analyzer")" -ge 1 ]; then
+    if [ "$(kubectl get pods -n $NAMESPACE | grep -c image-analyzer)" -ge 1 ]; then
       echo "* Deleting the sysdig-image-analyzer daemonset"
       kubectl delete daemonset sysdig-image-analyzer --namespace=$NAMESPACE
 
       echo "* Deleting the sysdig-image-analyzer configmap"
       kubectl delete configmap sysdig-image-analyzer --namespace=$NAMESPACE
-    elif [ "$(kubectl get pods -n $NAMESPACE | grep -c "node-analyzer")" -ge 1 ]; then
+    elif [ "$(kubectl get pods -n $NAMESPACE | grep -c node-analyzer)" -ge 1 ]; then
         echo "* Deleting the sysdig-node-analyzer daemonset"
         kubectl delete daemonset sysdig-node-analyzer --namespace=$NAMESPACE
 
@@ -531,7 +531,7 @@ function remove_agent {
 
     if [ $OPENSHIFT -eq 0 ]; then
         echo "* deleting the sysdig-agent clusterrolebinding"
-        kubectl delete clusterrolebinding sysdig-agent --namespace=$NAMESPACE
+        kubectl delete clusterrolebinding sysdig-agent
 
         echo "* Deleting the sysdig-agent clusterrole"
         kubectl delete clusterrole sysdig-agent
@@ -552,6 +552,9 @@ function remove_agent {
     set -e
 }
 
+cleanup_workdir() {
+    rm -rf "$WORKDIR"
+}
 
 if [[ ${#} -eq 0 ]]; then
     echo "ERROR: Sysdig Access Key & Collector are mandatory, use -h | --help for $(basename ${0}) Usage"
@@ -569,7 +572,8 @@ INSTALL_NODE_ANALYZER=0
 AGENT_VERSION="latest"
 AWS=0
 AGENT_FULL=0
-WORKDIR=""
+WORKDIR="$(mktemp -d /tmp/sysdig-agent-k8s.XXXXXX)"
+trap cleanup_workdir EXIT ERR
 
 while [[ ${#} > 0 ]]
 do
@@ -774,14 +778,18 @@ if [ -z $ACCESS_KEY  ]; then
     exit 1
 fi
 
-
 if [ -z $COLLECTOR ]; then
     echo "ERROR: Sysdig Collector argument is mandatory, use -h | --help for $(basename ${0}) Usage"
     exit 1
 fi
 
-echo "* Detecting operating system"
+if [ $INSTALL_IMAGE_ANALYZER -eq 1 ] && [ $INSTALL_NODE_ANALYZER -eq 1 ]; then
+    echo "ERROR: The Node Analyzer and Node Image Analyzer cannot both be installed. use -h | --help for $(basename ${0}) Usage"
+    exit 1
+fi
 
+
+echo "* Detecting operating system"
 ARCH=$(uname -m)
 PLATFORM=$(uname)
 if [[ ! $ARCH = *86 ]] && [ ! $ARCH = "x86_64" ] && [ ! $ARCH = "s390x" ]; then
