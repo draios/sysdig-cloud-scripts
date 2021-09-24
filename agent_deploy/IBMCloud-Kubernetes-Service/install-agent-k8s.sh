@@ -437,7 +437,7 @@ function install_k8s_agent {
     sleep 5 # So we gave some time to create the pods and show something meaningful in the next command
 
     echo -e "\nThe list of agent pods deployed in the namespace \"$NAMESPACE\" are:"
-    kubectl get pods -n $NAMESPACE | grep "sysdig-agent"
+    kubectl get pods -n $NAMESPACE | { grep "sysdig-agent" || true; }
 
     echo -e "\nMake sure the above pods all turn to \"Running\" state before continuing"
     echo "Should any pod not reach the \"Running\" state, further info can be obtained from logs as follows"
@@ -468,7 +468,7 @@ function install_k8s_agent {
       sleep 5 # So we gave some time to create the pods and show something meaningful in the next command
 
       echo -e "\nThe list of Image Analyzers pods deployed in the namespace \"$NAMESPACE\" are:"
-      kubectl get pods -n $NAMESPACE | grep "image-analyzer"
+      kubectl get pods -n $NAMESPACE | { grep "image-analyzer" || true; }
     elif [ $INSTALL_NODE_ANALYZER -eq 1 ]; then
         # Deploy Node Analyzer
         NA_FILE=$WORKDIR/sysdig-node-analyzer-daemonset.yaml
@@ -494,7 +494,7 @@ function install_k8s_agent {
         sleep 5 # So we gave some time to create the pods and show something meaningful in the next command
 
         echo -e "\nThe list of Node Analyzer pods deployed in the namespace \"$NAMESPACE\" are:"
-        kubectl get pods -n $NAMESPACE | grep "node-analyzer"
+        kubectl get pods -n $NAMESPACE | { grep "node-analyzer" || true; }
     fi
 }
 
