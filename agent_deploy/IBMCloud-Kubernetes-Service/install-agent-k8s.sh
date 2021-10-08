@@ -111,6 +111,14 @@ function help {
     exit 1
 }
 
+function already_exists {
+    if [[ ${1} =~ "AlreadyExists" || ${1} =~ "already exists" ]]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
 function is_valid_value {
     if [[ ${1} == -* ]] || [[ ${1} == --* ]] || [[ -z ${1} ]]; then
         return 1
@@ -134,7 +142,7 @@ function create_namespace {
         switch=$(oc project $NAMESPACE 2>&1)
     fi
     if [ $fail -eq 1 ]; then
-        if [[ "$out" =~ "AlreadyExists" || "$out" =~ "already exists" ]]; then
+        if already_exists "$out"; then
             echo "$out. Continuing..."
         else
             echo "$out"
@@ -154,7 +162,7 @@ function create_sysdig_serviceaccount {
         out=$(oc create serviceaccount sysdig-agent -n $NAMESPACE 2>&1) || { fail=1 && echo "oc create serviceaccount failed!"; }
     fi
     if [ $fail -eq 1 ]; then
-        if [[ "$out" =~ "AlreadyExists" || "$out" =~ "already exists" ]]; then
+        if already_exists "$out"; then
             echo "$out. Continuing..."
         else
             echo "$out"
@@ -171,14 +179,16 @@ function install_k8s_agent {
         outbinding=$(kubectl create clusterrolebinding sysdig-agent --clusterrole=sysdig-agent --serviceaccount=$NAMESPACE:sysdig-agent --namespace=$NAMESPACE 2>&1) || \
           { fail=1 && echo "kubectl create clusterrolebinding failed!"; }
     else
+        echo "* Creating sysdig-agent clusterrole"
+        oc apply -f $WORKDIR/sysdig-agent-clusterrole.yaml
         echo "* Creating sysdig-agent access policies"
         outbinding=$(oc adm policy add-scc-to-user privileged -n $NAMESPACE -z sysdig-agent 2>&1) || { fail=1 && echo "oc adm policy add-scc-to-user failed!"; }
-        if [ $fail -eq 0 ]; then
-            outbinding=$(oc adm policy add-cluster-role-to-user cluster-reader -n $NAMESPACE -z sysdig-agent 2>&1) || { fail=1 && echo "oc adm policy add-cluster-role-to-user failed!"; }
+        if [ $fail -eq 0 ] || already_exists "$outbinding"; then
+            outbinding=$(oc adm policy add-cluster-role-to-user sysdig-agent -n $NAMESPACE -z sysdig-agent 2>&1) || { fail=1 && echo "oc adm policy add-cluster-role-to-user sysdig-agent failed!"; }
         fi
     fi
     if [ $fail -eq 1 ]; then
-        if [[ "$outbinding" =~ "AlreadyExists" || "$outbinding" =~ "already exists" ]]; then
+        if already_exists "$outbinding"; then
             echo "$outbinding. Continuing..."
         else
             echo "$outbinding"
@@ -190,7 +200,7 @@ function install_k8s_agent {
     fail=0
     outsecret=$(kubectl create secret generic sysdig-agent --from-literal=access-key=$ACCESS_KEY --namespace=$NAMESPACE 2>&1) || { fail=1 && echo "kubectl create secret failed!"; }
     if [ $fail -eq 1 ]; then
-        if [[ "$outsecret" =~ "AlreadyExists" || "$outsecret" =~ "already exists" ]]; then
+        if already_exists "$outsecret"; then
             echo "$outsecret. Re-creating secret..."
             kubectl delete secrets sysdig-agent --namespace=$NAMESPACE 2>&1
             kubectl create secret generic sysdig-agent --from-literal=access-key=$ACCESS_KEY --namespace=$NAMESPACE 2>&1
@@ -537,8 +547,11 @@ function remove_agent {
         kubectl delete clusterrole sysdig-agent
     else
         echo "* Removing cluster role and security constraints"
-        oc adm policy remove-cluster-role-from-user cluster-reader -n $NAMESPACE -z sysdig-agent
+        oc adm policy remove-cluster-role-from-user sysdig-agent -n $NAMESPACE -z sysdig-agent
         oc adm policy remove-scc-from-user privileged -n $NAMESPACE -z sysdig-agent
+
+        echo "* Deleting the sysdig-agent clusterrole"
+        oc delete clusterrole sysdig-agent
 
         echo "* Deleting labels from oc nodes"
         oc label node --all app-
