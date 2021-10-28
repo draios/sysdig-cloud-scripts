@@ -720,7 +720,7 @@ pvStorageSize:
 
 ```yaml
 sysdig:
-  activityAuditVersion: 4.0.3.10243
+  activityAuditVersion: 4.0.5.10596
 ```
 
 ## **sysdig.profilingVersion**
@@ -732,7 +732,7 @@ sysdig:
 
 ```yaml
 sysdig:
-  profilingVersion: 4.0.3.10243
+  profilingVersion: 4.0.5.10596
 ```
 
 ## **sysdig.anchoreVersion**
@@ -1233,12 +1233,12 @@ sysdig:
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 4.0.4.10358<br>
+**Default**: 4.0.5.10596<br>
 **Example**:
 
 ```yaml
 sysdig:
-  monitorVersion: 4.0.3.10243
+  monitorVersion: 4.0.5.10596
 ```
 
 ## **sysdig.scanningVersion**
@@ -1253,7 +1253,7 @@ consequences**<br>
 
 ```yaml
 sysdig:
-  scanningVersion: 4.0.3.10243
+  scanningVersion: 4.0.5.10596
 ```
 
 ## **sysdig.sysdigAPIVersion**
@@ -1268,7 +1268,7 @@ consequences**<br>
 
 ```yaml
 sysdig:
-  sysdigAPIVersion: 4.0.3.10243
+  sysdigAPIVersion: 4.0.5.10596
 ```
 
 ## **sysdig.sysdigCollectorVersion**
@@ -1283,7 +1283,7 @@ consequences**<br>
 
 ```yaml
 sysdig:
-  sysdigCollectorVersion: 4.0.3.10243
+  sysdigCollectorVersion: 4.0.5.10596
 ```
 
 ## **sysdig.sysdigWorkerVersion**
@@ -1298,7 +1298,7 @@ consequences**<br>
 
 ```yaml
 sysdig:
-  sysdigWorkerVersion: 4.0.3.10243
+  sysdigWorkerVersion: 4.0.5.10596
 ```
 
 ## **sysdig.enableAlerter**
