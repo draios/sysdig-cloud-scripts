@@ -134,9 +134,7 @@ function create_namespace {
         out=$(kubectl create namespace $NAMESPACE 2>&1) || { fail=1 && echo "kubectl create namespace failed!"; }
     else
         echo "* Creating project: $NAMESPACE"
-        out=$(oc adm new-project $NAMESPACE --node-selector='app=sysdig-agent' 2>&1) || { fail=1 && echo "oc adm new-project failed!"; }
-        # label all nodes
-        oc label node --all "app=sysdig-agent"
+        out=$(oc adm new-project $NAMESPACE --node-selector='' 2>&1) || { fail=1 && echo "oc adm new-project failed!"; }
 
         # Set the project to the namespace
         switch=$(oc project $NAMESPACE 2>&1)
@@ -552,9 +550,6 @@ function remove_agent {
 
         echo "* Deleting the sysdig-agent clusterrole"
         oc delete clusterrole sysdig-agent
-
-        echo "* Deleting labels from oc nodes"
-        oc label node --all app-
     fi
 
     echo "* Deleting the sysdig-agent secret"
