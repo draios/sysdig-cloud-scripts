@@ -51,6 +51,18 @@ spec:
       - name: sysdig-agent-secrets
         secret:
           secretName: sysdig-agent
+      - name: podinfo
+        downwardAPI:
+          defaultMode: 420
+          items:
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+            path: namespace
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+            path: name
       # This section is for eBPF support. Please refer to Sysdig Support before
       # uncommenting, as eBPF is recommended for only a few configurations.
       #- name: bpf-probes
@@ -156,6 +168,8 @@ spec:
           name: sysdig-agent-config
         - mountPath: /opt/draios/etc/kubernetes/secrets
           name: sysdig-agent-secrets
+        - mountPath: /etc/podinfo
+          name: podinfo
         # This section is for eBPF support. Please refer to Sysdig Support before
         # uncommenting, as eBPF is recommended for only a few configurations.
         #- mountPath: /root/.sysdig
