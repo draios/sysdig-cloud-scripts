@@ -93,6 +93,10 @@ spec:
       # The following line is necessary for RBAC
       serviceAccount: sysdig-agent
       terminationGracePeriodSeconds: 5
+      ### Uncomment following 2 lines to pull images from a private registry,
+      ### replacing secret-name with your secret name (previously created)
+      #imagePullSecrets:
+      #- name: secret-name
       containers:
       - name: sysdig-agent
         image: quay.io/sysdig/agent
