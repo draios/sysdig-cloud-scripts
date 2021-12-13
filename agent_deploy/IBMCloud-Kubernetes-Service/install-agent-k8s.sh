@@ -294,6 +294,10 @@ function install_k8s_agent {
     fi
 
     echo -e "    new_k8s: true" >> $CONFIG_FILE
+
+    echo -e "    k8s_coldstart:" >> $CONFIG_FILE
+    echo -e "        namespace: $NAMESPACE" >> $CONFIG_FILE
+
     kubectl apply -f $CONFIG_FILE --namespace=$NAMESPACE
 
     if [ $INSTALL_IMAGE_ANALYZER -eq 1 ] || [ $INSTALL_NODE_ANALYZER -eq 1 ]; then
