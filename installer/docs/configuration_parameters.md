@@ -72,8 +72,8 @@ apps: monitor secure
 **Description**: The URL of the airgapped (internal) docker registry. This URL
 is used for installations where the Kubernetes cluster can not pull images
 directly from Quay. See [airgap instructions
-multi-homed](../README.md#airgapped-with-multi-homed-installation-machine)
-and [full airgap instructions](../README.md#full-airgap-install) for more
+multi-homed](usage.md#airgap-installation-with-installation-machine-multi-homed)
+and [full airgap instructions](../usage.md#full-airgap-installation) for more
 details.<br>
 **Options**:<br>
 **Default**:<br>
@@ -97,7 +97,7 @@ airgapped_repository_prefix: foo/bar
 ```
 
 ## **airgapped_registry_password**
-**Required**: `false`<br>
+**Required**: `false`
 **Description**: The password for the configured
 `airgapped_registry_username`. Ignore this parameter if the registry does not
 require authentication.<br>
@@ -124,7 +124,7 @@ airgapped_registry_username: bob+alice
 ## **deployment**
 **Required**: `false`<br>
 **Description**: The name of the Kubernetes installation.<br>
-**Options**: `iks|kubernetes|openshift|goldman`<br>
+**Options**: `iks|kubernetes|openshift`<br>
 **Default**: `kubernetes`<br>
 **Example**:
 
@@ -319,33 +319,6 @@ If TLS Encrpytion is enabled Installer does the following in the provided order:
 ```yaml
 elasticsearch:
   useES6: true
-```
-
-## **elasticsearch.enableMetrics**
-**Required**: `false`<br>
-**Description**:
-Allow Elasticsearch to export prometheus metrics.
-
-**Options**: `true|false`<br>
-**Default**: `false`<br>
-**Example**:
-
-```yaml
-elasticsearch:
-  enableMetrics: true
-```
-
-## **sysdig.elasticsearchExporterVersion**
-**Required**: `false`<br>
-**Description**: Docker image tag of Elasticsearch Metrics Exporter, relevant when configured
-`elasticsearch.enableMetrics` is `true`.<br>
-**Options**:<br>
-**Default**: v1.2.0<br>
-**Example**:
-
-```yaml
-sysdig:
-  elasticsearchExporterVersion: v1.2.0
 ```
 
 ## **elasticsearch.tlsencryption.adminUser**
@@ -693,61 +666,40 @@ pvStorageSize:
     postgresql: 100Gi
 ```
 
-## **pvStorageSize.large.nats**
+## **sysdig.activityAuditVersion**
 **Required**: `false`<br>
-**Description**: The size of the persistent volume assigned to NATS HA in a
-cluster of [`size`](#size) large. This option is ignored if
-[`storageClassProvisioner`](#storageclassprovisioner) is `hostPath`.<br>
+**Description**: Docker image tag of Activity Audit services.<br>
 **Options**:<br>
-**Default**: 10Gi<br>
+**Default**: [`sysdig.monitorVersion`](#sysdigmonitorversion)<br>
 **Example**:
 
 ```yaml
-pvStorageSize:
-  large:
-    nats: 10Gi
+sysdig:
+  activityAuditVersion: 3.6.3.10985
 ```
 
-## **pvStorageSize.medium.nats**
+## **sysdig.profilingVersion**
 **Required**: `false`<br>
-**Description**: The size of the persistent volume assigned to NATS HA in a
-cluster of [`size`](#size) medium. This option is ignored if
-[`storageClassProvisioner`](#storageclassprovisioner) is `hostPath`.<br>
+**Description**: Docker image tag of Profiling services.<br>
 **Options**:<br>
-**Default**: 10Gi<br>
+**Default**: [`sysdig.monitorVersion`](#sysdigmonitorversion)<br>
 **Example**:
 
 ```yaml
-pvStorageSize:
-  medium:
-    nats: 10Gi
-```
-
-## **pvStorageSize.small.nats**
-**Required**: `false`<br>
-**Description**: The size of the persistent volume assigned to NATS HA in a
-cluster of [`size`](#size) small. This option is ignored if
-[`storageClassProvisioner`](#storageclassprovisioner) is `hostPath`.<br>
-**Options**:<br>
-**Default**: 10Gi<br>
-**Example**:
-
-```yaml
-pvStorageSize:
-  small:
-    nats: 10Gi
+sysdig:
+  profilingVersion: 3.6.3.10985
 ```
 
 ## **sysdig.anchoreVersion**
 **Required**: `false`<br>
 **Description**: The docker image tag of the Sysdig Anchore Core.<br>
 **Options**:<br>
-**Default**: 0.8.1.32<br>
+**Default**: 0.6.1.2<br>
 **Example**:
 
 ```yaml
 sysdig:
-  anchoreVersion: 0.8.1.32
+  anchoreVersion: 0.8.1.8
 ```
 
 ## **sysdig.accessKey**
@@ -761,19 +713,6 @@ components to communicate with AWS (or an AWS compatible API).<br>
 ```yaml
 sysdig:
   accessKey: my_awesome_aws_access_key
-```
-
-## **sysdig.awsRegion**
-**Required**: `false`<br>
-**Description**: The AWS (or AWS compatible) region to be used by Sysdig
-components to communicate with AWS (or an AWS compatible API).<br>
-**Options**:<br>
-**Default**:<br>
-**Example**:
-
-```yaml
-sysdig:
-  awsRegion: my_aws_region
 ```
 
 ## **sysdig.secretKey**
@@ -830,67 +769,16 @@ sysdig:
     bucketName: my_awesome_bucket
 ```
 
-## **sysdig.s3.capturesFolder**
-**Required**: `false`<br>
-**Description**: Name of the folder in S3 bucket to be used for storing captures, this option is ignored if
-[`sysdig.s3.enabled`](#sysdigs3enabled) is not configured.<br>
-**Options**:<br>
-**Default**:<br>
-**Example**:
-
-```yaml
-sysdig:
-  s3:
-    capturesFolder: my_captures_folder
-```
-
 ## **sysdig.cassandraVersion**
 **Required**: `false`<br>
 **Description**: The docker image tag of Cassandra.<br>
-**Options**: <br>
-**Default**: 2.1.22.4<br>
+**Options**:<br>
+**Default**: 2.1.21.13<br>
 **Example**:
 
 ```yaml
 sysdig:
-  cassandraVersion: 2.1.22.4
-```
-
-## **sysdig.cassandraExporterVersion**
-**Required**: `false`<br>
-**Description**: The docker `image tag` of Cassandra's Prometheus JMX exporter. Default image: `<registry>/<repository>/promcat-jmx-exporter:latest` <br>
-**Options**: <br>
-**Default**: latest<br>
-**Example**:
-
-```yaml
-sysdig:
-  cassandraExporterVersion: latest
-```
-
-## **sysdig.cassandra.useCassandra3**
-**Required**: `false`<br>
-**Description**: Use Cassandra 3 instead of Cassandra 2. Only available for fresh installs from 4.0.<br>
-**Options**: `true|false`<br>
-**Default**: `true`<br>
-**Example**:
-
-```yaml
-sysdig:
-  cassandra:
-    useCassandra3: false
-```
-
-## **sysdig.Cassandra3Version**
-**Required**: `false`<br>
-**Description**: Specify the image version of Cassandra 3.x. Ignored if `sysdig.useCassandra3` is not set to `true`. Only supported in fresh installs from 4.0<br>
-**Options**: <br>
-**Default**: `3.11.11.1`<br>
-**Example**:
-
-```yaml
-sysdig:
-  cassandra3Version: 3.11.11.1
+  cassandraVersion: 2.1.21.16
 ```
 
 ## **sysdig.cassandra.external**
@@ -925,7 +813,7 @@ sysdig:
 **Required**: `false`<br>
 **Description**: Enables cassandra server and clients to use authentication. <br>
 **Options**: `true|false`<br>
-**Default**:`true`<br>
+**Default**:`false`<br>
 **Example**:
 
 ```yaml
@@ -937,21 +825,7 @@ sysdig:
 
 ## **sysdig.cassandra.ssl**
 **Required**: `false`<br>
-**Description**: Enables cassandra server and clients communicate over ssl. Defaults to `true` for Cassandra 3 installs (available from 4.0)<br>
-**Options**: `true|false`<br>
-**Default**: `true`<br>
-**Example**:
-
-```yaml
-sysdig:
- cassandra:
-   secure: true
-   ssl: true
-```
-
-## **sysdig.cassandra.enableMetrics**
-**Required**: `false`<br>
-**Description**: Enables cassandra exporter as sidecar. Defaults to `false` for all Cassandra installs (available from 4.0)<br>
+**Description**: Enables cassandra server and clients communicate over ssl. <br>
 **Options**: `true|false`<br>
 **Default**: `false`<br>
 **Example**:
@@ -959,7 +833,8 @@ sysdig:
 ```yaml
 sysdig:
  cassandra:
-   enableMetrics: true
+   secure: true
+   ssl: true
 ```
 
 ## **sysdig.cassandra.user**
@@ -1042,7 +917,7 @@ sysdig:
 **Required**: `false`<br>
 **Description**: The custom configuration for Cassandra JVM.<br>
 **Options**:<br>
-**Default**: `-Xms4g -Xmx4g`<br>
+**Default**:<br>
 **Example**:
 
 ```yaml
@@ -1096,31 +971,22 @@ The Sysdig platform may sometimes open connections over SSL to certain external 
  - SAML over SSL
  - OpenID Connect over SSL
  - HTTPS Proxies<br>
-If the signing authorities for the certificates presented by these services are not well-known to the Sysdig Platform 
-   (e.g., if you maintain your own Certificate Authority), they are not trusted by default.
+If the signing authorities for the certificates presented by these services are not well-known to the Sysdig Platform (e.g., if you maintain your own Certificate Authority), they are not trusted by default.
 
-To allow the Sysdig platform to trust these certificates, use this configuration to upload one or more 
-PEM-format CA certificates. You must ensure you've uploaded all certificates in the CA approval chain to the root CA.
+To allow the Sysdig platform to trust these certificates, use this configuration to upload one or more PEM-format CA certificates. You must ensure you've uploaded all certificates in the CA approval chain to the root CA.
 
-This configuration when set expects certificates with .crt, .pem or .p12 extensions under certs/custom-java-certs/ 
-in the same level as `values.yaml`.<br>
-
+This configuration when set expects certificates with .crt extension under certs/custom-java-certs/ in the same level as `values.yaml`<br>
 **Options**: `true|false`<br>
 **Default**: false<br>
 **Example**:
 
 ```bash
 #In the example directory structure below, certificate1.crt and certificate2.crt will be added to the trusted list.
-# certificate3.p12 will be loaded to the keystore together with it's private key.
 bash-5.0$ find certs values.yaml
 certs
 certs/custom-java-certs
 certs/custom-java-certs/certificate1.crt
 certs/custom-java-certs/certificate2.crt
-certs/custom-java-certs/certificate3.p12
-certs/custom-java-certs/certificate3.p12.passwd
-
-
 values.yaml
 ```
 
@@ -1156,14 +1022,14 @@ sysdig:
 
 ## **sysdig.elasticsearch6Version**
 **Required**: `false`<br>
-**Description**: The docker image tag of Elasticsearch.<br>
+**Description**: The docker image tag of Elasticsearch 6.<br>
 **Options**:<br>
-**Default**: 6.8.6.12<br>
+**Default**: 6.8.6.6<br>
 **Example**:
 
 ```yaml
 sysdig:
-  elasticsearch6Version: 6.8.6.12
+  elasticsearchVersion: 6.8.6.6
 ```
 
 ## **sysdig.haproxyVersion**
@@ -1275,27 +1141,27 @@ sysdig:
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 5.0.3.10976<br>
+**Default**: 3.6.3.10985<br>
 **Example**:
 
 ```yaml
 sysdig:
-  monitorVersion: 5.0.3.10976
+  monitorVersion: 3.6.3.10985
 ```
 
-## **sysdig.secureVersion**
+## **sysdig.scanningVersion**
 **Required**: `false`<br>
-**Description**: The docker image tag of the Sysdig Secure, if this is not 
-configured it defaults to `sysdig.monitorVersion` **Do not modify
+**Description**: The docker image tag of the Sysdig Scanning components, if
+this is not configured it defaults to `sysdig.monitorVersion` **Do not modify
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 5.0.3.10976<br>
+**Default**: 3.6.3.10985<br>
 **Example**:
 
 ```yaml
 sysdig:
-  secureVersion: 5.0.3.10976
+  scanningVersion: 3.6.3.10985
 ```
 
 ## **sysdig.sysdigAPIVersion**
@@ -1305,12 +1171,12 @@ this is not configured it defaults to `sysdig.monitorVersion` **Do not modify
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 5.0.3.10976<br>
+**Default**: 3.6.3.10985<br>
 **Example**:
 
 ```yaml
 sysdig:
-  sysdigAPIVersion: 5.0.3.10976
+  sysdigAPIVersion: 3.6.3.10985
 ```
 
 ## **sysdig.sysdigCollectorVersion**
@@ -1320,12 +1186,12 @@ this is not configured it defaults to `sysdig.monitorVersion` **Do not modify
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 5.0.3.10976<br>
+**Default**: 3.6.3.10985<br>
 **Example**:
 
 ```yaml
 sysdig:
-  sysdigCollectorVersion: 5.0.3.10976
+  sysdigCollectorVersion: 3.6.3.10985
 ```
 
 ## **sysdig.sysdigWorkerVersion**
@@ -1335,12 +1201,12 @@ this is not configured it defaults to `sysdig.monitorVersion` **Do not modify
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 5.0.3.10976<br>
+**Default**: 3.6.3.10985<br>
 **Example**:
 
 ```yaml
 sysdig:
-  sysdigWorkerVersion: 5.0.3.10976
+  sysdigWorkerVersion: 3.6.3.10985
 ```
 
 ## **sysdig.enableAlerter**
@@ -1356,101 +1222,6 @@ consequences**<br>
 ```yaml
 sysdig:
   enableAlerter: true
-```
-
-## **sysdig.alertingSystem.enabled**
-**Required**: `false`<br>
-**Description**: Enable or disable the new alert-manager and alert-notifier deployment<br>
-**Options**:`true|false`<br>
-**Default**: `true`<br>
-**Example**:
-
-```yaml
-sysdig:
-  alertingSystem:
-    enabled: true
-```
-
-## **sysdig.alertingSystem.alertManager.jvmOptions**
-**Required**: `false`<br>
-**Description**: Custom configuration for Sysdig Alert Manager jvm.<br>
-**Options**:<br>
-**Default**:<br>
-**Example**:
-
-```yaml
-sysdig:
-  alertingSystem:
-    alertManager:
-      jvmOptions: -Dsysdig.redismq.watermark.consumer.threads=20
-```
-
-## **sysdig.alertingSystem.alertManager.apiToken**
-**Required**: `false`<br>
-**Description**: API token used by the Alert Manager to communicate with the sysdig API server<br>
-**Options**:<br>
-**Default**:<br>
-**Example**:
-
-```yaml
-sysdig:
-  alertingSystem:
-    alertManager:
-      apiToken: A_VALID_TOKEN
-```
-
-## **sysdig.alertingSystem.alertNotifier.jvmOptions**
-**Required**: `false`<br>
-**Description**: Custom configuration for Sysdig Alert Notifier jvm.<br>
-**Options**:<br>
-**Default**:<br>
-**Example**:
-
-```yaml
-sysdig:
-  alertingSystem:
-    alertNotifier:
-      jvmOptions: -Dsysdig.redismq.watermark.consumer.threads=20
-```
-
-## **sysdig.alertingSystem.alertNotifier.apiToken**
-**Required**: `false`<br>
-**Description**: API token used by the Alert Notifier to communicate with the sysdig API server<br>
-**Options**:<br>
-**Default**:<br>
-**Example**:
-
-```yaml
-sysdig:
-  alertingSystem:
-    alertNotifier:
-      apiToken: A_VALID_TOKEN
-```
-
-## **sysdig.alertingSystem.alertNotifierReplicaCount**
-**Required**: `false`<br>
-**Description**: Number of Replica for the alertNotifier<br>
-**Options**:<br>
-**Default**: small: 1, medium: 3, large: 5<br>
-**Example**:
-
-```yaml
-sysdig:
-  alertingSystem:
-    alertNotifierReplicaCount: 3
-```
-
-## **sysdig.alertingSystem.alertManagerReplicaCount**
-**Required**: `false`<br>
-**Description**: Number of Replica for the alertManager<br>
-**Options**:<br>
-**Default**: small: 1, medium: 3, large: 5<br>
-**Example**:
-
-```yaml
-sysdig:
-  alertingSystem:
-    alertManagerReplicaCount: 3
 ```
 
 ## **sysdig.mysqlHa**
@@ -1527,7 +1298,8 @@ sysdig:
 
 ## **sysdig.mysql.external**
 **Required**: `false`<br>
-**Description**: If set, the installer does not create a local mysql cluster, instead it sets up the sysdig platform to connect to the configured
+**Description**: If set, the installer does not create a local mysql cluster
+instead it sets up the sysdig platform to connect to the configured
 [`sysdig.mysql.hostname`](#sysdigmysqlhostname) <br>
 **Options**: `true|false`<br>
 **Default**: `false`<br>
@@ -1622,36 +1394,24 @@ sysdig:
 **Required**: `false`<br>
 **Description**: Docker image tag of the Prometheus exporter for NATS.<br>
 **Options**:<br>
-**Default**: 0.7.0.1<br>
+**Default**: 0.6.0.1<br>
 **Example**:
 
 ```yaml
 sysdig:
-  natsExporterVersion: 0.7.0.1
+  natsExporterVersion: 0.6.0.1
 ```
 
 ## **sysdig.natsStreamingVersion**
 **Required**: `false`<br>
 **Description**: Docker image tag of NATS streaming.<br>
 **Options**:<br>
-**Default**: 0.22.0.2<br>
+**Default**: 0.16.2.1<br>
 **Example**:
 
 ```yaml
 sysdig:
-  natsStreamingVersion: 0.22.0.2
-```
-
-## **sysdig.natsStreamingInitVersion**
-**Required**: `false`<br>
-**Description**: Docker image tag of NATS streaming init.<br>
-**Options**:<br>
-**Default**: 0.22.0.2<br>
-**Example**:
-
-```yaml
-sysdig:
-  natsStreamingInitVersion: 0.22.0.2
+  natsStreamingVersion: 0.16.2.1
 ```
 
 ## **sysdig.nats.secure.enabled**
@@ -1666,36 +1426,6 @@ sysdig:
   nats:
     secure:
       enabled: true
-```
-
-## **sysdig.nats.secure.username**
-**Required**: `true` when `sysdig.nats.secure.enabled` is set to true<br>
-**Description**: NATS username<br>
-**Options**:<br>
-**Default**:<br>
-**Example**:
-
-```yaml
-sysdig:
-  nats:
-    secure:
-      enabled: true
-      username: somevalue
-```
-
-## **sysdig.nats.secure.password**
-**Required**: `true` when `sysdig.nats.secure.enabled` is set to true<br>
-**Description**: NATS password<br>
-**Options**:<br>
-**Default**:<br>
-**Example**:
-
-```yaml
-sysdig:
-  nats:
-    secure:
-      enabled: true
-      password: somevalue
 ```
 
 ## **sysdig.nats.ha.enabled**
@@ -1781,7 +1511,7 @@ sysdig:
 ## **sysdig.postgresVersion**
 **Required**: `false`<br>
 **Description**: Docker image tag of Postgres, relevant when configured `apps`
-is `monitor secure` and when `postgres.HA.enabled` is false.<br>
+is `monitor secure`.<br>
 **Options**:<br>
 **Default**: 10.6.11<br>
 **Example**:
@@ -1789,88 +1519,6 @@ is `monitor secure` and when `postgres.HA.enabled` is false.<br>
 ```yaml
 sysdig:
   postgresVersion: 10.6.11
-```
-
-## **sysdig.mysqlToPostgresMigrationVersion**
-**Required**: `false`<br>
-**Description**: The docker image tag for MySQL to PostgreSQL migration.<br>
-**Options**:<br>
-**Default**: 1.2.5-mysql-to-postgres<br>
-**Example**:
-
-```yaml
-sysdig:
-  mysqlToPostgresMigrationVersion: 1.2.5-mysql-to-postgres
-```
-
-## **sysdig.postgresql.rootUser**
-**Required**: `false`<br>
-**Description**: Root user of the in-cluster postgresql instance.<br>
-**Options**:<br>
-**Default**: `postgres`<br>
-**Example**:
-
-```yaml
-sysdig:
-  postgresql:
-    rootUser: postgres
-```
-
-## **sysdig.postgresql.rootDb**
-**Required**: `false`<br>
-**Description**: Root database of the in-cluster postgresql instance.<br>
-**Options**:<br>
-**Default**: `anchore`<br>
-**Example**:
-
-```yaml
-sysdig:
-  postgresql:
-    rootDb: anchore
-```
-
-## **sysdig.postgresql.rootPassword**
-**Required**: `false`<br>
-**Description**: Password for the root user of the in-cluster postgresql instance.<br>
-**Options**:<br>
-**Default**: Autogenerated 16 alphanumeric characters<br>
-**Example**:
-
-```yaml
-sysdig:
-  postgresql:
-    rootPassword: my_root_password
-```
-
-## **sysdig.postgresql.primary**
-**Required**: `false`<br>
-**Description**: If set, the installer starts the mysql to postgresql migration (if not already performed), services will start in postgresql mode.<br>
-**Options**: `true|false`<br>
-**Default**: `true`<br>
-**Example**:
-
-```yaml
-sysdig:
-  postgresql:
-    primary: true
-```
-
-## **sysdig.postgresql.external**
-**Required**: `false`<br>
-**Description**: If set, the installer does not create a local postgresql cluster, instead it sets up the sysdig platform to connect to configured `sysdig.postgresDatabases.*.Host` databases.<br>
-**Options**: `true|false`<br>
-**Default**: `false`<br>
-**Example**:
-
-```yaml
-sysdig:
-  postgresql:
-    external: true
-  postgresDatabases:
-    padvisor:
-      host: my-padvisor-db-external.com
-    sysdig:
-      host: my-sysdig-db-external.com
 ```
 
 ## **sysdig.postgresql.hostPathNodes**
@@ -1893,586 +1541,6 @@ sysdig:
       - my-cool-host1.com
 ```
 
-## **sysdig.postgresql.pgParameters**
-**Required**: `false`<br>
-**Description**: a dictionary of Postgres parameter names and values to apply to the cluster
-**Options**:<br>
-**Default**: ``<br>
-
-**Example**:
-
-```yaml
-sysdig:
-  postgresql:      
-    pgParameters:
-      max_connections: '1024'
-      shared_buffers: '110MB'
-```
-
-
-## **sysdig.postgresql.ha.enabled**
-**Required**: `false`<br>
-**Description**: true if you want to deploy postgreSQL in HA mode.
-**Options**: `true|false`<br>
-**Default**: `false`<br>
-
-**Example**:
-
-```yaml
-sysdig:
-  postgresql:
-    ha:
-      enabled: true
-```
-
-## **sysdig.postgresql.ha.spiloVersion**
-**Required**: `false`<br>
-**Description**: Docker image tag of the postgreSQL node in HA mode.
-**Options**:<br>
-**Default**: `2.0-p7`<br>
-
-**Example**:
-
-```yaml
-sysdig:
-  postgresql:
-    ha:
-      spiloVersion: 2.0-p7
-```
-
-## **sysdig.postgresql.ha.operatorVersion**
-**Required**: `false`<br>
-**Description**: Docker image tag of the postgreSQL operator pod that orchestrate postgreSQL nodes in HA mode.
-**Options**:<br>
-**Default**: `v1.6.3`<br>
-
-**Example**:
-
-```yaml
-sysdig:
-  postgresql:
-    ha:
-      operatorVersion: v1.6.3
-```
-
-## **sysdig.postgresql.ha.exporterVersion**
-**Required**: `false`<br>
-**Description**: Docker image tag of the prometheus exporter for postgreSQL in HA mode.
-**Options**:<br>
-**Default**: `latest`<br>
-
-**Example**:
-
-```yaml
-sysdig:
-  postgresql:
-    ha:
-      exporterVersion: v0.3
-```
-
-## **sysdig.postgresql.ha.clusterDomain**
-**Required**: `false`<br>
-**Description**: dns domain inside the cluster. Needed by the postgres operator to select the correct kubernetes api endpoint.
-**Options**:<br>
-**Default**: `cluster.local`<br>
-
-**Example**:
-
-```yaml
-sysdig:
-  postgresql:
-    ha:
-      clusterDomain: cluster.local
-```
-
-## **sysdig.postgresql.ha.replicas**
-**Required**: `false`<br>
-**Description**: number of replicas for postgreSQL nodes in HA mode.
-**Options**:<br>
-**Default**: `3`<br>
-
-**Example**:
-
-```yaml
-sysdig:
-  postgresql:
-    ha:
-      replicas: 3
-```
-
-
-## **sysdig.postgresql.ha.enableExporter**
-**Required**: `false`<br>
-**Description**: Docker image tag of the prometheus exporter for postgreSQL in HA mode.
-**Options**:<br>
-**Default**: `true`<br>
-
-**Example**:
-
-```yaml
-sysdig:
-  postgresql:
-    ha:
-      enableExporter: true
-```
-
-## **sysdig.postgresql.ha.migrate.retryCount**
-**Required**: `false`<br>
-**Description**: If true a sidecar prometheus exporter for postgres in HA mode is created.
-**Options**: `true|false`<br>
-**Default**: `3600`<br>
-
-**Example**:
-
-```yaml
-sysdig:
-  postgresql:
-    ha:
-      migrate:
-        retryCount: 3600
-```
-
-## **sysdig.postgresql.ha.migrate.retrySleepSeconds**
-**Required**: `false`<br>
-**Description**: Wait time between checks for the migration job from postgreSQL in single mode to HA mode.
-**Options**:<br>
-**Default**: `10`<br>
-
-**Example**:
-
-```yaml
-sysdig:
-  postgresql:
-    ha:
-      migrate:
-        retrySleepSeconds: 10
-```
-
-## **sysdig.postgresql.ha.migrate.retainBackup**
-**Required**: `false`<br>
-**Description**: If true the statefulset and pvc of the postgreSQL in single node mode is not deleted after the migration to HA mode.
-**Options**: `true|false`<br>
-**Default**: `true`<br>
-
-**Example**:
-
-```yaml
-sysdig:
-  postgresql:
-    ha:
-      migrate:
-        retainBackup: true
-```
-
-## **sysdig.postgresql.ha.migrate.migrationJobImageVersion**
-**Required**: `false`<br>
-**Description**: Docker image tag of the migration job from postgres single node to HA mode.
-**Options**:<br>
-**Default**: `postgres-to-postgres-ha-0.0.4`<br>
-
-**Example**:
-
-```yaml
-sysdig:
-  postgresql:
-    ha:
-      migrate:
-        migrationJobImageVersion: v0.1
-```
-
-## **sysdig.postgresql.ha.customTls.enabled**
-**Required**: `false`<br>
-**Description**: If set to true will pass to the target pg crd the option to add
-custom certificates and CA
-**Options**: `true|false`<br>
-**Default**: `false`<br>
-
-**Example**:
-
-```yaml
-sysdig:
-  postgresql:
-    ha:
-      customTls:
-       enabled: true
-```
-
-## **sysdig.postgresql.ha.customTls.crtSecretName**
-**Required**: `false`<br>
-**Description**: in case of customtls enabled it's the name of the k8s secret
-that container certificate and key that will be used in postgres HA for ssl
-NOTE: the certficate and key files must be called `tls.crt` and `tls.key`
-**Options**: `secret-name`<br>
-**Default**: `nil`<br>
-
-**Example**:
-
-```yaml
-sysdig:
-  postgresql:
-    ha:
-      customTls:
-       enabled: true
-       crtSecretName: sysdigcloud-postgres-tls-crt
-```
-
-## **sysdig.postgresql.ha.customTls.caSecretName**
-**Required**: `false`<br>
-**Description**: in case of customtls enabled it's the name of the k8s secret
-that container the CA certificate that will be used in postgres HA for ssl
-NOTE: the CA certificate file must be called `ca.crt`
-**Options**: `secret-name`<br>
-**Default**: `nil`<br>
-
-**Example**:
-
-```yaml
-sysdig:
-  postgresql:
-    ha:
-      customTls:
-       enabled: true
-       crtSecretName: sysdigcloud-postgres-tls-crt
-       caSecretName: sysdigcloud-postgres-tls-ca
-
-```
-
-## **sysdig.postgresDatabases.useNonAdminUsers**
-**Required**: `false`<br>
-**Description**: If set, the services will connect to `anchore` and `profiling` databases in non-root mode: this also means that `anchore` and `profiling` connection details and credentials will be fetched from `sysdigcloud-postgres-config` configmap and `sysdigcloud-postgres-secret` secret, instead of `sysdigcloud-config` configmap and `sysdigcloud-anchore` secret. It only works if `sysdig.postgresql.external` is set.<br>
-**Options**: `true|false`<br>
-**Default**: `false`<br>
-**Example**:
-
-```yaml
-sysdig:
-  postgresql:
-    external: true
-  postgresDatabases:
-    useNonAdminUsers: true
-    anchore:
-      host: my-anchore-db-external.com
-    profiling:
-      host: my-profiling-db-external.com
-```
-
-## **sysdig.postgresDatabases.anchore**
-**Required**: `false`<br>
-**Description**: A map containing database connection details for external postgresql instance used as `anchore` database. To use in conjunction with `sysdig.postgresql.external`. Only relevant if `sysdig.postgresDatabases.useNonAdminUsers` is configured.<br>
-**Example**:
-
-```yaml
-sysdig:
-  postgresql:
-    external: true
-  postgresDatabases:
-    useNonAdminUsers: true
-    anchore:
-      host: my-anchore-db-external.com
-      port: 5432
-      db: anchore_db
-      username: anchore_user
-      password: my_anchore_user_password
-      sslmode: disable
-      admindb: root_db
-      adminusername: root_user
-      adminpassword: my_root_user_password
-```
-
-## **sysdig.postgresDatabases.profiling**
-**Required**: `false`<br>
-**Description**: A map containing database connection details for external postgresql instance used as `profiling` database. To use in conjunction with `sysdig.postgresql.external`. Only relevant if `sysdig.postgresDatabases.useNonAdminUsers` is configured.<br>
-**Example**:
-
-```yaml
-sysdig:
-  postgresql:
-    external: true
-  postgresDatabases:
-    useNonAdminUsers: true
-    profiling:
-      host: my-profiling-db-external.com
-      port: 5432
-      db: anchore_db
-      username: profiling_user
-      password: my_profiling_user_password
-      sslmode: disable
-      admindb: root_db
-      adminusername: root_user
-      adminpassword: my_root_user_password
-```
-
-## **sysdig.postgresDatabases.policies**
-**Required**: `false`<br>
-**Description**: A map containing database connection details for external postgresql instance used as `policies` database. To use in conjunction with `sysdig.postgresql.external`.<br>
-**Example**:
-
-```yaml
-sysdig:
-  postgresql:
-    external: true
-  postgresDatabases:
-    policies:
-      host: my-policies-db-external.com
-      port: 5432
-      db: policies_db
-      username: policies_user
-      password: my_policies_user_password
-      sslmode: disable
-      admindb: root_db
-      adminusername: root_user
-      adminpassword: my_root_user_password
-```
-
-## **sysdig.postgresDatabases.scanning**
-**Required**: `false`<br>
-**Description**: A map containing database connection details for external postgresql instance used as `scanning` database. To use in conjunction with `sysdig.postgresql.external`. Only relevant if `sysdig.postgresql.primary` is configured.<br>
-**Example**:
-
-```yaml
-sysdig:
-  postgresql:
-    primary: true
-    external: true
-  postgresDatabases:
-    scanning:
-      host: my-scanning-db-external.com
-      port: 5432
-      db: scanning_db
-      username: scanning_user
-      password: my_scanning_user_password
-      sslmode: disable
-      admindb: root_db
-      adminusername: root_user
-      adminpassword: my_root_user_password
-```
-
-## **sysdig.postgresDatabases.reporting**
-**Required**: `false`<br>
-**Description**: A map containing database connection details for external postgresql instance used as `reporting` database. To use in conjunction with `sysdig.postgresql.external`.<br>
-**Example**:
-
-```yaml
-sysdig:
-  postgresql:
-    external: true
-  postgresDatabases:
-    reporting:
-      host: my-reporting-db-external.com
-      port: 5432
-      db: reporting_db
-      username: reporting_user
-      password: my_reporting_user_password
-      sslmode: disable
-      admindb: root_db
-      adminusername: root_user
-      adminpassword: my_root_user_password
-```
-
-## **sysdig.postgresDatabases.padvisor**
-**Required**: `false`<br>
-**Description**: A map containing database connection details for external postgresql instance used as `padvisor` database. To use in conjunction with `sysdig.postgresql.external`. Only relevant if `sysdig.postgresql.primary` is configured.<br>
-**Example**:
-
-```yaml
-sysdig:
-  postgresql:
-    primary: true
-    external: true
-  postgresDatabases:
-    padvisor:
-      host: my-padvisor-db-external.com
-      port: 5432
-      db: padvisor_db
-      username: padvisor_user
-      password: my_padvisor_user_password
-      sslmode: disable
-      admindb: root_db
-      adminusername: root_user
-      adminpassword: my_root_user_password
-```
-
-## **sysdig.postgresDatabases.sysdig**
-**Required**: `false`<br>
-**Description**: A map containing database connection details for external postgresql instance used as `sysdig` database. To use in conjunction with `sysdig.postgresql.external`. Only relevant if `sysdig.postgresql.primary` is configured.<br>
-**Example**:
-
-```yaml
-sysdig:
-  postgresql:
-    primary: true
-    external: true
-  postgresDatabases:
-    sysdig:
-      host: my-sysdig-db-external.com
-      port: 5432
-      db: sysdig_db
-      username: sysdig_user
-      password: my_sysdig_user_password
-      sslmode: disable
-      admindb: root_db
-      adminusername: root_user
-      adminpassword: my_root_user_password
-```
-
-## **sysdig.postgresDatabases.serviceOwnerManagement**
-**Required**: `false`<br>
-**Description**: A map containing database connection details for external postgresql instance used as `serviceOwnerManagement` database. To use in conjunction with `sysdig.postgresql.external`. Only relevant if `sysdig.postgresql.primary` is configured.<br>
-**Example**:
-
-```yaml
-sysdig:
-  postgresql:
-    primary: true
-    external: true
-  postgresDatabases:
-    serviceOwnerManagement:
-      host: my-som-db-external.com
-      port: 5432
-      db: som_db
-      username: som_user
-      password: my_som_user_password
-      sslmode: disable
-      admindb: root_db
-      adminusername: root_user
-      adminpassword: my_root_user_password
-```
-
-## **sysdig.postgresDatabases.beacon**
-**Required**: `false`<br>
-**Description**: A map containing database connection details for external postgresql instance used as `beacon` database. To use in conjunction with `sysdig.postgresql.external`. Only relevant if `sysdig.postgresql.primary` is configured and Beacon for IBM PlatformMetrics is enabled.<br>
-**Example**:
-
-```yaml
-sysdig:
-  postgresql:
-    primary: true
-    external: true
-  postgresDatabases:
-    beacon:
-      host: my-beacon-db-external.com
-      port: 5432
-      db: beacon_db
-      username: beacon_user
-      password: my_beacon_user_password
-      sslmode: disable
-      admindb: root_db
-      adminusername: root_user
-      adminpassword: my_root_user_password
-```
-
-## **sysdig.postgresDatabases.promBeacon**
-**Required**: `false`<br>
-**Description**: A map containing database connection details for external postgresql instance used as `promBeacon` database. To use in conjunction with `sysdig.postgresql.external`. Only relevant if `sysdig.postgresql.primary` is configured and Generalized Beacon is enabled.<br>
-**Example**:
-
-```yaml
-sysdig:
-  postgresql:
-    primary: true
-    external: true
-  postgresDatabases:
-    promBeacon:
-      host: my-prom-beacon-db-external.com
-      port: 5432
-      db: prom_beacon_db
-      username: prom_beacon_user
-      password: my_prom_beacon_user_password
-      sslmode: disable
-      admindb: root_db
-      adminusername: root_user
-      adminpassword: my_root_user_password
-```
-
-## **sysdig.postgresDatabases.quartz**
-**Required**: `false`<br>
-**Description**: A map containing database connection details for external postgresql instance used as `quartz` database. To use in conjunction with `sysdig.postgresql.external`. Only relevant if `sysdig.postgresql.primary` is configured.<br>
-**Example**:
-
-```yaml
-sysdig:
-  postgresql:
-    primary: true
-    external: true
-  postgresDatabases:
-    quartz:
-      host: my-quartz-db-external.com
-      port: 5432
-      db: quartz_db
-      username: quartz_user
-      password: my_quartz_user_password
-      sslmode: disable
-      admindb: root_db
-      adminusername: root_user
-      adminpassword: my_root_user_password
-```
-
-## **sysdig.postgresDatabases.compliance**
-**Required**: `false`<br>
-**Description**: A map containing database connection details for external postgresql instance used as `compliance` database. To use in conjunction with `sysdig.postgresql.external`.<br>
-**Example**:
-
-```yaml
-sysdig:
-  postgresql:
-    external: true
-  postgresDatabases:
-    compliance:
-      host: my-compliance-db-external.com
-      port: 5432
-      db: compliance_db
-      username: compliance_user
-      password: my_compliance_user_password
-      sslmode: disable
-      admindb: root_db
-      adminusername: root_user
-      adminpassword: my_root_user_password
-```
-
-## **sysdig.postgresDatabases.admissionController**
-**Required**: `false`<br>
-**Description**: A map containing database connection details for external postgresql instance used as `admissionController` database. To use in conjunction with `sysdig.postgresql.external`.<br>
-**Example**:
-
-```yaml
-sysdig:
-  postgresql:
-    external: true
-  postgresDatabases:
-    admissionController:
-      host: my-admission-controller-db-external.com
-      port: 5432
-      db: admission_controller_db
-      username: admission_controller_user
-      password: my_admission_controller_user_password
-      sslmode: disable
-      admindb: root_db
-      adminusername: root_user
-      adminpassword: my_root_user_password
-```
-
-## **sysdig.postgresDatabases.rapidResponse**
-**Required**: `false`<br>
-**Description**: A map containing database connection details for external postgresql instance used as `rapidResponse` database. To use in conjunction with `sysdig.postgresql.external`.<br>
-**Example**:
-
-```yaml
-sysdig:
-  postgresql:
-    external: true
-  postgresDatabases:
-    rapidResponse:
-      host: my-rapid-response-db-external.com
-      port: 5432
-      db: rapid_response_db
-      username: rapid_response_user
-      password: my_rapid_response_user_password
-      sslmode: disable
-      admindb: root_db
-      adminusername: root_user
-      adminpassword: my_root_user_password
-```
-
 ## **sysdig.proxy.defaultNoProxy**
 **Required**: `false`<br>
 **Description**: Default comma separated list of addresses or domain names
@@ -2482,7 +1550,7 @@ should only be used if there is an intent to override the defaults provided by
 Installer otherwise consider [`sysdig.proxy.noProxy`](#sysdigproxynoproxy)
 instead.<br>
 **Options**:<br>
-**Default**: `127.0.0.1, localhost, sysdigcloud-anchore-core, sysdigcloud-anchore-api`<br>
+**Default**: `127.0.0.1, localhost, sysdigcloud-anchore-core`<br>
 
 **Example**:
 
@@ -2490,7 +1558,7 @@ instead.<br>
 sysdig:
   proxy:
     enable: true
-    defaultNoProxy: 127.0.0.1, localhost, sysdigcloud-anchore-core, sysdigcloud-anchore-api
+    defaultNoProxy: 127.0.0.1, localhost, sysdigcloud-anchore-core
 ```
 
 ## **sysdig.proxy.enable**
@@ -2533,9 +1601,9 @@ sysdig:
 that can be reached without going through the configured web proxy. This is
 only relevant if [`sysdig.proxy.enable`](#sysdigproxyenable) is configured and
 appended to the list in
-[`sysdig.proxy.defaultNoProxy`](#sysdigproxydefaultnoproxy]).<br>
+[`sysdig.proxy.defaultNoProxy`](#sysdigproxydefaultnoproxy].<br>
 **Options**:<br>
-**Default**: `127.0.0.1, localhost, sysdigcloud-anchore-core, sysdigcloud-anchore-api`<br>
+**Default**: `127.0.0.1, localhost, sysdigcloud-anchore-core`<br>
 
 **Example**:
 
@@ -2685,38 +1753,6 @@ sysdig:
       oauth:
         endpoint: https://slack.com/api/oauth.v2.access
 ```
-## **sysdig.saml.certificate.name**
-**Required**: `false`<br>
-**Description**: The filename of the certificate that will be used for signing SAML requests. 
-The certificate file needs to be passed via `sysdig.certificate.customCA` and the filename should match
-the certificate name used when creating the certificate.<br>
-**Options**:<br>
-**Default**:  <br>
-
-**Example**:
-
-```yaml
-sysdig:
-  saml:
-    certificate:
-      name: saml-cert.p12
-```
-## **sysdig.saml.certificate.password**
-**Required**: `false`<br>
-**Description**: The password required to read the certificate that will be used for signing SAML requests. 
-If `sysdig.saml.certificate.name` is set, this parameter needs to be set as well.<br>
-**Options**:<br>
-**Default**:  <br>
-
-**Example**:
-
-```yaml
-sysdig:
-  saml:
-    certificate:
-      name: saml-cert.p12
-      password: changeit
-```
 
 ## **sysdig.inactivitySettings.trackerEnabled**
 **Required**: `false`<br>
@@ -2772,21 +1808,6 @@ sysdig:
       customCerts: true
 ```
 
-## **sysdig.secure.anchore.enableMetrics**
-**Required**: `false`<br>
-**Description**:
-Allow Anchore to export prometheus metrics.
-
-**Options**: `true|false`<br>
-**Default**: false<br>
-**Example**:
-```yaml
-sysdig:
-  secure:
-    anchore:
-      enableMetrics: true
-```
-
 ## **sysdig.redisVersion**
 **Required**: `false`<br>
 **Description**: Docker image tag of Redis.<br>
@@ -2823,58 +1844,6 @@ sysdig:
 sysdig:
   redisHa: false
 ```
-
-## **sysdig.useRedis6**
-**Required**: `false`<br>
-**Description**: Determines if redis should be installed with version 6.x<br>
-**Options**: `true|false`<br>
-**Default**: `true`<br>
-**Example**:
-
-```yaml
-sysdig:
-  useRedis6: false
-```
-
-## **sysdig.redis6Version**
-**Required**: `false`<br>
-**Description**: Docker image tag of Redis 6, relevant when configured
-`sysdig.useRedis6` is `true`.<br>
-**Options**:<br>
-**Default**: 6.0.10.1<br>
-**Example**:
-
-```yaml
-sysdig:
-  redis6Version: 6.0.10.1
-```
-
-## **sysdig.redis6SentinelVersion**
-**Required**: `false`<br>
-**Description**: Docker image tag of Redis Sentinel, relevant when configured
-`sysdig.useRedis6` is `true`.<br>
-**Options**:<br>
-**Default**: 6.0.10.1<br>
-**Example**:
-
-```yaml
-sysdig:
-  redis6SentinelVersion: 6.0.10.1
-```
-
-## **sysdig.redis6ExporterVersion**
-**Required**: `false`<br>
-**Description**: Docker image tag of Redis Metrics Exporter, relevant when configured
-`sysdig.useRedis6` is `true`.<br>
-**Options**:<br>
-**Default**: 1.15.1.1<br>
-**Example**:
-
-```yaml
-sysdig:
-  redis6ExporterVersion: 1.15.1.1
-```
-
 
 ## **sysdig.resources.cassandra.limits.cpu**
 **Required**: `false`<br>
@@ -2950,9 +1919,9 @@ sysdig:
 
 | cluster-size | requests |
 | ------------ | -------- |
-| small        | 8Gi      |
-| medium       | 8Gi      |
-| large        | 8Gi      |
+| small        | 2Gi      |
+| medium       | 2Gi      |
+| large        | 2Gi      |
 
 **Example**:
 
@@ -2961,7 +1930,7 @@ sysdig:
   resources:
     cassandra:
       requests:
-        memory: 8Gi
+        memory: 2Gi
 ```
 
 ## **sysdig.resources.elasticsearch.limits.cpu**
@@ -3661,185 +2630,9 @@ sysdig:
         memory: 200Mi
 ```
 
-## **sysdig.resources.ingressControllerHaProxy.limits.cpu**
-**Required**: `false`<br>
-**Description**: The amount of cpu assigned to haproxy-ingress containers in haproxy-ingress daemon set<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | limits |
-| ------------ | ------ |
-| small        | 500m   |
-| medium       | 1      |
-| large        | 1      |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    ingressControllerHaProxy:
-      limits:
-        cpu: 2
-```
-
-## **sysdig.resources.ingressControllerHaProxy.limits.memory**
-**Required**: `false`<br>
-**Description**: The amount of memory assigned to haproxy-ingress containers in haproxy-ingress daemon set<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | limits |
-| ------------ | ------ |
-| small        | 250Mi  |
-| medium       | 500Mi  |
-| large        | 500Mi  |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    ingressControllerHaProxy:
-      limits:
-        memory: 2Gi
-```
-
-## **sysdig.resources.ingressControllerHaProxy.requests.cpu**
-**Required**: `false`<br>
-**Description**: The amount of cpu required to schedule haproxy-ingress containers in haproxy-ingress daemon set<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 50m      |
-| medium       | 100m     |
-| large        | 100m     |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    ingressControllerHaProxy:
-      requests:
-        cpu: 2
-```
-
-## **sysdig.resources.ingressControllerHaProxy.requests.memory**
-**Required**: `false`<br>
-**Description**: The amount of memory required to schedule haproxy-ingress containers in haproxy-ingress daemon set<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 50Mi     |
-| medium       | 100Mi    |
-| large        | 100Mi    |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    ingressControllerHaProxy:
-      requests:
-        memory: 1Gi
-```
-
-## **sysdig.resources.ingressControllerRsyslog.limits.cpu**
-**Required**: `false`<br>
-**Description**: The amount of cpu assigned to rsyslog-server containers in haproxy-ingress daemon set<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | limits |
-| ------------ | ------ |
-| small        | 125m   |
-| medium       | 250m   |
-| large        | 250m   |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    ingressControllerRsyslog:
-      limits:
-        cpu: 2
-```
-
-## **sysdig.resources.ingressControllerRsyslog.limits.memory**
-**Required**: `false`<br>
-**Description**: The amount of memory assigned to rsyslog-server containers in haproxy-ingress daemon set<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | limits |
-| ------------ | ------ |
-| small        | 50Mi   |
-| medium       | 100Mi  |
-| large        | 100Mi  |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    ingressControllerRsyslog:
-      limits:
-        memory: 1Gi
-```
-
-## **sysdig.resources.ingressControllerRsyslog.requests.cpu**
-**Required**: `false`<br>
-**Description**: The amount of cpu required to schedule rsyslog-server containers in haproxy-ingress daemon set<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 50m     |
-| medium       | 50m     |
-| large        | 50m     |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    ingressControllerRsyslog:
-      requests:
-        cpu: 500m
-```
-
-## **sysdig.resources.ingressControllerRsyslog.requests.memory**
-**Required**: `false`<br>
-**Description**: The amount of memory required to schedule rsyslog-server containers in haproxy-ingress daemon set<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 20Mi     |
-| medium       | 20Mi     |
-| large        | 20Mi     |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    ingressControllerRsyslog:
-      requests:
-        memory: 500Mi
-```
-
 ## **sysdig.resources.api.limits.cpu**
 **Required**: `false`<br>
-**Description**: The amount of cpu assigned to api containers in api pods<br>
+**Description**: The amount of cpu assigned to api pods<br>
 **Options**:<br>
 **Default**:
 
@@ -3861,7 +2654,7 @@ sysdig:
 
 ## **sysdig.resources.api.limits.memory**
 **Required**: `false`<br>
-**Description**: The amount of memory assigned to api containers in api pods<br>
+**Description**: The amount of memory assigned to api pods<br>
 **Options**:<br>
 **Default**:
 
@@ -3884,7 +2677,7 @@ sysdig:
 
 ## **sysdig.resources.api.requests.cpu**
 **Required**: `false`<br>
-**Description**: The amount of cpu required to schedule api containers in api pods<br>
+**Description**: The amount of cpu required to schedule api pods<br>
 **Options**:<br>
 **Default**:
 
@@ -3906,7 +2699,7 @@ sysdig:
 
 ## **sysdig.resources.api.requests.memory**
 **Required**: `false`<br>
-**Description**: The amount of memory required to schedule api containers in api pods<br>
+**Description**: The amount of memory required to schedule api pods<br>
 **Options**:<br>
 **Default**:
 
@@ -3924,184 +2717,6 @@ sysdig:
     api:
       requests:
         memory: 200Mi
-```
-
-## **sysdig.resources.apiNginx.limits.cpu**
-**Required**: `false`<br>
-**Description**: The amount of cpu assigned to nginx containers in api pods<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | limits |
-| ------------ | ------ |
-| small        | 1      |
-| medium       | 1      |
-| large        | 1      |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    apiNginx:
-      limits:
-        cpu: 1
-```
-
-## **sysdig.resources.apiNginx.limits.memory**
-**Required**: `false`<br>
-**Description**: The amount of memory assigned to nginx containers in api pods<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | limits |
-| ------------ | ------ |
-| small        | 500Mi  |
-| medium       | 500Mi  |
-| large        | 500Mi  |
-
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    apiNginx:
-      limits:
-        memory: 500Mi
-```
-
-## **sysdig.resources.apiNginx.requests.cpu**
-**Required**: `false`<br>
-**Description**: The amount of cpu required to schedule nginx containers in api pods<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 500m     |
-| medium       | 500m     |
-| large        | 500m     |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    apiNginx:
-      requests:
-        cpu: 500m
-```
-
-## **sysdig.resources.apiNginx.requests.memory**
-**Required**: `false`<br>
-**Description**: The amount of memory required to schedule nginx containers in api pods<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 100Mi    |
-| medium       | 100Mi    |
-| large        | 100Mi    |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    apiNginx:
-      requests:
-        memory: 100Mi
-```
-
-## **sysdig.resources.apiEmailRenderer.limits.cpu**
-**Required**: `false`<br>
-**Description**: The amount of cpu assigned to email-renderer containers in api pods<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | limits |
-| ------------ | ------ |
-| small        | 1      |
-| medium       | 1      |
-| large        | 1      |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    apiEmailRenderer:
-      limits:
-        cpu: 1
-```
-
-## **sysdig.resources.apiEmailRenderer.limits.memory**
-**Required**: `false`<br>
-**Description**: The amount of memory assigned to email-renderer containers in api pods<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | limits |
-| ------------ | ------ |
-| small        | 500Mi  |
-| medium       | 500Mi  |
-| large        | 500Mi  |
-
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    apiEmailRenderer:
-      limits:
-        memory: 500Mi
-```
-
-## **sysdig.resources.apiEmailRenderer.requests.cpu**
-**Required**: `false`<br>
-**Description**: The amount of cpu required to schedule email-renderer containers in api pods<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 500m     |
-| medium       | 500m     |
-| large        | 500m     |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    apiEmailRenderer:
-      requests:
-        cpu: 500m
-```
-
-## **sysdig.resources.apiEmailRenderer.requests.memory**
-**Required**: `false`<br>
-**Description**: The amount of memory required to schedule email-renderer containers in api pods<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 100Mi    |
-| medium       | 100Mi    |
-| large        | 100Mi    |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    apiEmailRenderer:
-      requests:
-        memory: 100Mi
 ```
 
 ## **sysdig.resources.worker.limits.cpu**
@@ -4379,9 +2994,9 @@ sysdig:
 
 | cluster-size | limits |
 | ------------ | ------ |
-| small        | 1      |
-| medium       | 1      |
-| large        | 1      |
+| small        | 4      |
+| medium       | 4      |
+| large        | 4      |
 
 **Example**:
 
@@ -4390,73 +3005,7 @@ sysdig:
   resources:
     anchore-core:
       limits:
-        cpu: 1
-```
-
-## **sysdig.resources.anchore-api.limits.cpu**
-**Required**: `false`<br>
-**Description**: The amount of cpu assigned to anchore-api pods<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | limits |
-| ------------ | ------ |
-| small        | 1      |
-| medium       | 1      |
-| large        | 1      |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    anchore-api:
-      limits:
-        cpu: 1
-```
-
-## **sysdig.resources.anchore-catalog.limits.cpu**
-**Required**: `false`<br>
-**Description**: The amount of cpu assigned to anchore-catalog pods<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | limits |
-| ------------ | ------ |
-| small        | 1      |
-| medium       | 1      |
-| large        | 1      |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    anchore-catalog:
-      limits:
-        cpu: 1
-```
-
-## **sysdig.resources.anchore-policy-engine.limits.cpu**
-**Required**: `false`<br>
-**Description**: The amount of cpu assigned to anchore-policy-engine pods<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | limits |
-| ------------ | ------ |
-| small        | 1      |
-| medium       | 1      |
-| large        | 1      |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    anchore-policy-engine:
-      limits:
-        cpu: 1
+        cpu: 2
 ```
 
 ## **sysdig.resources.anchore-core.limits.memory**
@@ -4467,9 +3016,9 @@ sysdig:
 
 | cluster-size | limits |
 | ------------ | ------ |
-| small        | 1Gi    |
-| medium       | 1Gi    |
-| large        | 1Gi    |
+| small        | 4Gi    |
+| medium       | 4Gi    |
+| large        | 4Gi    |
 
 
 **Example**:
@@ -4478,78 +3027,6 @@ sysdig:
 sysdig:
   resources:
     anchore-core:
-      limits:
-        memory: 10Mi
-```
-
-
-## **sysdig.resources.anchore-api.limits.memory**
-**Required**: `false`<br>
-**Description**: The amount of memory assigned to anchore-api pods<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | limits |
-| ------------ | ------ |
-| small        | 1Gi    |
-| medium       | 1Gi    |
-| large        | 1Gi    |
-
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    anchore-api:
-      limits:
-        memory: 10Mi
-```
-
-
-## **sysdig.resources.anchore-catalog.limits.memory**
-**Required**: `false`<br>
-**Description**: The amount of memory assigned to anchore-catalog pods<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | limits |
-| ------------ | ------ |
-| small        | 2Gi    |
-| medium       | 2Gi    |
-| large        | 3Gi    |
-
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    anchore-catalog:
-      limits:
-        memory: 10Mi
-```
-
-
-## **sysdig.resources.anchore-policy-engine.limits.memory**
-**Required**: `false`<br>
-**Description**: The amount of memory assigned to anchore-policy-engine pods<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | limits |
-| ------------ | ------ |
-| small        | 2Gi    |
-| medium       | 2Gi    |
-| large        | 3Gi    |
-
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    anchore-policy-engine:
       limits:
         memory: 10Mi
 ```
@@ -4563,8 +3040,8 @@ sysdig:
 | cluster-size | requests |
 | ------------ | -------- |
 | small        | 500m     |
-| medium       | 500m     |
-| large        | 500m     |
+| medium       | 1        |
+| large        | 1        |
 
 **Example**:
 
@@ -4572,72 +3049,6 @@ sysdig:
 sysdig:
   resources:
     anchore-core:
-      requests:
-        cpu: 2
-```
-
-## **sysdig.resources.anchore-api.requests.cpu**
-**Required**: `false`<br>
-**Description**: The amount of cpu required to schedule anchore-api pods<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 500m     |
-| medium       | 500m     |
-| large        | 500m     |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    anchore-api:
-      requests:
-        cpu: 2
-```
-
-## **sysdig.resources.anchore-catalog.requests.cpu**
-**Required**: `false`<br>
-**Description**: The amount of cpu required to schedule anchore-catalog pods<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 500m     |
-| medium       | 500m     |
-| large        | 500m     |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    anchore-catalog:
-      requests:
-        cpu: 2
-```
-
-## **sysdig.resources.anchore-policy-engine.requests.cpu**
-**Required**: `false`<br>
-**Description**: The amount of cpu required to schedule anchore-policy-engine pods<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 500m     |
-| medium       | 500m     |
-| large        | 500m     |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    anchore-policy-engine:
       requests:
         cpu: 2
 ```
@@ -4650,9 +3061,9 @@ sysdig:
 
 | cluster-size | requests |
 | ------------ | -------- |
-| small        | 256Mi    |
-| medium       | 256Mi    |
-| large        | 256Mi    |
+| small        | 1Gi      |
+| medium       | 1Gi      |
+| large        | 1Gi      |
 
 **Example**:
 
@@ -4660,72 +3071,6 @@ sysdig:
 sysdig:
   resources:
     anchore-core:
-      requests:
-        memory: 200Mi
-```
-
-## **sysdig.resources.anchore-api.requests.memory**
-**Required**: `false`<br>
-**Description**: The amount of memory required to schedule anchore-api pods<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 256Mi    |
-| medium       | 256Mi    |
-| large        | 256Mi    |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    anchore-api:
-      requests:
-        memory: 200Mi
-```
-
-## **sysdig.resources.anchore-catalog.requests.memory**
-**Required**: `false`<br>
-**Description**: The amount of memory required to schedule anchore-catalog pods<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 1Gi      |
-| medium       | 1Gi      |
-| large        | 1Gi      |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    anchore-catalog:
-      requests:
-        memory: 200Mi
-```
-
-## **sysdig.resources.anchore-policy-engine.requests.memory**
-**Required**: `false`<br>
-**Description**: The amount of memory required to schedule anchore-policy-engine pods<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 1Gi      |
-| medium       | 1Gi      |
-| large        | 1Gi      |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    anchore-policy-engine:
       requests:
         memory: 200Mi
 ```
@@ -5312,660 +3657,6 @@ sysdig:
     scanning-ve-janitor:
       requests:
         memory: 200Mi
-```
-
-## **sysdig.resources.scanningAdmissionControllerApi.limits.cpu**
-**Required**: `false`<br>
-**Description**: The amount of cpu assigned to admission-controller-api containers<br>
-**Options**:<br>
-**Default**:
-
-|cluster-size|limits  |
-|------------|--------|
-| small      | 1      |
-| medium     | 1      |
-| large      | 1      |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    scanningAdmissionControllerApi:
-      limits:
-        cpu: 1
-```
-
-## **sysdig.resources.scanningAdmissionControllerApi.limits.memory**
-**Required**: `false`<br>
-**Description**: The amount of memory assigned to admission-controller-api containers<br>
-**Options**:<br>
-**Default**:
-
-|cluster-size|limits  |
-|------------|--------|
-| small      | 500Mi  |
-| medium     | 500Mi  |
-| large      | 500Mi  |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    scanningAdmissionControllerApi:
-      limits:
-        memory: 500Mi
-```
-
-## **sysdig.resources.scanningAdmissionControllerApi.requests.cpu**
-**Required**: `false`<br>
-**Description**: The amount of cpu required to schedule admission-controller-api containers<br>
-**Options**:<br>
-**Default**:
-
-|cluster-size|requests|
-|------------|--------|
-| small      |  250m  |
-| medium     |  250m  |
-| large      |  250m  |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    scanningAdmissionControllerApi:
-      requests:
-        cpu: 250m
-```
-
-## **sysdig.resources.scanningAdmissionControllerApi.requests.memory**
-**Required**: `false`<br>
-**Description**: The amount of memory required to schedule admission-controller-api containers<br>
-**Options**:<br>
-**Default**:
-
-|cluster-size|requests|
-|------------|--------|
-| small      |  50Mi  |
-| medium     |  50Mi  |
-| large      |  50Mi  |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    admission-controller-api:
-      requests:
-        memory: 50Mi
-```
-
-## **sysdig.resources.scanningAdmissionControllerApiPgMigrate.limits.cpu**
-**Required**: `false`<br>
-**Description**: The amount of cpu assigned to admission-controller-api PG
-migrate containers<br>
-**Options**:<br>
-**Default**:
-
-|cluster-size|limits  |
-|------------|--------|
-| small      | 1      |
-| medium     | 1      |
-| large      | 1      |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    scanningAdmissionControllerApiPgMigrate:
-      limits:
-        cpu: 1
-```
-
-## **sysdig.resources.scanningAdmissionControllerApiPgMigrate.limits.memory**
-**Required**: `false`<br>
-**Description**: The amount of memory assigned to admission-controller-api PG
-migrate containers<br>
-**Options**:<br>
-**Default**:
-
-|cluster-size|limits  |
-|------------|--------|
-| small      | 256Mi  |
-| medium     | 256Mi  |
-| large      | 256Mi  |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    scanningAdmissionControllerApiPgMigrate:
-      limits:
-        memory: 256Mi
-```
-
-## **sysdig.resources.scanningAdmissionControllerApiPgMigrate.requests.cpu**
-**Required**: `false`<br>
-**Description**: The amount of cpu required to schedule admission-controller-api
-PG migrate containers<br>
-**Options**:<br>
-**Default**:
-
-|cluster-size|requests|
-|------------|--------|
-| small      |  100m  |
-| medium     |  100m  |
-| large      |  100m  |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    scanningAdmissionControllerApiPgMigrate:
-      requests:
-        cpu: 100m
-```
-
-## **sysdig.resources.scanningAdmissionControllerApiPgMigrate.requests.memory**
-**Required**: `false`<br>
-**Description**: The amount of memory required to schedule admission-controller-api
-PG migrate containers<br>
-**Options**:<br>
-**Default**:
-
-|cluster-size|requests|
-|------------|--------|
-| small      |  50Mi  |
-| medium     |  50Mi  |
-| large      |  50Mi  |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    admission-controller-api-pg-migrate:
-      requests:
-        memory: 50Mi
-```
-
-## **sysdig.resources.reporting-init.limits.cpu**
-**Required**: `false`<br>
-**Description**: The amount of cpu assigned to reporting-init pods<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 1        |
-| medium       | 1        |
-| large        | 1        |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    reporting-init:
-      limits:
-        cpu: 1
-```
-
-## **sysdig.resources.reporting-init.limits.memory**
-**Required**: `false`<br>
-**Description**: The amount of memory assigned to reporting-init pods<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 256Mi    |
-| medium       | 256Mi    |
-| large        | 256Mi    |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    reporting-init:
-      limits:
-        memory: 256Mi
-```
-
-## **sysdig.resources.reporting-init.requests.cpu**
-**Required**: `false`<br>
-**Description**: The amount of cpu required to schedule reporting-init pods<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 100m     |
-| medium       | 100m     |
-| large        | 100m     |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    reporting-init:
-      requests:
-        cpu: 100m
-```
-
-## **sysdig.resources.reporting-init.requests.memory**
-**Required**: `false`<br>
-**Description**: The amount of memory required to schedule reporting-init pods<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 50Mi     |
-| medium       | 50Mi     |
-| large        | 50Mi     |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    reporting-init:
-      requests:
-        memory: 50Mi
-```
-
-## **sysdig.resources.reporting-api.limits.cpu**
-**Required**: `false`<br>
-**Description**: The amount of cpu assigned to reporting-api pods<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 1500m    |
-| medium       | 1500m    |
-| large        | 1500m    |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    reporting-api:
-      limits:
-        cpu: 1500m
-```
-
-## **sysdig.resources.reporting-api.limits.memory**
-**Required**: `false`<br>
-**Description**: The amount of memory assigned to reporting-api pods<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 1536Mi   |
-| medium       | 1536Mi   |
-| large        | 1536Mi   |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    reporting-api:
-      limits:
-        memory: 1536Mi
-```
-
-## **sysdig.resources.reporting-api.requests.cpu**
-**Required**: `false`<br>
-**Description**: The amount of cpu required to schedule reporting-api pods<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 200m     |
-| medium       | 200m     |
-| large        | 200m     |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    reporting-api:
-      requests:
-        cpu: 200m
-```
-
-## **sysdig.resources.reporting-api.requests.memory**
-**Required**: `false`<br>
-**Description**: The amount of memory required to schedule reporting-api pods<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 256Mi    |
-| medium       | 256Mi    |
-| large        | 256Mi    |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    reporting-api:
-      requests:
-        memory: 256Mi
-```
-
-## **sysdig.resources.reporting-worker.limits.cpu**
-**Required**: `false`<br>
-**Description**: The amount of cpu assigned to reporting-worker pods<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 2        |
-| medium       | 2        |
-| large        | 2        |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    reporting-worker:
-      limits:
-        cpu: 2
-```
-
-## **sysdig.resources.reporting-worker.limits.memory**
-**Required**: `false`<br>
-**Description**: The amount of memory assigned to reporting-worker pods<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 16Gi     |
-| medium       | 16Gi     |
-| large        | 16Gi     |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    reporting-worker:
-      limits:
-        memory: 16Gi
-```
-
-## **sysdig.resources.reporting-worker.requests.cpu**
-**Required**: `false`<br>
-**Description**: The amount of cpu required to schedule reporting-worker pods<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 200m     |
-| medium       | 200m     |
-| large        | 200m     |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    reporting-worker:
-      requests:
-        cpu: 200m
-```
-
-## **sysdig.resources.reporting-worker.requests.memory**
-**Required**: `false`<br>
-**Description**: The amount of memory required to schedule reporting-worker pods<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 10Gi     |
-| medium       | 10Gi     |
-| large        | 10Gi     |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    reporting-worker:
-      requests:
-        memory: 10Gi
-```
-
-## **sysdig.secure.scanning.reporting.debug**
-**Required**: `false`<br>
-**Description**: Enable logging at debug level<br>
-**Options**:<br>
-**Default**: false<br>
-**Example**:
-
-```yaml
-sysdig:
-  secure:
-    scanning:
-      reporting:
-        debug: false
-```
-
-## **sysdig.secure.scanning.reporting.apiGRPCEndpoint**
-**Required**: `false`<br>
-**Description**: Reporting GRPC endpoint<br>
-**Options**:<br>
-**Default**: sysdigcloud-scanning-reporting-api-grpc:6000<br>
-**Example**:
-
-```yaml
-sysdig:
-  secure:
-    scanning:
-      reporting:
-        apiGRPCEndpoint: sysdigcloud-scanning-reporting-api-grpc:6000
-```
-
-## **sysdig.secure.scanning.reporting.scanningGRPCEndpoint**
-**Required**: `false`<br>
-**Description**: Scanning GRPC endpoint<br>
-**Options**:<br>
-**Default**: sysdigcloud-scanning-api:6000<br>
-**Example**:
-
-```yaml
-sysdig:
-  secure:
-    scanning:
-      reporting:
-        scanningGRPCEndpoint: sysdigcloud-scanning-api:6000
-```
-
-## **sysdig.secure.scanning.reporting.storageDriver**
-**Required**: `false`<br>
-**Description**: Storage kind for generated reports<br>
-**Options**: postgres, fs, s3<br>
-**Default**: postgres<br>
-**Example**:
-
-```yaml
-sysdig:
-  secure:
-    scanning:
-      reporting:
-        storageDriver: postgres
-```
-
-## **sysdig.secure.scanning.reporting.storageCompression**
-**Required**: `false`<br>
-**Description**: Compression format for generated reports<br>
-**Options**: zip, gzip, none<br>
-**Default**: zip<br>
-**Example**:
-
-```yaml
-sysdig:
-  secure:
-    scanning:
-      reporting:
-        storageCompression: zip
-```
-
-## **sysdig.secure.scanning.reporting.storageFsDir**
-**Required**: `false`<br>
-**Description**: The directory where reports will saved (required when using `fs` driver)<br>
-**Options**: <br>
-**Default**: .<br>
-**Example**:
-
-```yaml
-sysdig:
-  secure:
-    scanning:
-      reporting:
-        storageFsDir: /reports
-```
-
-## **sysdig.secure.scanning.reporting.storagePostgresRetentionDays**
-**Required**: `false`<br>
-**Description**: The number of days the generated reports will be kept for download (available when using `postgres` driver)<br>
-**Options**: <br>
-**Default**: 1<br>
-**Example**:
-
-```yaml
-sysdig:
-  secure:
-    scanning:
-      reporting:
-        storagePostgresRetentionDays: 1
-```
-
-## **sysdig.secure.scanning.reporting.storageS3Bucket**
-**Required**: `false`<br>
-**Description**: The bucket name where reports will be saved (required when using `s3` driver)<br>
-**Options**: <br>
-**Default**: <br>
-**Example**:
-
-```yaml
-sysdig:
-  secure:
-    scanning:
-      reporting:
-        storageS3Bucket: secure-scanning-reporting
-```
-
-## **sysdig.secure.scanning.reporting.storageS3Prefix**
-**Required**: `false`<br>
-**Description**: The object name prefix (directory) used when saving reports in a S3 bucket<br>
-**Options**: <br>
-**Default**: <br>
-**Example**:
-
-```yaml
-sysdig:
-  secure:
-    scanning:
-      reporting:
-        storageS3Prefix: reports
-```
-
-## **sysdig.secure.scanning.reporting.storageS3Endpoint**
-**Required**: `false`<br>
-**Description**: The service endpoint of a S3-compatible storage (required when using `s3` driver in a non-AWS deployment)<br>
-**Options**: <br>
-**Default**: <br>
-**Example**:
-
-```yaml
-sysdig:
-  secure:
-    scanning:
-      reporting:
-        storageS3Endpoint: s3.example.com
-```
-
-## **sysdig.secure.scanning.reporting.storageS3Region**
-**Required**: `false`<br>
-**Description**: The AWS region where the S3 bucket is created (required when using `s3` driver in a AWS deployment)<br>
-**Options**: <br>
-**Default**: <br>
-**Example**:
-
-```yaml
-sysdig:
-  secure:
-    scanning:
-      reporting:
-        storageS3Region: us-east-1
-```
-
-## **sysdig.secure.scanning.reporting.storageS3AccessKeyID**
-**Required**: `false`<br>
-**Description**: The Access Key ID used to authenticate with a S3-compatible storage (required when using `s3` driver in a non-AWS deployment)<br>
-**Options**: <br>
-**Default**: <br>
-**Example**:
-
-```yaml
-sysdig:
-  secure:
-    scanning:
-      reporting:
-        storageS3AccessKeyID: AKIAIOSFODNN7EXAMPLE
-```
-
-## **sysdig.secure.scanning.reporting.storageS3SecretAccessKey**
-**Required**: `false`<br>
-**Description**: The Secret Access Key used to authenticate with a S3-compatible storage (required when using `s3` driver in a non-AWS deployment)<br>
-**Options**: <br>
-**Default**: <br>
-**Example**:
-
-```yaml
-sysdig:
-  secure:
-    scanning:
-      reporting:
-        storageS3SecretAccessKey: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-```
-
-## **sysdig.secure.scanning.reporting.workerSleepTime**
-**Required**: `false`<br>
-**Description**: The sleep interval between two runs of the reporting worker<br>
-**Options**: <br>
-**Default**: 120s<br>
-**Example**:
-
-```yaml
-sysdig:
-  secure:
-    scanning:
-      reporting:
-        workerSleepTime: 120s
 ```
 
 ## **sysdig.resources.policy-advisor.limits.cpu**
@@ -7716,66 +5407,6 @@ sysdig:
   anchoreCoreReplicaCount: 5
 ```
 
-## **sysdig.anchoreAPIReplicaCount**
-**Required**: `false`<br>
-**Description**: Number of Sysdig Anchore API replicas, this is a noop for
-clusters of `size` `small`.<br>
-**Options**:<br>
-**Default**:<br>
-
-| cluster-size | count |
-| ------------ | ----- |
-| small        | 1     |
-| medium       | 2     |
-| large        | 2     |
-
-**Example**:
-
-```yaml
-sysdig:
-  anchoreAPIReplicaCount: 4
-```
-
-## **sysdig.anchoreCatalogReplicaCount**
-**Required**: `false`<br>
-**Description**: Number of Sysdig Anchore Catalog replicas, this is a noop for
-clusters of `size` `small`.<br>
-**Options**:<br>
-**Default**:<br>
-
-| cluster-size | count |
-| ------------ | ----- |
-| small        | 1     |
-| medium       | 2     |
-| large        | 4     |
-
-**Example**:
-
-```yaml
-sysdig:
-  anchoreCatalogReplicaCount: 4
-```
-
-## **sysdig.anchorePolicyEngineReplicaCount**
-**Required**: `false`<br>
-**Description**: Number of Sysdig Anchore Policy Engine replicas, this is a noop for
-clusters of `size` `small`.<br>
-**Options**:<br>
-**Default**:<br>
-
-| cluster-size | count |
-| ------------ | ----- |
-| small        | 1     |
-| medium       | 2     |
-| large        | 4     |
-
-**Example**:
-
-```yaml
-sysdig:
-  anchorePolicyEngineReplicaCount: 4
-```
-
 ## **sysdig.anchoreWorkerReplicaCount**
 **Required**: `false`<br>
 **Description**: Number of Sysdig Anchore Worker replicas.<br>
@@ -7912,26 +5543,6 @@ sysdig:
   policyAdvisorReplicaCount: 20
 ```
 
-## **sysdig.scanningAdmissionControllerAPIReplicaCount**
-**Required**: `false`<br>
-**Description**: Number of scanning Admission Controller API replicas, this is
-a noop for clusters of `size` `small`.<br>
-**Options**:<br>
-**Default**:<br>
-
-|cluster-size|count|
-|------------|-----|
-| small      |  1  |
-| medium     |  1  |
-| large      |  1  |
-
-**Example**:
-
-```yaml
-sysdig:
-  scanningAdmissionControllerAPIReplicaCount: 1
-```
-
 ## **sysdig.netsecApiReplicaCount**
 **Required**: `false`<br>
 **Description**: Number of Netsec API replicas.<br>
@@ -7968,24 +5579,6 @@ sysdig:
 ```yaml
 sysdig:
   netsecIngestReplicaCount: 1
-```
-## **sysdig.netsecCommunicationShards**
-**Required**: `false`<br>
-**Description**: Number of Netsec communications index shards.<br>
-**Options**:<br>
-**Default**:<br>
-
-| cluster-size | count |
-| ------------ | ----- |
-| small        | 3     |
-| medium       | 9     |
-| large        | 15    |
-
-**Example**:
-
-```yaml
-sysdig:
-  netsecCommunicationShards: 5
 ```
 
 ## **sysdig.anchoreCoreReplicaCount**
@@ -8356,18 +5949,6 @@ sysdig:
   collector:
     certificate:
       key: certs/collector.key
-```
-## **sysdig.worker.enabled**
-**Required**: `false`<br>
-**Description**: Enables Sysdig Worker component<br>
-**Options**:`true|false`<br>
-**Default**: `true`<br>
-**Example**:
-
-```yaml
-sysdig:
-  worker:
-    enabled: true
 ```
 
 ## **sysdig.worker.jvmOptions**
@@ -9310,75 +6891,6 @@ sysdig:
   eventsForwarderEnabledIntegrations: "MCM,QRADAR"
 ```
 
-## **sysdig.secure.scanning.admissionControllerAPI.maxDurationBeforeDisconnection**
-**Required**: `false`<br>
-**Description**: Max duration after the last ping from an AC before it is considered
-disconnected. It cannot be greater than 30m. See also pingTTLDuration<br>
-**Options**:<br>
-**Default**: 10m<br>
-**Example**:
-
-```yaml
-sysdig:
-  secure:
-    scanning:
-      admissionControllerAPI:
-        maxDurationBeforeDisconnection: 20m
-```
-
-## **sysdig.secure.scanning.admissionControllerAPI.confTTLDuration**
-**Required**: `false`<br>
-**Description**: TTL of the cache for the cluster configuration. It should be
-used by the AC as polling interval to retrieve the updated cluster configuration
-from the API. It cannot be greater than 30m<br>
-**Options**:<br>
-**Default**: 5m<br>
-**Example**:
-
-```yaml
-sysdig:
-  secure:
-    scanning:
-      admissionControllerAPI:
-        confTTLDuration: 10m
-```
-
-## **sysdig.secure.scanning.admissionControllerAPI.pingTTLDuration**
-**Required**: `false`<br>
-**Description**: TTL of an AC ping. It should be used by the AC as polling
-interval to perform a HEAD on the ping endpoint to notify it's still alive and
-connected. It cannot be greater than 30m and it cannot be greater than
-maxDurationBeforeDisconnection<br>
-**Options**:<br>
-**Default**: 5m<br>
-**Example**:
-
-```yaml
-sysdig:
-  secure:
-    scanning:
-      admissionControllerAPI:
-        pingTTLDuration: 8m
-```
-
-## **sysdig.secure.scanning.admissionControllerAPI.clusterConfCacheMaxDuration**
-**Required**: `false`<br>
-**Description**: Max duration of the cluster configuration cache. The API returns
-this value as max-age in seconds and the FE uses it for caching the cluster
-configuration. FE also asks for a new cluster configuration using this value
-as time interval. It cannot be greater than 30m<br>
-**Options**:<br>
-**Default**: 5m<br>
-**Example**:
-
-```yaml
-sysdig:
-  secure:
-    scanning:
-      admissionControllerAPI:
-        clusterConfCacheMaxDuration: 9m
-```
-
 ## **sysdig.scanningAnalysiscollectorConcurrentUploads**
 **Required**: `false`<br>
 **Description**: Number of concurrent uploads for Scanning Analysis Collector<br>
@@ -9389,18 +6901,6 @@ sysdig:
 ```yaml
 sysdig:
   scanningAnalysiscollectorConcurrentUploads: 5
-```
-
-## **sysdig.scanningAlertMgrForceAutoScan**
-**Required**: `false`<br>
-**Description**: Enable the runtime image autoscan feature. Note that for adopting a more distributed way of scanning runtime images, the Node Image Analyzer (NIA) is preferable.<br>
-**Options**:<br>
-**Default**: `false`<br>
-**Example**:
-
-```yaml
-sysdig:
-  scanningAlertMgrForceAutoScan: false
 ```
 
 ## **sysdig.secure.scanning.veJanitor.cronjob**
@@ -9443,666 +6943,4 @@ sysdig:
   secure:
     veJanitor:
       scanningDbEngine: "mysql"
-```
-
-
-## **sysdig.metadataService.enabled**
-**Required**: `false`<br>
-**Description**: Whether to enable metadata-service or not
-**Do not modify this unless you
-know what you are doing as modifying it could have unintended
-consequences**<br>
-**Options**:`true|false`<br>
-**Default**: `false`<br>
-**Example**:
-
-```yaml
-sysdig:
-  metadataService:
-    enabled: true
-```
-
-## **sysdig.resources.metadataService.limits.cpu**
-**Required**: `false`<br>
-**Description**: The amount of cpu assigned to metadataService pods<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | limits |
-| ------------ | ------ |
-| small        | 4      |
-| medium       | 8      |
-| large        | 16     |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    metadataService:
-      limits:
-        cpu: 2
-```
-
-## **sysdig.resources.metadataService.limits.memory**
-**Required**: `false`<br>
-**Description**: The amount of memory assigned to metadataService pods<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | limits |
-| ------------ | ------ |
-| small        | 4Gi    |
-| medium       | 8Gi    |
-| large        | 16Gi   |
-
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    metadataService:
-      limits:
-        memory: 10Mi
-```
-
-## **sysdig.resources.metadataService.requests.cpu**
-**Required**: `false`<br>
-**Description**: The amount of cpu required to schedule metadataService pods<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 1        |
-| medium       | 2        |
-| large        | 4        |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    metadataService:
-      requests:
-        cpu: 2
-```
-
-## **sysdig.resources.metadataService.requests.memory**
-**Required**: `false`<br>
-**Description**: The amount of memory required to schedule metadataService pods<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 1Gi      |
-| medium       | 2Gi      |
-| large        | 4Gi      |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    metadataService:
-      requests:
-        memory: 200Mi
-```
-
-## **sysdig.metadataServiceReplicaCount**
-**Required**: `false`<br>
-**Description**: Number of Sysdig metadataService replicas, this is a noop for clusters
-of `size` `small`.<br>
-**Options**:<br>
-**Default**:<br>
-
-| cluster-size | count |
-| ------------ | ----- |
-| small        | 2     |
-| medium       | 6     |
-| large        | 10    |
-
-**Example**:
-
-```yaml
-sysdig:
-  metadataServiceReplicaCount: 4
-```
-
-## **sysdig.metadataServiceVersion**
-**Required**: `false`<br>
-**Description**: Docker image tag of metadataService, relevant when `sysdig.metadataService.enabled` is `true`.<br>
-**Options**:<br>
-**Default**: 1.0.1.1<br>
-**Example**:
-
-```yaml
-sysdig:
-  metadataServiceVersion: 1.0.1.12
-```
-
-## **sysdig.helmRenderer.enabled**
-**Required**: `false`<br>
-**Description**: Whether to enable helm-renderer or not
-**Do not modify this unless you
-know what you are doing as modifying it could have unintended
-consequences**<br>
-**Options**:`true|false`<br>
-**Default**: `false`<br>
-**Example**:
-
-```yaml
-sysdig:
-  helmRenderer:
-    enabled: true
-```
-
-## **sysdig.resources.helmRenderer.limits.cpu**
-**Required**: `false`<br>
-**Description**: The amount of cpu assigned to helmRenderer pods<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | limits |
-| ------------ | ------ |
-| small        | 4      |
-| medium       | 8      |
-| large        | 16     |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    helmRenderer:
-      limits:
-        cpu: 2
-```
-
-## **sysdig.resources.helmRenderer.limits.memory**
-**Required**: `false`<br>
-**Description**: The amount of memory assigned to helmRenderer pods<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | limits |
-| ------------ | ------ |
-| small        | 4Gi    |
-| medium       | 8Gi    |
-| large        | 16Gi   |
-
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    helmRenderer:
-      limits:
-        memory: 10Mi
-```
-
-## **sysdig.resources.helmRenderer.requests.cpu**
-**Required**: `false`<br>
-**Description**: The amount of cpu required to schedule helmRenderer pods<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 1        |
-| medium       | 2        |
-| large        | 4        |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    helmRenderer:
-      requests:
-        cpu: 2
-```
-
-## **sysdig.resources.helmRenderer.requests.memory**
-**Required**: `false`<br>
-**Description**: The amount of memory required to schedule helmRenderer pods<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 1Gi      |
-| medium       | 2Gi      |
-| large        | 4Gi      |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    helmRenderer:
-      requests:
-        memory: 200Mi
-```
-
-## **sysdig.helmRendererReplicaCount**
-**Required**: `false`<br>
-**Description**: Number of Sysdig helmRenderer replicas, this is a noop for clusters
-of `size` `small`.<br>
-**Options**:<br>
-**Default**:<br>
-
-| cluster-size | count |
-| ------------ | ----- |
-| small        | 2     |
-| medium       | 6     |
-| large        | 10    |
-
-**Example**:
-
-```yaml
-sysdig:
-  helmRendererReplicaCount: 4
-```
-
-## **sysdig.helmRendererVersion**
-**Required**: `false`<br>
-**Description**: Docker image tag of helmRenderer, relevant when `sysdig.helmRenderer.enabled` is `true`.<br>
-**Options**:<br>
-**Default**: 0.1.32<br>
-**Example**:
-
-```yaml
-sysdig:
-  helmRendererVersion: 0.1.32
-```
-
-## **sysdig.secure.activityAudit.enabled**
-**Required**: `false`<br>
-**Description**: Enable activity audit for Sysdig secure.<br>
-**Options**:<br>
-**Default**: true<br>
-**Example**:
-
-```yaml
-sysdig:
-  secure:
-    activityAudit:
-      enabled: true
-```
-
-## **sysdig.secure.activityAudit.janitor.retentionDays**
-**Required**: `false`<br>
-**Description**: Retention period for Activity Audit data.<br>
-**Options**:<br>
-**Default**: 90<br>
-**Example**:
-
-```yaml
-sysdig:
-  secure:
-    activityAudit:
-      janitor:
-        retentionDays: 90
-```
-
-## **sysdig.secure.anchore.enabled**
-**Required**: `false`<br>
-**Description**: Enable anchore for Sysdig Secure.<br>
-**Options**:<br>
-**Default**: true<br>
-**Example**:
-
-```yaml
-sysdig:
-  secure:
-    anchore:
-      enabled: true
-```
-
-## **sysdig.secure.compliance.enabled**
-**Required**: `false`<br>
-**Description**: Enable compliance for Sysdig Secure.<br>
-**Options**:<br>
-**Default**: true<br>
-**Example**:
-
-```yaml
-sysdig:
-  secure:
-    compliance:
-      enabled: true
-```
-
-## **sysdig.secure.netsec.enabled**
-**Required**: `false`<br>
-**Description**: Enable netsec for Sysdig Secure.<br>
-**Options**:<br>
-**Default**: true<br>
-**Example**:
-
-```yaml
-sysdig:
-  secure:
-    netsec:
-      enabled: true
-```
-
-## **sysdig.secure.overview.enabled**
-**Required**: `false`<br>
-**Description**: Enable overview for Sysdig Secure.<br>
-**Options**:<br>
-**Default**: true<br>
-**Example**:
-
-```yaml
-sysdig:
-  secure:
-    overview:
-      enabled: true
-```
-
-## **sysdig.secure.padvisor.enabled**
-**Required**: `false`<br>
-**Description**: Enable policy advisor for Sysdig Secure.<br>
-**Options**:<br>
-**Default**: true<br>
-**Example**:
-
-```yaml
-sysdig:
-  secure:
-    padvisor:
-      enabled: true
-```
-
-## **sysdig.secure.profiling.enabled**
-**Required**: `false`<br>
-**Description**: Enable profiling for Sysdig Secure.<br>
-**Options**:<br>
-**Default**: true<br>
-**Example**:
-
-```yaml
-sysdig:
-  secure:
-    profiling:
-      enabled: true
-```
-
-## **sysdig.secure.scanning.reporting.enabled**
-**Required**: `false`<br>
-**Description**: Enable reporting for Sysdig Secure.<br>
-**Options**:<br>
-**Default**: true<br>
-**Example**:
-
-```yaml
-sysdig:
-  secure:
-    scanning:
-      reporting:
-        enabled: true
-```
-
-## **sysdig.secure.scanning.enabled**
-**Required**: `false`<br>
-**Description**: Enable scanning for Sysdig Secure.<br>
-**Options**:<br>
-**Default**: true<br>
-**Example**:
-
-```yaml
-sysdig:
-  secure:
-    scanning:
-      enabled: true
-```
-
-## **sysdig.secure.events.enabled**
-**Required**: `false`<br>
-**Description**: Enable events for Sysdig Secure.<br>
-**Options**:<br>
-**Default**: true<br>
-**Example**:
-
-```yaml
-sysdig:
-  secure:
-    events:
-      enabled: true
-```
-
-## **sysdig.secure.eventsForwarder.enabled**
-**Required**: `false`<br>
-**Description**: Enable events forwarder for Sysdig Secure.<br>
-**Options**:<br>
-**Default**: true<br>
-**Example**:
-
-```yaml
-sysdig:
-  secure:
-    eventsForwarder:
-      enabled: true
-```
-
-## **sysdig.resources.rapid-response-connector.limits.cpu**
-**Required**: `false`<br>
-**Description**: The amount of cpu assigned to rapid-response-connector pods<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | limits |
-| ------------ | ------ |
-| small        | 1      |
-| medium       | 1      |
-| large        | 1      |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    rapid-response-connector:
-      limits:
-        cpu: 1
-```
-
-## **sysdig.resources.rapid-response-connector.limits.memory**
-**Required**: `false`<br>
-**Description**: The amount of memory assigned to rapid-response-connector pods<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | limits |
-| ------------ | ------ |
-| small        | 500Mi  |
-| medium       | 500Mi  |
-| large        | 500Mi  |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    rapid-response-connector:
-      limits:
-        memory: 500Mi
-```
-
-## **sysdig.resources.rapid-response-connector.requests.cpu**
-**Required**: `false`<br>
-**Description**: The amount of cpu required to schedule rapid-response-connector pods<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 250m     |
-| medium       | 250m     |
-| large        | 250m     |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    rapid-response-connector:
-      requests:
-        cpu: 250m
-```
-
-## **sysdig.resources.rapid-response-connector.requests.memory**
-**Required**: `false`<br>
-**Description**: The amount of memory required to schedule rapid-response-connector pods<br>
-**Options**:<br>
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 50Mi     |
-| medium       | 50Mi     |
-| large        | 50Mi     |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    rapid-response-connector:
-      requests:
-        memory: 50Mi
-```
-
-## **sysdig.rapidResponseConnectorReplicaCount**
-**Required**: `false`<br>
-**Description**: Number of Sysdig rapid-response-connector replicas.<br>
-**Options**:<br>
-**Default**:<br>
-
-| cluster-size | count |
-| ------------ | ----- |
-| small        | 1     |
-| medium       | 1     |
-| large        | 1     |
-
-**Example**:
-
-```yaml
-sysdig:
-  rapidResponseConnectorReplicaCount: 1
-```
-
-## **sysdig.secure.rapidResponse.enabled**
-**Required**: `false`<br>
-**Description**: Whether to deploy rapid response or not.<br>
-**Options**:<br>
-**Default**: false<br>
-**Example**:
-
-```yaml
-sysdig:
-  secure:
-    rapidResponse:
-      enabled: false
-```
-
-## **sysdig.secure.rapidResponse.validationCodeLength**
-**Required**: `false`<br>
-**Description**: Length of mfa validation code sent via e-mail.<br>
-**Options**:<br>
-**Default**: 6<br>
-**Example**:
-
-```yaml
-sysdig:
-  secure:
-    rapidResponse:
-      validationCodeLength: 8
-```
-
-## **sysdig.secure.rapidResponse.validationCodeSecondsDuration**
-**Required**: `false`<br>
-**Description**: Duration in seconds of mfa validation code sent via e-mail.<br>
-**Options**:<br>
-**Default**: 180<br>
-**Example**:
-
-```yaml
-sysdig:
-  secure:
-    rapidResponse:
-      validationCodeSecondsDuration: 8
-```
-
-## **sysdig.secure.rapidResponse.sessionTotalSecondsTTL**
-**Required**: `false`<br>
-**Description**: Global duration of session in seconds.<br>
-**Options**:<br>
-**Default**: 7200<br>
-**Example**:
-
-```yaml
-sysdig:
-  secure:
-    rapidResponse:
-      sessionTotalSecondsTTL: 7200
-```
-
-
-## **sysdig.secure.rapidResponse.sessionIdleSecondsTTL**
-**Required**: `false`<br>
-**Description**: Idle duration of session in seconds.<br>
-**Options**:<br>
-**Default**: 300<br>
-**Example**:
-
-```yaml
-sysdig:
-  secure:
-    rapidResponse:
-      sessionIdleSecondsTTL: 300
-```
-
-
-## **sysdig.secure.scanning.feedsEnabled**
-**Required**: `false`<br>
-**Description**: Deploys a local Sysdig Secure feeds API and DB for airgapped installs that cannot reach out to one of Sysdig SaaS products<br>	
-**Options**: `true|false`<br>
-**Default**: `false`<br>
-
-**Example**:
-```yaml
-sysdig:
-  secure:
-    scanning:
-      feedsEnabled: true
-```
-
-## **sysdig.feedsAPIVersion**
-**Required**: `false`<br>
-**Description**: Sets feeds API version<br>
-**Options**:<br>
-**Default**: `latest`<br>
-
-**Example**:
-```yaml
-sysdig:
-  feedsAPIVersion: 0.5.0
-```
-
-## **sysdig.feedsDBVersion**
-**Required**: `false`<br>
-**Description**: Sets feeds database version<br>
-**Options**:<br>
-**Default**: `latest`<br>
-
-**Example**:
-```yaml
-sysdig:
-  feedsDBVersion: 0.5.0-2020-03-11
 ```
