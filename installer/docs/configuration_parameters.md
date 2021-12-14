@@ -1275,12 +1275,12 @@ sysdig:
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 5.0.2.10900<br>
+**Default**: 5.0.3.10976<br>
 **Example**:
 
 ```yaml
 sysdig:
-  monitorVersion: 5.0.2.10900
+  monitorVersion: 5.0.3.10976
 ```
 
 ## **sysdig.secureVersion**
@@ -1290,12 +1290,12 @@ configured it defaults to `sysdig.monitorVersion` **Do not modify
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 5.0.2.10900<br>
+**Default**: 5.0.3.10976<br>
 **Example**:
 
 ```yaml
 sysdig:
-  secureVersion: 5.0.2.10900
+  secureVersion: 5.0.3.10976
 ```
 
 ## **sysdig.sysdigAPIVersion**
@@ -1305,12 +1305,12 @@ this is not configured it defaults to `sysdig.monitorVersion` **Do not modify
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 5.0.2.10900<br>
+**Default**: 5.0.3.10976<br>
 **Example**:
 
 ```yaml
 sysdig:
-  sysdigAPIVersion: 5.0.2.10900
+  sysdigAPIVersion: 5.0.3.10976
 ```
 
 ## **sysdig.sysdigCollectorVersion**
@@ -1320,12 +1320,12 @@ this is not configured it defaults to `sysdig.monitorVersion` **Do not modify
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 5.0.2.10900<br>
+**Default**: 5.0.3.10976<br>
 **Example**:
 
 ```yaml
 sysdig:
-  sysdigCollectorVersion: 5.0.2.10900
+  sysdigCollectorVersion: 5.0.3.10976
 ```
 
 ## **sysdig.sysdigWorkerVersion**
@@ -1335,12 +1335,12 @@ this is not configured it defaults to `sysdig.monitorVersion` **Do not modify
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 5.0.2.10900<br>
+**Default**: 5.0.3.10976<br>
 **Example**:
 
 ```yaml
 sysdig:
-  sysdigWorkerVersion: 5.0.2.10900
+  sysdigWorkerVersion: 5.0.3.10976
 ```
 
 ## **sysdig.enableAlerter**
