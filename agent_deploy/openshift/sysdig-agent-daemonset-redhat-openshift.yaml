@@ -21,6 +21,15 @@ spec:
       - name: modprobe-d
         hostPath:
           path: /etc/modprobe.d
+      - name: osrel
+        hostPath:
+          path: /etc/os-release
+          type: FileOrCreate
+### uncomment for minikube
+#      - name: etc-version
+#        hostPath:
+#          path: /etc/VERSION
+#          type: FileOrCreate
       - name: dshm
         emptyDir:
           medium: Memory
@@ -45,6 +54,12 @@ spec:
       - name: varrun-vol
         hostPath:
           path: /var/run
+### Uncomment these lines if you'd like to map /root/ from the
+#   host into the container. This can be useful to map
+#   /root/.sysdig to pick up custom kernel modules.
+#     - name: host-root-vol
+#       hostPath:
+#         path: /root
       - name: sysdig-agent-config
         configMap:
           name: sysdig-agent
@@ -64,11 +79,24 @@ spec:
               apiVersion: v1
               fieldPath: metadata.name
             path: name
+      # This section is for eBPF support. Please refer to Sysdig Support before
+      # uncommenting, as eBPF is recommended for only a few configurations.
+      #- name: sys-tracing
+      #  hostPath:
+      #    path: /sys/kernel/debug
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
       hostPID: true
+      tolerations:
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/master
+      # The following line is necessary for RBAC
       serviceAccount: sysdig-agent
       terminationGracePeriodSeconds: 5
+      ### Uncomment following 2 lines to pull images from a private registry,
+      ### replacing secret-name with your secret name (previously created)
+      #imagePullSecrets:
+      #- name: secret-name
       containers:
       - name: sysdig-agent
         image: registry.connect.redhat.com/sysdig/agent:latest
@@ -89,10 +117,19 @@ spec:
           exec:
             command: [ "test", "-e", "/opt/draios/logs/running" ]
           initialDelaySeconds: 10
+        # This section is for eBPF support. Please refer to Sysdig Support before
+        # uncommenting, as eBPF is recommended for only a few configurations.
+        #env:
+        #  - name: SYSDIG_BPF_PROBE
+        #    value: ""
         volumeMounts:
         - mountPath: /etc/modprobe.d
           name: modprobe-d
           readOnly: true
+### uncomment for minikube
+#        - mountPath: /host/etc/VERSION
+#          name: etc-version
+#          readOnly: true
         - mountPath: /host/dev
           name: dev-vol
           readOnly: false
@@ -118,5 +155,20 @@ spec:
           name: sysdig-agent-config
         - mountPath: /opt/draios/etc/kubernetes/secrets
           name: sysdig-agent-secrets
+        - mountPath: /host/etc/os-release
+          name: osrel
+          readOnly: true
         - mountPath: /etc/podinfo
           name: podinfo
+### Uncomment these lines if you'd like to map /root/ from the
+#   host into the container. This can be useful to map
+#   /root/.sysdig to pick up custom kernel modules.
+#       - mountPath: /root
+#         name: host-root-vol
+        # This section is for eBPF support. Please refer to Sysdig Support before
+        # uncommenting, as eBPF is recommended for only a few configurations.
+        #- mountPath: /sys/kernel/debug
+        #  name: sys-tracing
+        #  readOnly: true
+
+
