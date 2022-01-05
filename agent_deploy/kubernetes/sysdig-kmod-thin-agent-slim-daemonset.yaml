@@ -100,9 +100,13 @@ spec:
           limits:
             cpu: 1000m
             memory: 512Mi
+        env:
+        - name: K8S_NODE
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
         # This section is for eBPF support. Please refer to Sysdig Support before
         # uncommenting, as eBPF is recommended for only a few configurations.
-        #env:
         #  - name: SYSDIG_BPF_PROBE
         #    value: ""
         volumeMounts:
