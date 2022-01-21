@@ -104,3 +104,47 @@ In route53 create an A record with the dns name pointing to external ip/endpoint
 
 ### Gotchas
 Make sure that subnets have internet gateway configured and has enough ips.
+
+## Airgapped installations
+
+### Method for automatically updating the feeds database in airgapped environments
+This is a procedure that can be used to automatically update the feeds database:
+
+1. download the image file quay.io/sysdig/vuln-feed-database:latest from Sysdig registry to the jumpbox server and save it locally
+2. move the file from the jumpbox server to the customer airgapped environment (optional)
+3. load the image file and push it to the customer's airgapped image registry
+4. restart the pod sysdigcloud-feeds-db
+5. restart the pod feeds-api
+
+Finally, steps 1 to 5 will be performed periodically once a day.
+
+This is an example script that contains all the steps:
+```bash
+#!/bin/bash
+QUAY_USERNAME="<change_me>"
+QUAY_PASSWORD="<change_me>"
+
+# Download image
+docker login quay.io/sysdig -u ${QUAY_USERNAME} -p ${QUAY_PASSWORD}
+docker image pull quay.io/sysdig/vuln-feed-database:latest
+# Save image
+docker image save quay.io/sysdig/vuln-feed-database:latest -o vuln-feed-database.tar
+# Optionally move image
+mv vuln-feed-database.tar /var/shared-folder
+# Load image remotely
+ssh -t user@airgapped-host "docker image load -i /var/shared-folder/vuln-feed-database.tar"
+# Push image remotely
+ssh -t user@airgapped-host "docker tag vuln-feed-database:latest airgapped-registry/vuln-feed-database:latest"
+ssh -t user@airgapped-host "docker image push airgapped-registry/vuln-feed-database:latest"
+# Restart database pod
+ssh -t user@airgapped-host "kubectl -n sysdigcloud scale deploy sysdigcloud-feeds-db --replicas=0"
+ssh -t user@airgapped-host "kubectl -n sysdigcloud scale deploy sysdigcloud-feeds-db --replicas=1"
+# Restart feeds-api pod
+ssh -t user@airgapped-host "kubectl -n sysdigcloud scale deploy sysdigcloud-feeds-api --replicas=0"
+ssh -t user@airgapped-host "kubectl -n sysdigcloud scale deploy sysdigcloud-feeds-api --replicas=1"
+```
+
+The script can be scheduled using a cron job that run every day
+```bash
+0 8 * * * feeds-database-update.sh >/dev/null 2>&1
+```
