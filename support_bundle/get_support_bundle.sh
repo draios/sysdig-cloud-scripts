@@ -71,8 +71,8 @@ do
     do
         kubectl ${KUBE_OPTS} logs ${pod} -c ${container} > ${LOG_DIR}/${pod}/${container}-kubectl-logs.txt
         kubectl ${KUBE_OPTS} exec ${pod} -c ${container} -- bash -c "${command}" > ${LOG_DIR}/${pod}/${container}-support-files.tgz || true
-    done;
-done;
+    done
+done
 
 # Get info on deployments, statefulsets, persistentVolumeClaims, daemonsets, and ingresses
 for object in svc deployment sts pvc daemonset ingress replicaset; 
@@ -82,8 +82,8 @@ do
     for item in ${items}; 
     do
         kubectl ${KUBE_OPTS} get ${object} ${item} -o json > ${LOG_DIR}/${object}/${item}-kubectl.json
-    done;
-done;
+    done
+done
 
 # Fetch container density information
 num_nodes=0
@@ -102,7 +102,7 @@ do
     num_pods=$((num_pods+${total_pods}))
     num_running_containers=$((num_running_containers+${running_containers}))
     num_total_containers=$((num_total_containers+${total_containers}))
-done;
+done
   
 printf "\nTotals\n-----\n" >> ${LOG_DIR}/container_density.txt
 printf "Nodes: ${num_nodes}\n" >> ${LOG_DIR}/container_density.txt
@@ -124,7 +124,7 @@ do
     kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool proxyhistograms | tee -a ${LOG_DIR}/cassandra/nodetool_proxyhistograms.log
     kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool tpstats | tee -a ${LOG_DIR}/cassandra/nodetool_tpstats.log
     kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool compactionstats | tee -a ${LOG_DIR}/cassandra/nodetool_compactionstats.log
-done;
+done
 
 # Fetch Elasticsearch storage info
 mkdir -p ${LOG_DIR}/elasticsearch
@@ -133,7 +133,7 @@ for pod in $(kubectl ${KUBE_OPTS} get pods -l role=elasticsearch | grep -v "NAME
 do
     printf "$pod\t" |tee -a elasticsearch_storage.log
     kubectl ${KUBE_OPTS} exec -it $pod  -c elasticsearch -- df -Ph | grep elasticsearch | grep -v "tmpfs" | awk '{printf "%-13s %10s %6s %8s %6s %s\n",$1,$2,$3,$4,$5,$6}' |tee -a ${LOG_DIR}/elasticsearch/elasticsearch_storage.log
-done;
+done
 
 # Fetch Cassandra storage info
 # Executes a df -h in Cassandra pod, gets proxyhistograms, tpstats, and compactionstats
@@ -142,10 +142,10 @@ for pod in $(kubectl ${KUBE_OPTS} get pods -l role=cassandra  | grep -v "NAME" |
 do
     printf "$pod\t" > ${LOG_DIR}/cassandra/cassandra_storage.log
     kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- df -Ph | grep cassandra | grep -v "tmpfs" | awk '{printf "%-13s %10s %6s %8s %6s %s\n",$1,$2,$3,$4,$5,$6}' > ${LOG_DIR}/cassandra/cassandra_storage.log
-done;
+done
 
 # Collect the sysdigcloud-config configmap, and write to the log directory
-kubectl ${KUBE_OPTS} get configmap sysdigcloud-config -o yaml | grep -v password > ${LOG_DIR}/config.yaml || true
+kubectl ${KUBE_OPTS} get configmap sysdigcloud-config -o yaml | grep -v password | grep -v apiVersion > ${LOG_DIR}/config.yaml || true
 
 # Generate the bundle name, create a tarball, and remove the temp log directory
 BUNDLE_NAME=$(date +%s)_sysdig_cloud_support_bundle.tgz
