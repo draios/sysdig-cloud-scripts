@@ -71,8 +71,8 @@ do
     do
         kubectl ${KUBE_OPTS} logs ${pod} -c ${container} > ${LOG_DIR}/${pod}/${container}-kubectl-logs.txt
         kubectl ${KUBE_OPTS} exec ${pod} -c ${container} -- bash -c "${command}" > ${LOG_DIR}/${pod}/${container}-support-files.tgz || true
-    done
-done
+    done;
+done;
 
 # Get info on deployments, statefulsets, persistentVolumeClaims, daemonsets, and ingresses
 for object in svc deployment sts pvc daemonset ingress replicaset; 
@@ -82,8 +82,8 @@ do
     for item in ${items}; 
     do
         kubectl ${KUBE_OPTS} get ${object} ${item} -o json > ${LOG_DIR}/${object}/${item}-kubectl.json
-    done
-done
+    done;
+done;
 
 # Fetch container density information
 num_nodes=0
@@ -122,7 +122,6 @@ do
     kubectl ${KUBE_OPTS} exec -it $pod -- nodetool cfstats | tee -a ${LOG_DIR}/cassandra/nodetool_cfstats.log
     kubectl ${KUBE_OPTS} exec -it $pod -- nodetool cfhistograms draios message_data10 | tee -a ${LOG_DIR}/cassandra/nodetool_cfhistograms.log
     kubectl ${KUBE_OPTS} exec -it $pod -- nodetool proxyhistograms | tee -a ${LOG_DIR}/cassandra/nodetool_proxyhistograms.log
-    #kubectl ${KUBE_OPTS} exec -it $pod -- nodetool tablehistograms | tee -a ${LOG_DIR}/cassandra/nodetool_tablehistograms.log
     kubectl ${KUBE_OPTS} exec -it $pod -- nodetool tpstats | tee -a ${LOG_DIR}/cassandra/nodetool_tpstats.log
     kubectl ${KUBE_OPTS} exec -it $pod -- nodetool compactionstats | tee -a ${LOG_DIR}/cassandra/nodetool_compactionstats.log
 done;
@@ -143,11 +142,6 @@ for pod in $(kubectl ${KUBE_OPTS} get pods -l role=cassandra  | grep -v "NAME" |
 do
     printf "$pod\t" > ${LOG_DIR}/cassandra/cassandra_storage.log
     kubectl ${KUBE_OPTS} exec -it $pod -- df -Ph | grep cassandra | grep -v "tmpfs" | awk '{printf "%-13s %10s %6s %8s %6s %s\n",$1,$2,$3,$4,$5,$6}' > ${LOG_DIR}/cassandra/cassandra_storage.log
-done
-for pod in $(kubectl ${KUBE_OPTS} get pods -l role=cassandra | grep -v "NAME" | awk '{print $1}');
-do
-    echo $pod; for cmd in proxyhistograms status tpstats compactionstats; do kubectl ${KUBE_OPTS} exec $pod -c cassandra -- nodetool $cmd > ${LOG_DIR}/cassandra/cassandra_nodes_output.log;
-done;
 done;
 
 # Collect the sysdigcloud-config configmap, and write to the log directory
