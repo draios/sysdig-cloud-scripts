@@ -7,7 +7,7 @@ Under every folder you will find a helper script to configure and enable the fol
 * Google Oauth
 * LDAP
 
-Probably you reached this repo coming from our documentation. If not, [this link to the docs](https://sysdigdocs.atlassian.net/wiki/spaces/Platform/pages/206503992/Authentication+and+Authorization+On-Prem+Options) should be helpful.
+Probably you reached this repo coming from our documentation. If not, [this link to the docs](https://docs.sysdig.com/en/docs/administration/on-premises-deployments/authentication-and-authorization-on-prem-options/) should be helpful.
 
 ## How to run the scripts
 
