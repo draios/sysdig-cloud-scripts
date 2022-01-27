@@ -145,7 +145,7 @@ do
 done;
 
 # Collect the sysdigcloud-config configmap, and write to the log directory
-kubectl ${KUBE_OPTS} get configmap sysdigcloud-config -o yaml | grep -v password > ${LOG_DIR}/config.yaml
+kubectl ${KUBE_OPTS} get configmap sysdigcloud-config -o yaml | grep -v password > ${LOG_DIR}/config.yaml || true
 
 # Generate the bundle name, create a tarball, and remove the temp log directory
 BUNDLE_NAME=$(date +%s)_sysdig_cloud_support_bundle.tgz
