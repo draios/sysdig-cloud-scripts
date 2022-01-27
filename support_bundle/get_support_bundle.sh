@@ -94,9 +94,9 @@ num_total_containers=0
 printf "%-30s %-10s %-10s %-10s %-10s\n" "Node" "Pods" "Running Containers" "Total Containers" >> ${LOG_DIR}/container_density.txt
 for node in $(kubectl ${KUBE_OPTS} get nodes --no-headers -o custom-columns=node:.metadata.name);
 do
-    total_pods=$(kubectl get pods -A --no-headers -o wide | grep ${node} |wc -l |xargs)
-    running_containers=$( kubectl get pods -A --no-headers -o wide |grep ${node} |awk '{print $3}' |cut -f 1 -d/ | awk '{ SUM += $1} END { print SUM }' |xargs)
-    total_containers=$( kubectl get pods -A --no-headers -o wide |grep ${node} |awk '{print $3}' |cut -f 2 -d/ | awk '{ SUM += $1} END { print SUM }' |xargs)
+    total_pods=$(kubectl ${KUBE_OPTS} get pods -A --no-headers -o wide | grep ${node} |wc -l |xargs)
+    running_containers=$( kubectl ${KUBE_OPTS} get pods -A --no-headers -o wide |grep ${node} |awk '{print $3}' |cut -f 1 -d/ | awk '{ SUM += $1} END { print SUM }' |xargs)
+    total_containers=$( kubectl get ${KUBE_OPTS} pods -A --no-headers -o wide |grep ${node} |awk '{print $3}' |cut -f 2 -d/ | awk '{ SUM += $1} END { print SUM }' |xargs)
     printf "%-30s %-15s %-20s %-10s\n" "${node}" "${total_pods}" "${running_containers}" "${total_containers}" >> ${LOG_DIR}/container_density.txt
     num_nodes=$((num_nodes+1))
     num_pods=$((num_pods+${total_pods}))
@@ -116,14 +116,14 @@ mkdir -p ${LOG_DIR}/cassandra
 for pod in $(kubectl ${KUBE_OPTS} get pod -l role=cassandra | grep -v "NAME" | awk '{print $1}')
 do
     printf "$pod\t" |tee -a ${LOG_DIR}/cassandra/nodetool_info.log
-    kubectl ${KUBE_OPTS} exec -it $pod -- nodetool info >> ${LOG_DIR}/cassandra/nodetool_info.log
-    kubectl ${KUBE_OPTS} exec -it $pod -- nodetool status | tee -a ${LOG_DIR}/cassandra/nodetool_status.log
-    kubectl ${KUBE_OPTS} exec -it $pod -- nodetool getcompactionthroughput | tee -a ${LOG_DIR}/cassandra/nodetool_getcompactionthroughput.log
-    kubectl ${KUBE_OPTS} exec -it $pod -- nodetool cfstats | tee -a ${LOG_DIR}/cassandra/nodetool_cfstats.log
-    kubectl ${KUBE_OPTS} exec -it $pod -- nodetool cfhistograms draios message_data10 | tee -a ${LOG_DIR}/cassandra/nodetool_cfhistograms.log
-    kubectl ${KUBE_OPTS} exec -it $pod -- nodetool proxyhistograms | tee -a ${LOG_DIR}/cassandra/nodetool_proxyhistograms.log
-    kubectl ${KUBE_OPTS} exec -it $pod -- nodetool tpstats | tee -a ${LOG_DIR}/cassandra/nodetool_tpstats.log
-    kubectl ${KUBE_OPTS} exec -it $pod -- nodetool compactionstats | tee -a ${LOG_DIR}/cassandra/nodetool_compactionstats.log
+    kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool info >> ${LOG_DIR}/cassandra/nodetool_info.log
+    kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool status | tee -a ${LOG_DIR}/cassandra/nodetool_status.log
+    kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool getcompactionthroughput | tee -a ${LOG_DIR}/cassandra/nodetool_getcompactionthroughput.log
+    kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool cfstats | tee -a ${LOG_DIR}/cassandra/nodetool_cfstats.log
+    kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool cfhistograms draios message_data10 | tee -a ${LOG_DIR}/cassandra/nodetool_cfhistograms.log
+    kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool proxyhistograms | tee -a ${LOG_DIR}/cassandra/nodetool_proxyhistograms.log
+    kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool tpstats | tee -a ${LOG_DIR}/cassandra/nodetool_tpstats.log
+    kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool compactionstats | tee -a ${LOG_DIR}/cassandra/nodetool_compactionstats.log
 done;
 
 # Fetch Elasticsearch storage info
@@ -132,7 +132,7 @@ printf "Pod#\tFilesystem\tSize\tUsed\tAvail\tUse\tMounted on\n" |tee -a ${LOG_DI
 for pod in $(kubectl ${KUBE_OPTS} get pods -l role=elasticsearch | grep -v "NAME" | awk '{print $1}')
 do
     printf "$pod\t" |tee -a elasticsearch_storage.log
-    kubectl ${KUBE_OPTS} exec -it $pod -- df -Ph | grep elasticsearch | grep -v "tmpfs" | awk '{printf "%-13s %10s %6s %8s %6s %s\n",$1,$2,$3,$4,$5,$6}' |tee -a ${LOG_DIR}/elasticsearch/elasticsearch_storage.log
+    kubectl ${KUBE_OPTS} exec -it $pod  -c elasticsearch -- df -Ph | grep elasticsearch | grep -v "tmpfs" | awk '{printf "%-13s %10s %6s %8s %6s %s\n",$1,$2,$3,$4,$5,$6}' |tee -a ${LOG_DIR}/elasticsearch/elasticsearch_storage.log
 done;
 
 # Fetch Cassandra storage info
@@ -141,7 +141,7 @@ printf "Pod#\tFilesystem\tSize\tUsed\tAvail\tUse\tMounted on\n" > ${LOG_DIR}/cas
 for pod in $(kubectl ${KUBE_OPTS} get pods -l role=cassandra  | grep -v "NAME" | awk '{print $1}')
 do
     printf "$pod\t" > ${LOG_DIR}/cassandra/cassandra_storage.log
-    kubectl ${KUBE_OPTS} exec -it $pod -- df -Ph | grep cassandra | grep -v "tmpfs" | awk '{printf "%-13s %10s %6s %8s %6s %s\n",$1,$2,$3,$4,$5,$6}' > ${LOG_DIR}/cassandra/cassandra_storage.log
+    kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- df -Ph | grep cassandra | grep -v "tmpfs" | awk '{printf "%-13s %10s %6s %8s %6s %s\n",$1,$2,$3,$4,$5,$6}' > ${LOG_DIR}/cassandra/cassandra_storage.log
 done;
 
 # Collect the sysdigcloud-config configmap, and write to the log directory
