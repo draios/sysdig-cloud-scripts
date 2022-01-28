@@ -34,7 +34,7 @@ Once settings have been set, information existing at LDAP tree regarding an exis
 Show command help
 
 ```
-./ verify_user.sh -h
+./verify_user.sh -h
 ```
 
 Get user information (test LDAP configuration)

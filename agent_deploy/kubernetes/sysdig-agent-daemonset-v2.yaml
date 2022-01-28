@@ -67,6 +67,18 @@ spec:
       - name: sysdig-agent-secrets
         secret:
           secretName: sysdig-agent
+      - name: podinfo
+        downwardAPI:
+          defaultMode: 420
+          items:
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+            path: namespace
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+            path: name          
       # This section is for eBPF support. Please refer to Sysdig Support before
       # uncommenting, as eBPF is recommended for only a few configurations.
       #- name: sys-tracing
@@ -81,6 +93,10 @@ spec:
       # The following line is necessary for RBAC
       serviceAccount: sysdig-agent
       terminationGracePeriodSeconds: 5
+      ### Uncomment following 2 lines to pull images from a private registry,
+      ### replacing secret-name with your secret name (previously created)
+      #imagePullSecrets:
+      #- name: secret-name
       containers:
       - name: sysdig-agent
         image: quay.io/sysdig/agent
@@ -101,9 +117,13 @@ spec:
           exec:
             command: [ "test", "-e", "/opt/draios/logs/running" ]
           initialDelaySeconds: 10
+        env:
+        - name: K8S_NODE
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
         # This section is for eBPF support. Please refer to Sysdig Support before
         # uncommenting, as eBPF is recommended for only a few configurations.
-        #env:
         #  - name: SYSDIG_BPF_PROBE
         #    value: ""
         volumeMounts:
@@ -142,6 +162,8 @@ spec:
         - mountPath: /host/etc/os-release
           name: osrel
           readOnly: true
+        - mountPath: /etc/podinfo
+          name: podinfo          
 ### Uncomment these lines if you'd like to map /root/ from the
 #   host into the container. This can be useful to map
 #   /root/.sysdig to pick up custom kernel modules.
