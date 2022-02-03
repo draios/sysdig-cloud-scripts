@@ -10,6 +10,7 @@ NAMESPACE=""
 LOG_DIR=$(mktemp -d sysdigcloud-support-bundle-XXXX)
 SINCE_OPTS="" 
 SINCE=""
+API_KEY=""
 
 while getopts l:n:c:s:a:hced flag; do
     case "${flag}" in
@@ -77,7 +78,6 @@ fi
 
 echo "Using namespace ${NAMESPACE}";
 echo "Using context ${CONTEXT}";
-echo "Using API URL: ${API_URL}";
 
 # Collect container logs for each pod
 command='tar czf - /logs/ /opt/draios/ /var/log/sysdigcloud/ /var/log/cassandra/ /tmp/redis.log /var/log/redis-server/redis.log /var/log/mysql/error.log /opt/prod.conf 2>/dev/null || true'
