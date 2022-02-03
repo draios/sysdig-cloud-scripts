@@ -8,8 +8,10 @@ CONTEXT=""
 CONTEXT_OPTS=""
 NAMESPACE=""
 LOG_DIR=$(mktemp -d sysdigcloud-support-bundle-XXXX)
+SINCE_OPTS="" 
+SINCE=""
 
-while getopts l:n:c:hced flag; do
+while getopts l:n:c:s:a:hced flag; do
     case "${flag}" in
         l) LABELS=${OPTARG:-};;
         n) NAMESPACE=${OPTARG:-};;
@@ -18,13 +20,18 @@ while getopts l:n:c:hced flag; do
             echo "Usage: ./get_support_bundle.sh -n <NAMESPACE> -l <LABELS>"; 
             echo "Example: ./get_support_bundle.sh -n sysdig -l api,collector,worker,cassandra,elasticsearch"; 
             echo "Flags:"; 
+            echo "-a  Provide the Superuser API key for advanced data collection"
             echo "-n  Specify the Sysdig namespace. If not specified, "sysdigcloud" is assumed."; 
             echo "-c  Specify the kubectl context. If not set, the current context will be used."; 
             echo "-l  Specify Sysdig pod role label to collect (e.g. api,collector,worker)";
             echo "-h  Print these instructions";
+            echo "-s  Specify the timeframe of logs to collect (e.g. -s 1h)"
             exit;;
 
         c) CONTEXT=${OPTARG:-};;
+        s) SINCE=${OPTARG:-};;
+        a) API_KEY=${OPTARG:-};;
+
     esac
 done
 
@@ -34,6 +41,10 @@ fi
 
 if [[ ! -z ${CONTEXT} ]]; then
     CONTEXT_OPTS="--context=${CONTEXT}"
+fi
+
+if [[ ! -z ${SINCE} ]]; then
+    SINCE_OPTS="--since ${SINCE}"
 fi
 
 # Set options for kubectl commands
@@ -49,6 +60,14 @@ if [[ "$(echo "$KUBE_OUTPUT" | grep -o "^sysdig " || true)" != "${NAMESPACE} " ]
     echo "$(kubectl ${KUBE_OPTS} get ns)";
 fi
 
+# If API key is supplied, collect streamSnap, Index settings, and fastPath settings
+if [[ ! -z ${API_KEY} ]]; then
+    API_URL=$(kubectl ${KUBE_OPTS} get cm sysdigcloud-config -o yaml | grep -i api.url: | head -1 | awk '{print$2}')
+    curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/streamsnapSettings" >> ${LOG_DIR}/streamSnap_settings.txt
+    curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/fastPathSettings" >> ${LOG_DIR}/fastPath_settings.txt
+    curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/indexSettings" >> ${LOG_DIR}/index_settings.txt
+fi
+
 # Configure kubectl command if labels are set
 if [[ -z ${LABELS} ]]; then
     SYSDIGCLOUD_PODS=$(kubectl ${KUBE_OPTS} get pods | awk '{ print $1 }' | grep -v NAME)
@@ -58,6 +77,7 @@ fi
 
 echo "Using namespace ${NAMESPACE}";
 echo "Using context ${CONTEXT}";
+echo "Using API URL: ${API_URL}";
 
 # Collect container logs for each pod
 command='tar czf - /logs/ /opt/draios/ /var/log/sysdigcloud/ /var/log/cassandra/ /tmp/redis.log /var/log/redis-server/redis.log /var/log/mysql/error.log /opt/prod.conf 2>/dev/null || true'
@@ -69,7 +89,7 @@ do
     containers=$(kubectl ${KUBE_OPTS} get pod ${pod} -o json | jq -r '.spec.containers[].name')
     for container in ${containers}; 
     do
-        kubectl ${KUBE_OPTS} logs ${pod} -c ${container} > ${LOG_DIR}/${pod}/${container}-kubectl-logs.txt
+        kubectl ${KUBE_OPTS} logs ${pod} -c ${container} ${SINCE_OPTS} > ${LOG_DIR}/${pod}/${container}-kubectl-logs.txt
         kubectl ${KUBE_OPTS} exec ${pod} -c ${container} -- bash -c "${command}" > ${LOG_DIR}/${pod}/${container}-support-files.tgz || true
     done
 done
@@ -126,8 +146,33 @@ do
     kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool compactionstats | tee -a ${LOG_DIR}/cassandra/nodetool_compactionstats.log
 done
 
-# Fetch Elasticsearch storage info
+echo "Fetch Elasticsearch health info";
 mkdir -p ${LOG_DIR}/elasticsearch
+for pod in $(kubectl ${KUBE_OPTS} get pods -l role=elasticsearch | grep -v "NAME" | awk '{print $1}')
+do
+    printf "$pod\t" |tee -a elasticsearch_storage.log
+    kubectl ${KUBE_OPTS} exec -it $pod  -c elasticsearch -- /bin/bash -c 'curl --cacert /usr/share/elasticsearch/config/root-ca.pem https://${ELASTICSEARCH_ADMINUSER}:${ELASTICSEARCH_ADMIN_PASSWORD}@sysdigcloud-elasticsearch:9200/_cluster/health?pretty' |tee -a ${LOG_DIR}/elasticsearch/elasticsearch_health.log
+done
+
+for pod in $(kubectl ${KUBE_OPTS} get pods -l role=elasticsearch | grep -v "NAME" | awk '{print $1}')
+do
+    printf "$pod\t" |tee -a elasticsearch_indices.log
+    kubectl ${KUBE_OPTS} exec -it $pod  -c elasticsearch -- /bin/bash -c 'curl --cacert /usr/share/elasticsearch/config/root-ca.pem https://${ELASTICSEARCH_ADMINUSER}:${ELASTICSEARCH_ADMIN_PASSWORD}@sysdigcloud-elasticsearch:9200/_cat/indices' |tee -a ${LOG_DIR}/elasticsearch/elasticsearch_indices.log
+done
+
+for pod in $(kubectl ${KUBE_OPTS} get pods -l role=elasticsearch | grep -v "NAME" | awk '{print $1}')
+do
+    printf "$pod\t" |tee -a elasticsearch_nodes.log
+    kubectl ${KUBE_OPTS} exec -it $pod  -c elasticsearch -- /bin/bash -c 'curl --cacert /usr/share/elasticsearch/config/root-ca.pem https://${ELASTICSEARCH_ADMINUSER}:${ELASTICSEARCH_ADMIN_PASSWORD}@sysdigcloud-elasticsearch:9200/_cat/nodes?v' |tee -a ${LOG_DIR}/elasticsearch/elasticsearch_nodes.log
+done
+
+for pod in $(kubectl ${KUBE_OPTS} get pods -l role=elasticsearch | grep -v "NAME" | awk '{print $1}')
+do
+    printf "$pod\t" |tee -a elasticsearch_index_allocation.log
+    kubectl ${KUBE_OPTS} exec -it $pod  -c elasticsearch -- /bin/bash -c 'curl --cacert /usr/share/elasticsearch/config/root-ca.pem https://${ELASTICSEARCH_ADMINUSER}:${ELASTICSEARCH_ADMIN_PASSWORD}@sysdigcloud-elasticsearch:9200/_cluster/allocation/explain?pretty' |tee -a ${LOG_DIR}/elasticsearch/elasticsearch_index_allocation.log
+done
+
+# Fetch Elasticsearch storage info
 printf "Pod#\tFilesystem\tSize\tUsed\tAvail\tUse\tMounted on\n" |tee -a ${LOG_DIR}/elasticsearch/elasticsearch_storage.log
 for pod in $(kubectl ${KUBE_OPTS} get pods -l role=elasticsearch | grep -v "NAME" | awk '{print $1}')
 do
