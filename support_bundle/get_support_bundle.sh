@@ -151,20 +151,20 @@ mkdir -p ${LOG_DIR}/elasticsearch
 printf "Pod#\tFilesystem\tSize\tUsed\tAvail\tUse\tMounted on\n" | tee -a ${LOG_DIR}/elasticsearch/elasticsearch_storage.log
 for pod in $(kubectl ${KUBE_OPTS} get pods -l role=elasticsearch | grep -v "NAME" | awk '{print $1}')
 do
-    printf "$pod\t" | tee -a elasticsearch_storage.log
+    printf "$pod\t" | tee -a ${LOG_DIR}/elasticsearch/elasticsearch_health.log
     kubectl ${KUBE_OPTS} exec -it $pod  -c elasticsearch -- /bin/bash -c 'curl --cacert /usr/share/elasticsearch/config/root-ca.pem https://${ELASTICSEARCH_ADMINUSER}:${ELASTICSEARCH_ADMIN_PASSWORD}@sysdigcloud-elasticsearch:9200/_cat/health' | tee -a ${LOG_DIR}/elasticsearch/elasticsearch_health.log
 
-    printf "$pod\t" | tee -a elasticsearch_indices.log
+    printf "$pod\t" | tee -a ${LOG_DIR}/elasticsearch/elasticsearch_indices.log
     kubectl ${KUBE_OPTS} exec -it $pod  -c elasticsearch -- /bin/bash -c 'curl --cacert /usr/share/elasticsearch/config/root-ca.pem https://${ELASTICSEARCH_ADMINUSER}:${ELASTICSEARCH_ADMIN_PASSWORD}@sysdigcloud-elasticsearch:9200/_cat/indices' | tee -a ${LOG_DIR}/elasticsearch/elasticsearch_indices.log
 
-    printf "$pod\t" | tee -a elasticsearch_nodes.log
+    printf "$pod\t" | tee -a ${LOG_DIR}/elasticsearch/elasticsearch_nodes.log
     kubectl ${KUBE_OPTS} exec -it $pod  -c elasticsearch -- /bin/bash -c 'curl --cacert /usr/share/elasticsearch/config/root-ca.pem https://${ELASTICSEARCH_ADMINUSER}:${ELASTICSEARCH_ADMIN_PASSWORD}@sysdigcloud-elasticsearch:9200/_cat/nodes?v' | tee -a ${LOG_DIR}/elasticsearch/elasticsearch_nodes.log
 
-    printf "$pod\t" | tee -a elasticsearch_index_allocation.log
+    printf "$pod\t" | tee -a ${LOG_DIR}/elasticsearch/elasticsearch_index_allocation.log
     kubectl ${KUBE_OPTS} exec -it $pod  -c elasticsearch -- /bin/bash -c 'curl --cacert /usr/share/elasticsearch/config/root-ca.pem https://${ELASTICSEARCH_ADMINUSER}:${ELASTICSEARCH_ADMIN_PASSWORD}@sysdigcloud-elasticsearch:9200/_cluster/allocation/explain?pretty' | tee -a ${LOG_DIR}/elasticsearch/elasticsearch_index_allocation.log
 
 # Fetch Elasticsearch storage info
-    printf "$pod\t" |tee -a elasticsearch_storage.log
+    printf "$pod\t" | tee -a ${LOG_DIR}/elasticsearch/elasticsearch_storage.log
     kubectl ${KUBE_OPTS} exec -it $pod  -c elasticsearch -- df -Ph | grep elasticsearch | grep -v "tmpfs" | awk '{printf "%-13s %10s %6s %8s %6s %s\n",$1,$2,$3,$4,$5,$6}' |tee -a ${LOG_DIR}/elasticsearch/elasticsearch_storage.log
 done
 
