@@ -135,15 +135,22 @@ echo "Fetching Cassandra statistics";
 mkdir -p ${LOG_DIR}/cassandra
 for pod in $(kubectl ${KUBE_OPTS} get pod -l role=cassandra | grep -v "NAME" | awk '{print $1}')
 do
-    printf "$pod\t" | tee -a ${LOG_DIR}/cassandra/nodetool_info.log
-    kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool info | tee -a ${LOG_DIR}/cassandra/nodetool_info.log
-    kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool status | tee -a ${LOG_DIR}/cassandra/nodetool_status.log
-    kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool getcompactionthroughput | tee -a ${LOG_DIR}/cassandra/nodetool_getcompactionthroughput.log
-    kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool cfstats | tee -a ${LOG_DIR}/cassandra/nodetool_cfstats.log
-    kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool cfhistograms draios message_data10 | tee -a ${LOG_DIR}/cassandra/nodetool_cfhistograms.log
-    kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool proxyhistograms | tee -a ${LOG_DIR}/cassandra/nodetool_proxyhistograms.log
-    kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool tpstats | tee -a ${LOG_DIR}/cassandra/nodetool_tpstats.log
-    kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool compactionstats | tee -a ${LOG_DIR}/cassandra/nodetool_compactionstats.log
+    printf "$pod\t" | tee -a ${LOG_DIR}/cassandra/$pod/nodetool_info.log
+    kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool info | tee -a ${LOG_DIR}/cassandra/$pod/nodetool_info.log
+    printf "$pod\t" | tee -a ${LOG_DIR}/cassandra/$pod/nodetool_status.log
+    kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool status | tee -a ${LOG_DIR}/cassandra/$pod/nodetool_status.log
+    printf "$pod\t" | tee -a ${LOG_DIR}/cassandra/$pod/nodetool_getcompactionthroughput.log
+    kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool getcompactionthroughput | tee -a ${LOG_DIR}/cassandra/$pod/nodetool_getcompactionthroughput.log
+    printf "$pod\t" | tee -a ${LOG_DIR}/cassandra/$pod/nodetool_cfstats.log
+    kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool cfstats | tee -a ${LOG_DIR}/cassandra/$pod/nodetool_cfstats.log
+    printf "$pod\t" | tee -a ${LOG_DIR}/cassandra/$pod/nodetool_cfhistograms.log
+    kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool cfhistograms draios message_data10 | tee -a ${LOG_DIR}/cassandra/$pod/nodetool_cfhistograms.log
+    printf "$pod\t" | tee -a ${LOG_DIR}/cassandra/$pod/nodetool_proxyhistograms.log
+    kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool proxyhistograms | tee -a ${LOG_DIR}/cassandra/$pod/nodetool_proxyhistograms.log
+    printf "$pod\t" | tee -a ${LOG_DIR}/cassandra/$pod/nodetool_tpstats.log
+    kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool tpstats | tee -a ${LOG_DIR}/cassandra/$pod/nodetool_tpstats.log
+    printf "$pod\t" | tee -a ${LOG_DIR}/cassandra/$pod/nodetool_compactionstats.log
+    kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool compactionstats | tee -a ${LOG_DIR}/cassandra/$pod/nodetool_compactionstats.log
 done
 
 echo "Fetch Elasticsearch health info"
