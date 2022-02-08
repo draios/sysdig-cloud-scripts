@@ -153,17 +153,15 @@ do
     printf "$pod\t" |tee -a elasticsearch_storage.log
     kubectl ${KUBE_OPTS} exec -it $pod  -c elasticsearch -- /bin/bash -c 'curl --cacert /usr/share/elasticsearch/config/root-ca.pem https://${ELASTICSEARCH_ADMINUSER}:${ELASTICSEARCH_ADMIN_PASSWORD}@sysdigcloud-elasticsearch:9200/_cluster/health?pretty' |tee -a ${LOG_DIR}/elasticsearch/elasticsearch_health.log
 
-for pod in $(kubectl ${KUBE_OPTS} get pods -l role=elasticsearch | grep -v "NAME" | awk '{print $1}')
     printf "$pod\t" |tee -a elasticsearch_indices.log
     kubectl ${KUBE_OPTS} exec -it $pod  -c elasticsearch -- /bin/bash -c 'curl --cacert /usr/share/elasticsearch/config/root-ca.pem https://${ELASTICSEARCH_ADMINUSER}:${ELASTICSEARCH_ADMIN_PASSWORD}@sysdigcloud-elasticsearch:9200/_cat/indices' |tee -a ${LOG_DIR}/elasticsearch/elasticsearch_indices.log
 
-for pod in $(kubectl ${KUBE_OPTS} get pods -l role=elasticsearch | grep -v "NAME" | awk '{print $1}')
     printf "$pod\t" |tee -a elasticsearch_nodes.log
     kubectl ${KUBE_OPTS} exec -it $pod  -c elasticsearch -- /bin/bash -c 'curl --cacert /usr/share/elasticsearch/config/root-ca.pem https://${ELASTICSEARCH_ADMINUSER}:${ELASTICSEARCH_ADMIN_PASSWORD}@sysdigcloud-elasticsearch:9200/_cat/nodes?v' |tee -a ${LOG_DIR}/elasticsearch/elasticsearch_nodes.log
 
-for pod in $(kubectl ${KUBE_OPTS} get pods -l role=elasticsearch | grep -v "NAME" | awk '{print $1}')
     printf "$pod\t" |tee -a elasticsearch_index_allocation.log
     kubectl ${KUBE_OPTS} exec -it $pod  -c elasticsearch -- /bin/bash -c 'curl --cacert /usr/share/elasticsearch/config/root-ca.pem https://${ELASTICSEARCH_ADMINUSER}:${ELASTICSEARCH_ADMIN_PASSWORD}@sysdigcloud-elasticsearch:9200/_cluster/allocation/explain?pretty' |tee -a ${LOG_DIR}/elasticsearch/elasticsearch_index_allocation.log
+done
 
 # Fetch Elasticsearch storage info
 printf "Pod#\tFilesystem\tSize\tUsed\tAvail\tUse\tMounted on\n" |tee -a ${LOG_DIR}/elasticsearch/elasticsearch_storage.log
