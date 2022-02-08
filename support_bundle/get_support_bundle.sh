@@ -135,7 +135,7 @@ echo "Fetching Cassandra statistics";
 mkdir -p ${LOG_DIR}/cassandra
 for pod in $(kubectl ${KUBE_OPTS} get pod -l role=cassandra | grep -v "NAME" | awk '{print $1}')
 do
-    printf "$pod\t" |tee -a ${LOG_DIR}/cassandra/nodetool_info.log
+    printf "$pod\t" | tee -a ${LOG_DIR}/cassandra/nodetool_info.log
     kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool info >> ${LOG_DIR}/cassandra/nodetool_info.log
     kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool status | tee -a ${LOG_DIR}/cassandra/nodetool_status.log
     kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool getcompactionthroughput | tee -a ${LOG_DIR}/cassandra/nodetool_getcompactionthroughput.log
@@ -146,36 +146,28 @@ do
     kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool compactionstats | tee -a ${LOG_DIR}/cassandra/nodetool_compactionstats.log
 done
 
-echo "Fetch Elasticsearch health info";
+echo "Fetch Elasticsearch health info"
 mkdir -p ${LOG_DIR}/elasticsearch
 for pod in $(kubectl ${KUBE_OPTS} get pods -l role=elasticsearch | grep -v "NAME" | awk '{print $1}')
 do
     printf "$pod\t" |tee -a elasticsearch_storage.log
     kubectl ${KUBE_OPTS} exec -it $pod  -c elasticsearch -- /bin/bash -c 'curl --cacert /usr/share/elasticsearch/config/root-ca.pem https://${ELASTICSEARCH_ADMINUSER}:${ELASTICSEARCH_ADMIN_PASSWORD}@sysdigcloud-elasticsearch:9200/_cluster/health?pretty' |tee -a ${LOG_DIR}/elasticsearch/elasticsearch_health.log
-done
 
 for pod in $(kubectl ${KUBE_OPTS} get pods -l role=elasticsearch | grep -v "NAME" | awk '{print $1}')
-do
     printf "$pod\t" |tee -a elasticsearch_indices.log
     kubectl ${KUBE_OPTS} exec -it $pod  -c elasticsearch -- /bin/bash -c 'curl --cacert /usr/share/elasticsearch/config/root-ca.pem https://${ELASTICSEARCH_ADMINUSER}:${ELASTICSEARCH_ADMIN_PASSWORD}@sysdigcloud-elasticsearch:9200/_cat/indices' |tee -a ${LOG_DIR}/elasticsearch/elasticsearch_indices.log
-done
 
 for pod in $(kubectl ${KUBE_OPTS} get pods -l role=elasticsearch | grep -v "NAME" | awk '{print $1}')
-do
     printf "$pod\t" |tee -a elasticsearch_nodes.log
     kubectl ${KUBE_OPTS} exec -it $pod  -c elasticsearch -- /bin/bash -c 'curl --cacert /usr/share/elasticsearch/config/root-ca.pem https://${ELASTICSEARCH_ADMINUSER}:${ELASTICSEARCH_ADMIN_PASSWORD}@sysdigcloud-elasticsearch:9200/_cat/nodes?v' |tee -a ${LOG_DIR}/elasticsearch/elasticsearch_nodes.log
-done
 
 for pod in $(kubectl ${KUBE_OPTS} get pods -l role=elasticsearch | grep -v "NAME" | awk '{print $1}')
-do
     printf "$pod\t" |tee -a elasticsearch_index_allocation.log
     kubectl ${KUBE_OPTS} exec -it $pod  -c elasticsearch -- /bin/bash -c 'curl --cacert /usr/share/elasticsearch/config/root-ca.pem https://${ELASTICSEARCH_ADMINUSER}:${ELASTICSEARCH_ADMIN_PASSWORD}@sysdigcloud-elasticsearch:9200/_cluster/allocation/explain?pretty' |tee -a ${LOG_DIR}/elasticsearch/elasticsearch_index_allocation.log
-done
 
 # Fetch Elasticsearch storage info
 printf "Pod#\tFilesystem\tSize\tUsed\tAvail\tUse\tMounted on\n" |tee -a ${LOG_DIR}/elasticsearch/elasticsearch_storage.log
 for pod in $(kubectl ${KUBE_OPTS} get pods -l role=elasticsearch | grep -v "NAME" | awk '{print $1}')
-do
     printf "$pod\t" |tee -a elasticsearch_storage.log
     kubectl ${KUBE_OPTS} exec -it $pod  -c elasticsearch -- df -Ph | grep elasticsearch | grep -v "tmpfs" | awk '{printf "%-13s %10s %6s %8s %6s %s\n",$1,$2,$3,$4,$5,$6}' |tee -a ${LOG_DIR}/elasticsearch/elasticsearch_storage.log
 done
