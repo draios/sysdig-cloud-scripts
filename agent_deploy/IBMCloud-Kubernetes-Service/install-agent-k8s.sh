@@ -385,8 +385,9 @@ function install_k8s_agent {
     fi
 
 	if [ ! -z "$IMAGE_PULL_SECRET" ]; then
-		sed -i.bak -e "s|#imagePullSecrets:|imagePullSecrets:|" $DAEMONSET_FILE
-		sed -i.bak -e "s|#- name: secret-name|- name: ${IMAGE_PULL_SECRET}|" $DAEMONSET_FILE
+		sed -i.bak -e "s|#imagePullSecrets:|imagePullSecrets:|" \
+			-e "s|#- name: secret-name|- name: ${IMAGE_PULL_SECRET}|" \
+			$DAEMONSET_FILE
 	fi
 
     # -i.bak argument used for compatibility between mac (-i '') and linux (simply -i)
