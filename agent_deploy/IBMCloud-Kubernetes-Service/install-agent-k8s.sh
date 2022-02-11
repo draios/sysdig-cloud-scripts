@@ -384,11 +384,6 @@ function install_k8s_agent {
         AGENT_NAMES="agent-slim agent-kmodule"
     fi
 
-	if [ ! -z "$IMAGE_PULL_SECRET" ]; then
-		sed -i.bak -e "s|#imagePullSecrets:|imagePullSecrets:|" \
-			-e "s|#- name: secret-name|- name: ${IMAGE_PULL_SECRET}|" \
-			$DAEMONSET_FILE
-	fi
 
     # -i.bak argument used for compatibility between mac (-i '') and linux (simply -i)
     sed -i.bak -e "s|# serviceAccount: sysdig-agent|serviceAccount: sysdig-agent|" $DAEMONSET_FILE
@@ -440,6 +435,18 @@ function install_k8s_agent {
             sed -i.bak -e "s|\( *image: \).*sysdig/${agent_name}\(.*\)|\1quay.io/sysdig/${agent_name}:${AGENT_VERSION}|g" $DAEMONSET_FILE
         done
     fi
+
+    if [ ! -z "$IMAGE_PULL_SECRET" ]; then
+        if grep -E '^\s*imagePullSecrets:' $DAEMONSET_FILE ; then
+            INDENT=$(grep 'containers' $DAEMONSET_FILE | sed 's/\( *\).*/\1/')
+            echo "$INDENT- name: ${IMAGE_PULL_SECRET}" >> $DAEMONSET_FILE
+        else
+
+            sed -i.bak -e "s|#imagePullSecrets:|imagePullSecrets:|" \
+                -e "s|#- name: secret-name|- name: ${IMAGE_PULL_SECRET}|" \
+                $DAEMONSET_FILE
+        fi
+	fi
 
     # Add label for Sysdig instance
     if [ ! -z "$SYSDIG_INSTANCE_NAME" ]; then
