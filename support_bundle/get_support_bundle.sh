@@ -154,7 +154,6 @@ do
     kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool compactionstats | tee -a ${LOG_DIR}/cassandra/$pod/nodetool_compactionstats.log
 done
 
-#Fetch Elasticsearch health info
 echo "Fetching Elasticsearch health info"
 mkdir -p ${LOG_DIR}/elasticsearch
 printf "Pod#\tFilesystem\tSize\tUsed\tAvail\tUse\tMounted on\n" | tee -a ${LOG_DIR}/elasticsearch/elasticsearch_storage.log
@@ -163,7 +162,7 @@ ELASTIC_POD=$(kubectl ${KUBE_OPTS} get po -l role=elasticsearch --no-headers | h
 ELASTIC_TLS=$(kubectl ${KUBE_OPTS} exec -it ${ELASTIC_POD} -- env | grep -i ELASTICSEARCH_TLS_ENCRYPTION)
 
 if [[ ${ELASTIC_TLS} == *"ELASTICSEARCH_TLS_ENCRYPTION=true"* ]]; then
-    ELASTIC_CURL='curl --cacert /usr/share/elasticsearch/config/root-ca.pem https://${ELASTICSEARCH_ADMINUSER}:${ELASTICSEARCH_ADMIN_PASSWORD}'
+    ELASTIC_CURL='curl -s --cacert /usr/share/elasticsearch/config/root-ca.pem https://${ELASTICSEARCH_ADMINUSER}:${ELASTICSEARCH_ADMIN_PASSWORD}'
 else
     ELASTIC_CURL='curl -s -k http://$(hostname)'
 fi
