@@ -105,6 +105,10 @@ do
     done
 done
 
+#Collect PV info
+kubectl ${KUBE_OPTS} get pv | grep sysdig | tee -a ${LOG_DIR}/pv_output.log
+kubectl ${KUBE_OPTS} get pvc | grep sysdig | tee -a ${LOG_DIR}/pv_output.log
+
 # Get info on deployments, statefulsets, persistentVolumeClaims, daemonsets, and ingresses
 for object in svc deployment sts pvc daemonset ingress replicaset; 
 do
@@ -183,10 +187,19 @@ do
     printf "$pod\n" | tee -a ${LOG_DIR}/elasticsearch/elasticsearch_index_allocation.log
     kubectl ${KUBE_OPTS} exec -it $pod  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}@sysdigcloud-elasticsearch:9200/_cluster/allocation/explain?pretty" | tee -a ${LOG_DIR}/elasticsearch/elasticsearch_index_allocation.log
 
+    #printf "$pod\n" | tee -a ${LOG_DIR}/elasticsearch/elasticsearch_storage.log
+    #echo "Please check this value against the Elasticsearch PV size" | tee -a ${LOG_DIR}/elasticsearch/elasticsearch_storage.log
+    #kubectl ${KUBE_OPTS} exec -it $pod -- du -h /usr/share/elasticsearch | awk '{printf "%-13s %10s\n",$1,$2}' | tee -a ${LOG_DIR}/elasticsearch/elasticsearch_storage.log
+    #kubectl ${KUBE_OPTS} exec -it $pod -- df -Ph | grep elasticsearch | grep -v "tmpfs" | awk '{printf "%-13s %10s %6s %8s %6s %s\n",$1,$2,$3,$4,$5,$6}' | tee -a ${LOG_DIR}/elasticsearch/elasticsearch_storage.log
+
     printf "$pod\n" | tee -a ${LOG_DIR}/elasticsearch/elasticsearch_storage.log
-    echo "Please check this value against the Elasticsearch PV size" | tee -a ${LOG_DIR}/elasticsearch/elasticsearch_storage.log
-    kubectl ${KUBE_OPTS} exec -it $pod -- du -h /usr/share/elasticsearch | awk '{printf "%-13s %10s\n",$1,$2}' | tee -a ${LOG_DIR}/elasticsearch/elasticsearch_storage.log
-    #kubectl ${KUBE_OPTS} exec -it $pod  -c elasticsearch -- df -Ph | grep elasticsearch | grep -v "tmpfs" | awk '{printf "%-13s %10s %6s %8s %6s %s\n",$1,$2,$3,$4,$5,$6}' | tee -a ${LOG_DIR}/elasticsearch/elasticsearch_storage.log
+    mountpath=$(kubectl ${KUBE_OPTS} get sts sysdigcloud-elasticsearch -ojsonpath='{.spec.template.spec.containers[].volumeMounts[?(@.name == "data")].mountPath}')
+    if [ ! -z $mountpath ]; then
+       echo "Please check this value against the Elasticsearch PV size" | tee -a ${LOG_DIR}/elasticsearch/elasticsearch_storage.log
+       kubectl ${KUBE_OPTS} exec -it $pod -c elasticsearch -- du -ch $mountpath | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' | tee -a ${LOG_DIR}/elasticsearch/elasticsearch_storage.log
+   else
+      printf "Error getting ElasticSearch $pod mount path\n" | tee -a ${LOG_DIR}/elasticsearch/elasticsearch_storage.log
+   fi
 done
 
 # Fetch Cassandra storage info
@@ -195,7 +208,16 @@ do
     mkdir -p ${LOG_DIR}/cassandra/$pod
     printf "$pod\n" | tee -a ${LOG_DIR}/cassandra/$pod/cassandra_storage.log
     echo "Please check this value against the Cassandra PV size" | tee -a ${LOG_DIR}/cassandra/$pod/cassandra_storage.log
-    kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- du -ch /var/lib/cassandra | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' | tee -a ${LOG_DIR}/cassandra/$pod/cassandra_storage.log
+    kubectl ${KUBE_OPTS} exec $pod -c cassandra -- du -ch /var/lib/cassandra | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' | tee -a ${LOG_DIR}/cassandra/$pod/cassandra_storage.log
+done
+
+# Fetch postgresql storage info
+for pod in $(kubectl ${KUBE_OPTS} get pods -l role=postgresql  | grep -v "NAME" | awk '{print $1}')
+do
+    mkdir -p ${LOG_DIR}/postgresql/$pod
+    printf "$pod\n" | tee -a ${LOG_DIR}/postgresql/$pod/postgresql_storage.log
+    echo "Please check this value against the PostgreSQL PV size" | tee -a ${LOG_DIR}/postgresql/$pod/postgresql_storage.log
+    kubectl ${KUBE_OPTS} exec -it $pod -c postgresql -- du -ch /var/lib/postgresql | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' | tee -a ${LOG_DIR}/postgresql/$pod/postgresql_storage.log
 done
 
 # Collect the sysdigcloud-config configmap, and write to the log directory
