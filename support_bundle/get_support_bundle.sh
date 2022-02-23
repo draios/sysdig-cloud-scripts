@@ -18,7 +18,7 @@ SINCE=""
 API_KEY=""
 ELASTIC_CURL=""
 
-while getopts l:n:c:s:a:hced flag; do
+while getopts l:n:c:s:a:hd flag; do
     case "${flag}" in
         l) LABELS=${OPTARG:-};;
         n) NAMESPACE=${OPTARG:-};;
@@ -73,12 +73,12 @@ fi
 # If API key is supplied, collect streamSnap, Index settings, and fastPath settings
 if [[ ! -z ${API_KEY} ]]; then
     API_URL=$(kubectl ${KUBE_OPTS} get cm sysdigcloud-config -o yaml | grep -i api.url: | head -1 | awk '{print$2}')
-    curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/streamsnapSettings" >> ${LOG_DIR}/streamSnap_settings.json
-    curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/fastPathSettings" >> ${LOG_DIR}/fastPath_settings.json
-    curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/indexSettings" >> ${LOG_DIR}/index_settings.json
-    curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/planSettings" >> ${LOG_DIR}/plan_settings.json
-    curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/agents/connected" >> ${LOG_DIR}/agents-connected.json
-    curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/dataRetentionSettings" >> ${LOG_DIR}/retention-settings.json
+    curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/streamsnapSettings" > ${LOG_DIR}/streamSnap_settings.json
+    curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/fastPathSettings" > ${LOG_DIR}/fastPath_settings.json
+    curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/indexSettings" > ${LOG_DIR}/index_settings.json
+    curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/planSettings" > ${LOG_DIR}/plan_settings.json
+    curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/agents/connected" > ${LOG_DIR}/agents-connected.json
+    curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/dataRetentionSettings" > ${LOG_DIR}/retention-settings.json
 fi
 
 # Configure kubectl command if labels are set
@@ -108,15 +108,14 @@ done
 
 #Collect PV info
 kubectl ${KUBE_OPTS} get pv | grep sysdig | tee -a ${LOG_DIR}/pv_output.log
-kubectl ${KUBE_OPTS} get pvc | grep sysdig | tee -a ${LOG_DIR}/pv_output.log
+kubectl ${KUBE_OPTS} get pvc | grep sysdig | tee -a ${LOG_DIR}/pvc_output.log
 
 # Get info on deployments, statefulsets, persistentVolumeClaims, daemonsets, and ingresses
-for object in svc deployment sts pvc daemonset ingress replicaset; 
+for object in svc deployment sts pvc daemonset ingress replicaset
 do
     items=$(kubectl ${KUBE_OPTS} get ${object} -o jsonpath="{.items[*]['metadata.name']}")
     mkdir -p ${LOG_DIR}/${object}
-    for item in ${items}; 
-    do
+    for item in ${items}; do 
         kubectl ${KUBE_OPTS} get ${object} ${item} -o json > ${LOG_DIR}/${object}/${item}-kubectl.json
     done
 done
@@ -151,21 +150,21 @@ echo "Fetching Cassandra statistics";
 for pod in $(kubectl ${KUBE_OPTS} get pod -l role=cassandra | grep -v "NAME" | awk '{print $1}')
 do
     mkdir -p ${LOG_DIR}/cassandra/$pod
-    kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool info | tee -a ${LOG_DIR}/cassandra/$pod/nodetool_info.log
-    kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool status | tee -a ${LOG_DIR}/cassandra/$pod/nodetool_status.log
-    kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool getcompactionthroughput | tee -a ${LOG_DIR}/cassandra/$pod/nodetool_getcompactionthroughput.log
-    kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool cfstats | tee -a ${LOG_DIR}/cassandra/$pod/nodetool_cfstats.log
-    kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool cfhistograms draios message_data10 | tee -a ${LOG_DIR}/cassandra/$pod/nodetool_cfhistograms.log
-    kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool proxyhistograms | tee -a ${LOG_DIR}/cassandra/$pod/nodetool_proxyhistograms.log
-    kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool tpstats | tee -a ${LOG_DIR}/cassandra/$pod/nodetool_tpstats.log
-    kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool compactionstats | tee -a ${LOG_DIR}/cassandra/$pod/nodetool_compactionstats.log
+    kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool info > ${LOG_DIR}/cassandra/$pod/nodetool_info.log
+    kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool status > ${LOG_DIR}/cassandra/$pod/nodetool_status.log
+    kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool getcompactionthroughput > ${LOG_DIR}/cassandra/$pod/nodetool_getcompactionthroughput.log
+    kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool cfstats | > ${LOG_DIR}/cassandra/$pod/nodetool_cfstats.log
+    kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool cfhistograms draios message_data10 > ${LOG_DIR}/cassandra/$pod/nodetool_cfhistograms.log
+    kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool proxyhistograms > ${LOG_DIR}/cassandra/$pod/nodetool_proxyhistograms.log
+    kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool tpstats > ${LOG_DIR}/cassandra/$pod/nodetool_tpstats.log
+    kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool compactionstats > ${LOG_DIR}/cassandra/$pod/nodetool_compactionstats.log
 done
 
 echo "Fetching Elasticsearch health info"
 mkdir -p ${LOG_DIR}/elasticsearch
 printf "Pod#\tFilesystem\tSize\tUsed\tAvail\tUse\tMounted on\n" | tee -a ${LOG_DIR}/elasticsearch/elasticsearch_storage.log
 # CHECK HERE IF THE TLS ENV VARIABLE IS SET IN ELASTICSEARCH, AND BUILD THE CURL COMMAND OUT
-ELASTIC_POD=$(kubectl ${KUBE_OPTS} get po -l role=elasticsearch --no-headers | head -1 | awk '{print $1}')
+ELASTIC_POD=$(kubectl ${KUBE_OPTS} get pod -l role=elasticsearch --no-headers | head -1 | awk '{print $1}')
 ELASTIC_TLS=$(kubectl ${KUBE_OPTS} exec -it ${ELASTIC_POD} -- env | grep -i ELASTICSEARCH_TLS_ENCRYPTION)
 
 if [[ ${ELASTIC_TLS} == *"ELASTICSEARCH_TLS_ENCRYPTION=true"* ]]; then
@@ -177,10 +176,10 @@ fi
 for pod in $(kubectl ${KUBE_OPTS} get pods -l role=elasticsearch | grep -v "NAME" | awk '{print $1}')
 do
     printf "$pod\n" | tee -a ${LOG_DIR}/elasticsearch/elasticsearch_health.log
-    kubectl ${KUBE_OPTS} exec -it $pod  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}@sysdigcloud-elasticsearch:9200/_cat/health" | tee -a ${LOG_DIR}/elasticsearch/elasticsearch_health.log
+    kubectl ${KUBE_OPTS} exec -it $pod  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}@sysdigcloud-elasticsearch:9200/_cat/health?v" | tee -a ${LOG_DIR}/elasticsearch/elasticsearch_health.log
 
     printf "$pod\n" | tee -a ${LOG_DIR}/elasticsearch/elasticsearch_indices.log
-    kubectl ${KUBE_OPTS} exec -it $pod  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}@sysdigcloud-elasticsearch:9200/_cat/indices" | tee -a ${LOG_DIR}/elasticsearch/elasticsearch_indices.log
+    kubectl ${KUBE_OPTS} exec -it $pod  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}@sysdigcloud-elasticsearch:9200/_cat/indices?v" | tee -a ${LOG_DIR}/elasticsearch/elasticsearch_indices.log
 
     printf "$pod\n" | tee -a ${LOG_DIR}/elasticsearch/elasticsearch_nodes.log
     kubectl ${KUBE_OPTS} exec -it $pod  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}@sysdigcloud-elasticsearch:9200/_cat/nodes?v" | tee -a ${LOG_DIR}/elasticsearch/elasticsearch_nodes.log
