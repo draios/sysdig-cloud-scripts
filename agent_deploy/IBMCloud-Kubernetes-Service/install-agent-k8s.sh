@@ -78,7 +78,7 @@ function help {
     echo "                [-ar | --agent_registry] [-arr | --agent_repository] [-asr | --agent_slim_repository] [-akr | --agent_kmod_repository] \ "
     echo "                [-ae | --api_endpoint <value> ] [-na | --nodeanalyzer ] \ "
     echo "                [-ia | --imageanalyzer ] [-am | --analysismanager <value>] [-ds | --dockersocket <value>] [-cs | --crisocket <value>] [-cv | --customvolume <value>] \ "
-    echo "                [-av | --agent-version <value>] [ -r | --remove ] [ -aws | --aws ] [-h | --help]"
+    echo "                [-av | --agent-version <value>] [-ips | --image_pull_secret <value>] [ -r | --remove ] [ -aws | --aws ] [-h | --help]"
     echo ""
     echo " -a  : secret access key, as shown in Sysdig Monitor"
     echo " -t  : list of tags for this host (ie. \"role:webserver,location:europe\", \"role:webserver\" or \"webserver\")"
@@ -100,6 +100,7 @@ function help {
 	echo " -asr : if provided, the repository for the agent-slim image (default: ext/sysdig/agent-slim)"
 	echo " -akr : if provided, the repository for the agent-kmodule image (default: ext/sysdig/agent-kmodule)"
     echo " -av : if provided, use the agent-version specified. (default: latest)"
+    echo " -ips: if provided, will be used as imagePullSecret (existing secret to pull agent from a private repository)"
     echo " -r  : if provided, will remove the sysdig agent's daemonset, configmap, clusterrolebinding,"
     echo "       serviceacccount and secret from the specified namespace"
     echo " -ae : if provided, will be used as the base (host) for the Node Analyzer endpoints."
@@ -384,6 +385,7 @@ function install_k8s_agent {
         DAEMONSET_FILE="$WORKDIR/sysdig-kmod-thin-agent-slim-daemonset.yaml"
     fi
 
+
     # -i.bak argument used for compatibility between mac (-i '') and linux (simply -i)
     sed -i.bak -e "s|# serviceAccount: sysdig-agent|serviceAccount: sysdig-agent|" $DAEMONSET_FILE
 
@@ -429,6 +431,18 @@ function install_k8s_agent {
     else
         sed -i.bak -e "s|\( *image: \).*sysdig/agent\(.*\)|\1${REGISTRY}/${AGENT_REPOSITORY}:${AGENT_VERSION}|g" $DAEMONSET_FILE 
     fi
+
+    if [ ! -z "$IMAGE_PULL_SECRET" ]; then
+        if grep -E '^\s*imagePullSecrets:' $DAEMONSET_FILE ; then
+            INDENT=$(grep 'containers' $DAEMONSET_FILE | sed 's/\( *\).*/\1/')
+            echo "$INDENT- name: ${IMAGE_PULL_SECRET}" >> $DAEMONSET_FILE
+        else
+
+            sed -i.bak -e "s|#imagePullSecrets:|imagePullSecrets:|" \
+                -e "s|#- name: secret-name|- name: ${IMAGE_PULL_SECRET}|" \
+                $DAEMONSET_FILE
+        fi
+	fi
 
     # Add label for Sysdig instance
     if [ ! -z "$SYSDIG_INSTANCE_NAME" ]; then
@@ -578,6 +592,7 @@ AGENT_REPOSITORY="ext/sysdig/agent"
 AGENT_SLIM_REPOSITORY="ext/sysdig/agent-slim"
 AGENT_KMOD_REPOSITORY="ext/sysdig/agent-kmodule"
 AGENT_VERSION="latest"
+IMAGE_PULL_SECRET=""
 AWS=0
 AGENT_FULL=0
 WORKDIR="$(mktemp -d /tmp/sysdig-agent-k8s.XXXXXX)"
@@ -778,6 +793,15 @@ case ${key} in
         fi
         shift
         ;;
+    -ips|--image_pull_secret)
+			if is_valid_value "${2}"; then
+				IMAGE_PULL_SECRET="${2}"
+			else
+				echo "ERROR: no value provided for image pull secret option, use -h | --help for $(basename ${0}) Usage"
+				exit 1
+			fi
+			shift
+		;;
     -ae|--api_endpoint)
         if is_valid_value "${2}"; then
             API_ENDPOINT="${2}"
