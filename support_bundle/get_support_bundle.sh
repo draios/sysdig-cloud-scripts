@@ -78,6 +78,7 @@ if [[ ! -z ${API_KEY} ]]; then
     curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/indexSettings" >> ${LOG_DIR}/index_settings.json
     curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/planSettings" >> ${LOG_DIR}/plan_settings.json
     curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/agents/connected" >> ${LOG_DIR}/agents-connected.json
+    curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/dataRetentionSettings" >> ${LOG_DIR}/retention-settings.json
 fi
 
 # Configure kubectl command if labels are set
@@ -186,11 +187,6 @@ do
 
     printf "$pod\n" | tee -a ${LOG_DIR}/elasticsearch/elasticsearch_index_allocation.log
     kubectl ${KUBE_OPTS} exec -it $pod  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}@sysdigcloud-elasticsearch:9200/_cluster/allocation/explain?pretty" | tee -a ${LOG_DIR}/elasticsearch/elasticsearch_index_allocation.log
-
-    #printf "$pod\n" | tee -a ${LOG_DIR}/elasticsearch/elasticsearch_storage.log
-    #echo "Please check this value against the Elasticsearch PV size" | tee -a ${LOG_DIR}/elasticsearch/elasticsearch_storage.log
-    #kubectl ${KUBE_OPTS} exec -it $pod -- du -h /usr/share/elasticsearch | awk '{printf "%-13s %10s\n",$1,$2}' | tee -a ${LOG_DIR}/elasticsearch/elasticsearch_storage.log
-    #kubectl ${KUBE_OPTS} exec -it $pod -- df -Ph | grep elasticsearch | grep -v "tmpfs" | awk '{printf "%-13s %10s %6s %8s %6s %s\n",$1,$2,$3,$4,$5,$6}' | tee -a ${LOG_DIR}/elasticsearch/elasticsearch_storage.log
 
     printf "$pod\n" | tee -a ${LOG_DIR}/elasticsearch/elasticsearch_storage.log
     mountpath=$(kubectl ${KUBE_OPTS} get sts sysdigcloud-elasticsearch -ojsonpath='{.spec.template.spec.containers[].volumeMounts[?(@.name == "data")].mountPath}')
