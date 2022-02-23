@@ -153,7 +153,7 @@ do
     kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool info > ${LOG_DIR}/cassandra/$pod/nodetool_info.log
     kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool status > ${LOG_DIR}/cassandra/$pod/nodetool_status.log
     kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool getcompactionthroughput > ${LOG_DIR}/cassandra/$pod/nodetool_getcompactionthroughput.log
-    kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool cfstats | > ${LOG_DIR}/cassandra/$pod/nodetool_cfstats.log
+    kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool cfstats > ${LOG_DIR}/cassandra/$pod/nodetool_cfstats.log
     kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool cfhistograms draios message_data10 > ${LOG_DIR}/cassandra/$pod/nodetool_cfhistograms.log
     kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool proxyhistograms > ${LOG_DIR}/cassandra/$pod/nodetool_proxyhistograms.log
     kubectl ${KUBE_OPTS} exec -it $pod -c cassandra -- nodetool tpstats > ${LOG_DIR}/cassandra/$pod/nodetool_tpstats.log
