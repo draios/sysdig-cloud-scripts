@@ -1,0 +1,57 @@
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: installer
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: installer
+subjects:
+- kind: ServiceAccount
+  name: installer
+  namespace: sysdigcloud
+---
+# We need the scc clusterrole to be able to
+# grants scc to sysdig service-accounts in
+# sysdig namespace.
+#
+# Starting from OCP 4.6 we already have
+# all the built-in clusteroles:
+#
+# system:openshift:scc:anyuid
+# system:openshift:scc:hostaccess
+# system:openshift:scc:hostmount
+# system:openshift:scc:hostnetwork
+# system:openshift:scc:nonroot
+# system:openshift:scc:privileged
+# system:openshift:scc:restricted
+#
+# According to:
+# https://github.com/draios/installer/blob/4d7b1886c4c91796a17c706eb85a20e6e25ba041/installer/pkg/installer/deploy.go#L1298-L1306
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: installer-scc-anyuid
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:openshift:scc:anyuid
+subjects:
+- kind: ServiceAccount
+  name: installer
+  namespace: sysdigcloud
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: installer-scc-privileged
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:openshift:scc:privileged
+subjects:
+- kind: ServiceAccount
+  name: installer
+  namespace: sysdigcloud
+...

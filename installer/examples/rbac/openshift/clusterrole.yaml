@@ -1,0 +1,64 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: installer
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - patch
+  - create
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  - endpoints
+  - nodes
+  - persistentvolumes
+  - pods
+  - secrets
+  - services
+  verbs:
+  - get
+  - list
+  - watch
+# No GS
+- apiGroups:
+  - storage.k8s.io
+  resources:
+  - storageclasses
+  verbs:
+  - get
+  - list
+  - create
+  - update
+# No Gs
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - clusterrolebindings
+  - clusterroles
+  verbs:
+  - get
+  - list
+  - patch
+  - create
+  - update
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - ingresses
+  verbs:
+  - list
+  - watch
+  - get
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - ingresses/status
+  verbs:
+  - update
+...
