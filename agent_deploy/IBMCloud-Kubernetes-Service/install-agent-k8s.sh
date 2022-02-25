@@ -379,9 +379,11 @@ function install_k8s_agent {
     if [ $AGENT_FULL -eq 1 ]; then
         echo "Full agent selected "
         DAEMONSET_FILE="$WORKDIR/sysdig-agent-daemonset-v2.yaml"
+        AGENT_NAMES="agent"
     else
         echo "Slim agent selected "
         DAEMONSET_FILE="$WORKDIR/sysdig-kmod-thin-agent-slim-daemonset.yaml"
+        AGENT_NAMES="agent-slim agent-kmodule"
     fi
 
     # -i.bak argument used for compatibility between mac (-i '') and linux (simply -i)
@@ -389,9 +391,12 @@ function install_k8s_agent {
 
     # For IBM use IBM Cloud Container Registry
     if [ $AWS -eq 0 ]; then
-        sed -i.bak -e "s|\( *image: \).*sysdig/agent-slim\(.*\)|\1${REGISTRY}/${AGENT_SLIM_REPOSITORY}:${AGENT_VERSION}|g" $DAEMONSET_FILE \
-        -e "s|\( *image: \).*sysdig/agent-kmodule\(.*\)|\1${REGISTRY}/${AGENT_KMOD_REPOSITORY}:${AGENT_VERSION}|g" $DAEMONSET_FILE
-
+        if [ $AGENT_FULL -eq 1 ]; then
+            sed -i.bak -e "s|\( *image: \).*sysdig/agent\(.*\)|\1${REGISTRY}/${AGENT_REPOSITORY}:${AGENT_VERSION}|" $DAEMONSET_FILE
+        else
+            sed -i.bak -e "s|\( *image: \).*sysdig/agent-slim\(.*\)|\1${REGISTRY}/${AGENT_SLIM_REPOSITORY}:${AGENT_VERSION}|g" $DAEMONSET_FILE \
+            -e "s|\( *image: \).*sysdig/agent-kmodule\(.*\)|\1${REGISTRY}/${AGENT_KMOD_REPOSITORY}:${AGENT_VERSION}|g" $DAEMONSET_FILE
+        fi
         ICR_SECRET_EXIST=$(kubectl -n default get secret -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' | grep -qE "default-icr-io|all-icr-io" || echo 1)
         if [ "$ICR_SECRET_EXIST" = 1 ]; then
             # Throw an error instead of running the command for them because it could
@@ -427,7 +432,10 @@ function install_k8s_agent {
             echo "${INDENT}- name: $SECRET_NAME" >> $DAEMONSET_FILE
         done
     else
-        sed -i.bak -e "s|\( *image: \).*sysdig/agent\(.*\)|\1${REGISTRY}/${AGENT_REPOSITORY}:${AGENT_VERSION}|g" $DAEMONSET_FILE 
+        for agent_name in ${AGENT_NAMES}; do
+            # Don't use IBM Cloud Container Registry when not running in IBM. Force quay.io and append the version
+            sed -i.bak -e "s|\( *image: \).*sysdig/${agent_name}\(.*\)|\1quay.io/sysdig/${agent_name}:${AGENT_VERSION}|g" $DAEMONSET_FILE
+        done
     fi
 
     # Add label for Sysdig instance
