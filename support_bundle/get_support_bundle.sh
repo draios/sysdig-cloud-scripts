@@ -227,13 +227,13 @@ do
     printf "${pod}\n" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_health.log
     kubectl ${KUBE_OPTS} exec -it ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}@sysdigcloud-elasticsearch:9200/_cat/health" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_health.log
 
-    printf "${pod}\n" | tee -a ${LOG_DIR}/elasticsearch/elasticsearch_indices.log
+    printf "${pod}\n" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_indices.log
     kubectl ${KUBE_OPTS} exec -it ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}@sysdigcloud-elasticsearch:9200/_cat/indices" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_indices.log
 
-    printf "${pod}\n" | tee -a ${LOG_DIR}/elasticsearch/elasticsearch_nodes.log
+    printf "${pod}\n" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_nodes.log
     kubectl ${KUBE_OPTS} exec -it ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}@sysdigcloud-elasticsearch:9200/_cat/nodes?v" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_nodes.log
 
-    printf "${pod}\n" | tee -a ${LOG_DIR}/elasticsearch/elasticsearch_index_allocation.log
+    printf "${pod}\n" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_index_allocation.log
     kubectl ${KUBE_OPTS} exec -it ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}@sysdigcloud-elasticsearch:9200/_cluster/allocation/explain?pretty" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_index_allocation.log
 
     printf "${pod}\n" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_storage.log
