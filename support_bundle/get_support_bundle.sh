@@ -93,7 +93,7 @@ segment_by="${2}"
           --header 'Content-Type: application/json'
           -d "{\"requests\":[{\"format\":{\"type\":\"data\"},\"time\":{\"from\":${FROM_EPOCH_TIME}000000,\"to\":${TO_EPOCH_TIME}000000,\"sampling\":600000000},\"metrics\":{\"v0\":\"${metric}\",\"k0\":\"timestamp\",\"k1\":\"${segment_by}\"},\"group\":{\"aggregations\":{\"v0\":\"avg\"},\"groupAggregations\":{\"v0\":\"avg\"},\"by\":[{\"metric\":\"k0\",\"value\":600000000},{\"metric\":\"k1\"}],\"configuration\":{\"groups\":[{\"groupBy\":[]}]}},\"paging\":{\"from\":0,\"to\":9},\"sort\":[{\"v0\":\"desc\"}],\"scope\":null,\"compareTo\":null}]}'"
         )
-        curl "${PARAMS[@]}" >${LOG_DIR}/metrics/${metric}_${segment_by}.json
+        curl "${PARAMS[@]}" >${LOG_DIR}/metrics/${metric}_${segment_by}.json || echo "Curl failed collecting ${metric}_${segment_by} data!" && true
 }
 
 # If API key is supplied, collect streamSnap, Index settings, and fastPath settings
