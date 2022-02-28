@@ -213,7 +213,7 @@ done
 echo "Fetching Elasticsearch health info"
 # CHECK HERE IF THE TLS ENV VARIABLE IS SET IN ELASTICSEARCH, AND BUILD THE CURL COMMAND OUT
 ELASTIC_POD=$(kubectl ${KUBE_OPTS} get po -l role=elasticsearch --no-headers | head -1 | awk '{print $1}')
-ELASTIC_TLS=$(kubectl ${KUBE_OPTS} exec -it ${ELASTIC_POD} -- env | grep -i ELASTICSEARCH_TLS_ENCRYPTION)
+ELASTIC_TLS=$(kubectl ${KUBE_OPTS} exec -it ${ELASTIC_POD} -c elasticsearch -- env | grep -i ELASTICSEARCH_TLS_ENCRYPTION)
 
 if [[ ${ELASTIC_TLS} == *"ELASTICSEARCH_TLS_ENCRYPTION=true"* ]]; then
     ELASTIC_CURL='curl -s --cacert /usr/share/elasticsearch/config/root-ca.pem https://${ELASTICSEARCH_ADMINUSER}:${ELASTICSEARCH_ADMIN_PASSWORD}'
