@@ -211,7 +211,6 @@ do
 done
 
 echo "Fetching Elasticsearch health info"
-mkdir -p ${LOG_DIR}/elasticsearch
 # CHECK HERE IF THE TLS ENV VARIABLE IS SET IN ELASTICSEARCH, AND BUILD THE CURL COMMAND OUT
 ELASTIC_POD=$(kubectl ${KUBE_OPTS} get po -l role=elasticsearch --no-headers | head -1 | awk '{print $1}')
 ELASTIC_TLS=$(kubectl ${KUBE_OPTS} exec -it ${ELASTIC_POD} -- env | grep -i ELASTICSEARCH_TLS_ENCRYPTION)
@@ -229,7 +228,7 @@ do
     kubectl ${KUBE_OPTS} exec -it ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}@sysdigcloud-elasticsearch:9200/_cat/health" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_health.log
 
     printf "${pod}\n" | tee -a ${LOG_DIR}/elasticsearch/elasticsearch_indices.log
-    kubectl ${KUBE_OPTS} exec -it ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}@sysdigcloud-elasticsearch:9200/_cat/indices" | tee -a ${LOG_DIR}/elasticsearch//${pod}/elasticsearch_indices.log
+    kubectl ${KUBE_OPTS} exec -it ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}@sysdigcloud-elasticsearch:9200/_cat/indices" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_indices.log
 
     printf "${pod}\n" | tee -a ${LOG_DIR}/elasticsearch/elasticsearch_nodes.log
     kubectl ${KUBE_OPTS} exec -it ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}@sysdigcloud-elasticsearch:9200/_cat/nodes?v" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_nodes.log
