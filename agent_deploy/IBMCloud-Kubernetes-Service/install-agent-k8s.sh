@@ -384,7 +384,6 @@ function install_k8s_agent {
         AGENT_NAMES="agent-slim agent-kmodule"
     fi
 
-
     # -i.bak argument used for compatibility between mac (-i '') and linux (simply -i)
     sed -i.bak -e "s|# serviceAccount: sysdig-agent|serviceAccount: sysdig-agent|" $DAEMONSET_FILE
 
