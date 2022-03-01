@@ -758,13 +758,13 @@ case ${key} in
         shift
         ;;
     -ips|--image_pull_secret)
-			if is_valid_value "${2}"; then
-				IMAGE_PULL_SECRET="${2}"
-			else
-				echo "ERROR: no value provided for image pull secret option, use -h | --help for $(basename ${0}) Usage"
-				exit 1
-			fi
-			shift
+        if is_valid_value "${2}"; then
+            IMAGE_PULL_SECRET="${2}"
+        else
+            echo "ERROR: no value provided for image pull secret option, use -h | --help for $(basename ${0}) Usage"
+            exit 1
+        fi
+        shift
 		;;
     -ae|--api_endpoint)
         if is_valid_value "${2}"; then
