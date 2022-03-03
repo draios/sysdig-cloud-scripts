@@ -445,7 +445,7 @@ function install_k8s_agent {
                 -e "s|#- name: secret-name|- name: ${IMAGE_PULL_SECRET}|" \
                 $DAEMONSET_FILE
         fi
-	fi
+    fi
 
     # Add label for Sysdig instance
     if [ ! -z "$SYSDIG_INSTANCE_NAME" ]; then
