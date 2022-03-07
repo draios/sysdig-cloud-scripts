@@ -78,6 +78,20 @@ if [[ "$(echo "$KUBE_OUTPUT" | grep -o "^sysdig " || true)" != "${NAMESPACE} " ]
     echo "$(kubectl ${KUBE_OPTS} get ns)";
 fi
 
+get_agent_version_metric_limits() {
+# function used to get metric JSON data for Agent versions and metric counts for each agent.
+# This is taken from the Sysdig Agent and Health Status Dashboard
+# arguments:
+        PARAMS=(
+          -sk --location --request POST "${API_URL}/api/data/batch?metricCompatibilityValidation=true&emptyValuesAsNull=true"
+          --header 'X-Sysdig-Product: SDC'
+          --header "Authorization: Bearer ${API_KEY}"
+          --header 'Content-Type: application/json'
+          -d "{\"requests\":[{\"format\":{\"type\":\"data\"},\"time\":{\"from\":${FROM_EPOCH_TIME}000000,\"to\":${TO_EPOCH_TIME}000000,\"sampling\":600000000},\"metrics\":{\"v0\":\"agent.version\",\"v1\":\"agent.mode\",\"v2\":\"metricCount.statsd\",\"v3\":\"metricCount.prometheus\",\"v4\":\"metricCount.appCheck\",\"v5\":\"metricCount.jmx\",\"k1\":\"host.hostName\",\"k2\":\"host.mac\"},\"group\":{\"aggregations\":{\"v0\":\"concat\",\"v1\":\"concat\",\"v2\":\"max\",\"v3\":\"max\",\"v4\":\"avg\",\"v5\":\"avg\"},\"groupAggregations\":{\"v0\":\"concat\",\"v1\":\"concat\",\"v2\":\"sum\",\"v3\":\"sum\",\"v4\":\"avg\",\"v5\":\"avg\"},\"by\":[{\"metric\":\"k1\"},{\"metric\":\"k2\"}],\"configuration\":{\"groups\":[{\"groupBy\":[]}]}},\"paging\":{\"from\":0,\"to\":49},\"sort\":[{\"v0\":\"desc\"},{\"v1\":\"desc\"},{\"v2\":\"desc\"},{\"v3\":\"desc\"},{\"v4\":\"desc\"},{\"v5\":\"desc\"}],\"scope\":null,\"compareTo\":null}]}"
+        )
+        curl "${PARAMS[@]}" >${LOG_DIR}/metrics/agent_version_metric_limits.json || echo "Curl failed collecting agent_version_metric_limits.json data!" && true
+}
+
 get_metrics() {
 # function used to get metric JSON data for particular metrics we are interested in from the agent
 # arguments:
@@ -122,6 +136,8 @@ if [[ ! -z ${API_KEY} ]]; then
             get_metrics "${metric}" "${DEFAULT_SEGMENT}"
         fi
     done
+
+    get_agent_version_metric_limits
 
 fi
 
