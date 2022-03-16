@@ -75,9 +75,10 @@ function help {
     echo "                [-cp | --collector_port <value>] [-s | --secure <value>] [-cc | --check_certificate <value>] \ "
     echo "                [-ns | --namespace | --project <value>] [-ac | --additional_conf <value>] [-np | --no-prometheus] \ "
     echo "                [-sn | --sysdig_instance_name <value>] [-op | --openshift] [-af | --agent-full] [-as | --agent-slim] \ "
+    echo "                [-ar | --agent_registry] [-arr | --agent_repository] [-asr | --agent_slim_repository] [-akr | --agent_kmod_repository] \ "
     echo "                [-ae | --api_endpoint <value> ] [-na | --nodeanalyzer ] \ "
     echo "                [-ia | --imageanalyzer ] [-am | --analysismanager <value>] [-ds | --dockersocket <value>] [-cs | --crisocket <value>] [-cv | --customvolume <value>] \ "
-    echo "                [-av | --agent-version <value>] [ -r | --remove ] [ -aws | --aws ] [-h | --help]"
+    echo "                [-av | --agent-version <value>] [-ips | --image_pull_secret <value>] [ -r | --remove ] [ -aws | --aws ] [-h | --help]"
     echo ""
     echo " -a  : secret access key, as shown in Sysdig Monitor"
     echo " -t  : list of tags for this host (ie. \"role:webserver,location:europe\", \"role:webserver\" or \"webserver\")"
@@ -94,7 +95,12 @@ function help {
     echo " -as : if provided, use agent-slim (this is the default agent). Note: this option is not required"
     echo " -af : if provided, use agent-full instead of agent-slim"
     echo " -ac : if provided, the additional configuration will be appended to agent configuration file"
+	echo " -ar : if provided, the registry for the agent images (default: icr.io)"
+	echo " -arr : if provided, the repository for the agent image (default: ext/sysdig/agent)"
+	echo " -asr : if provided, the repository for the agent-slim image (default: ext/sysdig/agent-slim)"
+	echo " -akr : if provided, the repository for the agent-kmodule image (default: ext/sysdig/agent-kmodule)"
     echo " -av : if provided, use the agent-version specified. (default: latest)"
+    echo " -ips: if provided, will be used as imagePullSecret (existing secret to pull agent from a private repository)"
     echo " -r  : if provided, will remove the sysdig agent's daemonset, configmap, clusterrolebinding,"
     echo "       serviceacccount and secret from the specified namespace"
     echo " -ae : if provided, will be used as the base (host) for the Node Analyzer endpoints."
@@ -374,12 +380,10 @@ function install_k8s_agent {
     if [ $AGENT_FULL -eq 1 ]; then
         echo "Full agent selected "
         DAEMONSET_FILE="$WORKDIR/sysdig-agent-daemonset-v2.yaml"
-        AGENT_STRING="agent"
         AGENT_NAMES="agent"
     else
         echo "Slim agent selected "
         DAEMONSET_FILE="$WORKDIR/sysdig-kmod-thin-agent-slim-daemonset.yaml"
-        AGENT_STRING="agent-slim"
         AGENT_NAMES="agent-slim agent-kmodule"
     fi
 
@@ -388,11 +392,12 @@ function install_k8s_agent {
 
     # For IBM use IBM Cloud Container Registry
     if [ $AWS -eq 0 ]; then
-        for agent_name in ${AGENT_NAMES}; do
-            # Use IBM Cloud Container Registry instead of docker.io or quay.io
-            sed -i.bak -e "s|\( *image: \).*sysdig/${agent_name}\(.*\)|\1icr.io/ext/sysdig/${agent_name}:${AGENT_VERSION}|g" $DAEMONSET_FILE
-        done
-
+        if [ $AGENT_FULL -eq 1 ]; then
+            sed -i.bak -e "s|\( *image: \).*sysdig/agent\(.*\)|\1${REGISTRY}/${AGENT_REPOSITORY}:${AGENT_VERSION}|" $DAEMONSET_FILE
+        else
+            sed -i.bak -e "s|\( *image: \).*sysdig/agent-slim\(.*\)|\1${REGISTRY}/${AGENT_SLIM_REPOSITORY}:${AGENT_VERSION}|g" $DAEMONSET_FILE \
+            -e "s|\( *image: \).*sysdig/agent-kmodule\(.*\)|\1${REGISTRY}/${AGENT_KMOD_REPOSITORY}:${AGENT_VERSION}|g" $DAEMONSET_FILE
+        fi
         ICR_SECRET_EXIST=$(kubectl -n default get secret -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' | grep -qE "default-icr-io|all-icr-io" || echo 1)
         if [ "$ICR_SECRET_EXIST" = 1 ]; then
             # Throw an error instead of running the command for them because it could
@@ -432,6 +437,18 @@ function install_k8s_agent {
             # Don't use IBM Cloud Container Registry when not running in IBM. Force quay.io and append the version
             sed -i.bak -e "s|\( *image: \).*sysdig/${agent_name}\(.*\)|\1quay.io/sysdig/${agent_name}:${AGENT_VERSION}|g" $DAEMONSET_FILE
         done
+    fi
+
+    if [ ! -z "$IMAGE_PULL_SECRET" ]; then
+        if grep -E '^\s*imagePullSecrets:' $DAEMONSET_FILE ; then
+            INDENT=$(grep 'containers' $DAEMONSET_FILE | sed 's/\( *\).*/\1/')
+            echo "$INDENT- name: ${IMAGE_PULL_SECRET}" >> $DAEMONSET_FILE
+        else
+
+            sed -i.bak -e "s|#imagePullSecrets:|imagePullSecrets:|" \
+                -e "s|#- name: secret-name|- name: ${IMAGE_PULL_SECRET}|" \
+                $DAEMONSET_FILE
+        fi
     fi
 
     # Add label for Sysdig instance
@@ -577,7 +594,12 @@ ENABLE_PROMETHEUS=1
 OPENSHIFT=0
 INSTALL_IMAGE_ANALYZER=0
 INSTALL_NODE_ANALYZER=0
+REGISTRY="icr.io"
+AGENT_REPOSITORY="ext/sysdig/agent"
+AGENT_SLIM_REPOSITORY="ext/sysdig/agent-slim"
+AGENT_KMOD_REPOSITORY="ext/sysdig/agent-kmodule"
 AGENT_VERSION="latest"
+IMAGE_PULL_SECRET=""
 AWS=0
 AGENT_FULL=0
 WORKDIR="$(mktemp -d /tmp/sysdig-agent-k8s.XXXXXX)"
@@ -672,6 +694,42 @@ case ${key} in
         fi
         shift
         ;;
+    -ar|--agent_registry)
+        if is_valid_value "${2}"; then
+            REGISTRY="${2}"
+        else
+            echo "ERROR: no value provided for agent registry option, use -h | --help for $(basename ${0}) Usage"
+            exit 1
+        fi
+        shift
+        ;;
+    -arr|--agent_repository)
+        if is_valid_value "${2}"; then
+            AGENT_REPOSITORY="${2}"
+        else
+            echo "ERROR: no value provided for agent repository option, use -h | --help for $(basename ${0}) Usage"
+            exit 1
+        fi
+        shift
+        ;;
+    -asr|--agent_slim_repository)
+        if is_valid_value "${2}"; then
+            AGENT_SLIM_REPOSITORY="${2}"
+        else
+            echo "ERROR: no value provided for agent slim repository option, use -h | --help for $(basename ${0}) Usage"
+            exit 1
+        fi
+        shift
+        ;;
+    -akr|--agent_kmod_repository)
+        if is_valid_value "${2}"; then
+            AGENT_KMOD_REPOSITORY="${2}"
+        else
+            echo "ERROR: no value provided for agent kmodule repository option, use -h | --help for $(basename ${0}) Usage"
+            exit 1
+        fi
+        shift
+        ;;
     -av|--agent-version)
     if is_valid_value "${2}"; then
             AGENT_VERSION="${2}"
@@ -742,6 +800,15 @@ case ${key} in
         fi
         shift
         ;;
+    -ips|--image_pull_secret)
+        if is_valid_value "${2}"; then
+            IMAGE_PULL_SECRET="${2}"
+        else
+            echo "ERROR: no value provided for image pull secret option, use -h | --help for $(basename ${0}) Usage"
+            exit 1
+        fi
+        shift
+		;;
     -ae|--api_endpoint)
         if is_valid_value "${2}"; then
             API_ENDPOINT="${2}"

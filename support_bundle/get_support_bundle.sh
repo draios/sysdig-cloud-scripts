@@ -26,7 +26,7 @@ SINCE=""
 API_KEY=""
 ELASTIC_CURL=""
 
-while getopts l:n:c:s:a:hced flag; do
+while getopts l:n:c:s:a:hd flag; do
     case "${flag}" in
         l) LABELS=${OPTARG:-};;
         n) NAMESPACE=${OPTARG:-};;
@@ -139,7 +139,6 @@ if [[ ! -z ${API_KEY} ]]; then
     done
 
     get_agent_version_metric_limits
-
 fi
 
 # Configure kubectl command if labels are set
@@ -176,13 +175,16 @@ do
     done
 done
 
+#Collect PV info
+kubectl ${KUBE_OPTS} get pv | grep sysdig | tee -a ${LOG_DIR}/pv_output.log
+kubectl ${KUBE_OPTS} get pvc | grep sysdig | tee -a ${LOG_DIR}/pvc_output.log
+
 # Get info on deployments, statefulsets, persistentVolumeClaims, daemonsets, and ingresses
-for object in svc deployment sts pvc daemonset ingress replicaset; 
+for object in svc deployment sts pvc daemonset ingress replicaset
 do
     items=$(kubectl ${KUBE_OPTS} get ${object} -o jsonpath="{.items[*]['metadata.name']}")
     mkdir -p ${LOG_DIR}/${object}
-    for item in ${items}; 
-    do
+    for item in ${items}; do 
         kubectl ${KUBE_OPTS} get ${object} ${item} -o json > ${LOG_DIR}/${object}/${item}-kubectl.json
     done
 done
