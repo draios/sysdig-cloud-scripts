@@ -256,6 +256,11 @@ if [ ! -z ${ELASTIC_POD} ]; then
     
         printf "${pod}\n" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_index_allocation.log
         kubectl ${KUBE_OPTS} exec -it ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}@sysdigcloud-elasticsearch:9200/_cluster/allocation/explain?pretty" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_index_allocation.log
+
+        echo "Fetching ElasticSearch SSL Certificate Expiration Dates"
+        kubectl ${KUBE_OPTS} exec -it ${pod}  -c elasticsearch -- openssl x509 -in /usr/share/elasticsearch/config/node.pem -noout -enddate | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_node_pem_expiration.log
+        kubectl ${KUBE_OPTS} exec -it ${pod}  -c elasticsearch -- openssl x509 -in /usr/share/elasticsearch/config/admin.pem -noout -enddate | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_admin_pem_expiration.log
+        kubectl ${KUBE_OPTS} exec -it ${pod}  -c elasticsearch -- openssl x509 -in /usr/share/elasticsearch/config/root-ca.pem -noout -enddate | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_root_ca_pem_expiration.log
     
         printf "${pod}\n" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_storage.log
         mountpath=$(kubectl ${KUBE_OPTS} get sts sysdigcloud-elasticsearch -ojsonpath='{.spec.template.spec.containers[].volumeMounts[?(@.name == "data")].mountPath}')
@@ -269,6 +274,8 @@ if [ ! -z ${ELASTIC_POD} ]; then
 else
     echo "Unable to fetch ElasticSearch pod to gather health info!"
 fi
+
+
 
 # Fetch Cassandra storage info
 for pod in $(kubectl ${KUBE_OPTS} get pods -l role=cassandra  | grep -v "NAME" | awk '{print $1}')
