@@ -245,16 +245,12 @@ if [ ! -z ${ELASTIC_POD} ]; then
     for pod in $(kubectl ${KUBE_OPTS} get pods -l role=elasticsearch | grep -v "NAME" | awk '{print $1}')
     do
         mkdir -p ${LOG_DIR}/elasticsearch/${pod}
-        printf "${pod}\n" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_health.log
         kubectl ${KUBE_OPTS} exec -it ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}@sysdigcloud-elasticsearch:9200/_cat/health" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_health.log
     
-        printf "${pod}\n" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_indices.log
         kubectl ${KUBE_OPTS} exec -it ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}@sysdigcloud-elasticsearch:9200/_cat/indices" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_indices.log
     
-        printf "${pod}\n" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_nodes.log
         kubectl ${KUBE_OPTS} exec -it ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}@sysdigcloud-elasticsearch:9200/_cat/nodes?v" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_nodes.log
     
-        printf "${pod}\n" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_index_allocation.log
         kubectl ${KUBE_OPTS} exec -it ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}@sysdigcloud-elasticsearch:9200/_cluster/allocation/explain?pretty" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_index_allocation.log
 
         echo "Fetching ElasticSearch SSL Certificate Expiration Dates"
@@ -263,7 +259,6 @@ if [ ! -z ${ELASTIC_POD} ]; then
         kubectl ${KUBE_OPTS} exec -it ${pod}  -c elasticsearch -- openssl x509 -in /usr/share/elasticsearch/config/root-ca.pem -noout -enddate | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_root_ca_pem_expiration.log
     
         echo "Checking Used Elasticsearch Storage - ${pod}"
-        printf "${pod}\n" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_storage.log
         mountpath=$(kubectl ${KUBE_OPTS} get sts sysdigcloud-elasticsearch -ojsonpath='{.spec.template.spec.containers[].volumeMounts[?(@.name == "data")].mountPath}')
         if [ ! -z $mountpath ]; then
            kubectl ${KUBE_OPTS} exec -it ${pod} -c elasticsearch -- du -ch ${mountpath} | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_storage.log
