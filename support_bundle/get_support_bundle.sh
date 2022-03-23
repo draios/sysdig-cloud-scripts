@@ -262,10 +262,10 @@ if [ ! -z ${ELASTIC_POD} ]; then
         kubectl ${KUBE_OPTS} exec -it ${pod}  -c elasticsearch -- openssl x509 -in /usr/share/elasticsearch/config/admin.pem -noout -enddate | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_admin_pem_expiration.log
         kubectl ${KUBE_OPTS} exec -it ${pod}  -c elasticsearch -- openssl x509 -in /usr/share/elasticsearch/config/root-ca.pem -noout -enddate | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_root_ca_pem_expiration.log
     
+        echo "Checking Used Elasticsearch Storage - ${pod}"
         printf "${pod}\n" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_storage.log
         mountpath=$(kubectl ${KUBE_OPTS} get sts sysdigcloud-elasticsearch -ojsonpath='{.spec.template.spec.containers[].volumeMounts[?(@.name == "data")].mountPath}')
         if [ ! -z $mountpath ]; then
-           echo "Please check this value against the Elasticsearch PV size" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_storage.log
            kubectl ${KUBE_OPTS} exec -it ${pod} -c elasticsearch -- du -ch ${mountpath} | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_storage.log
        else
           printf "Error getting ElasticSearch ${pod} mount path\n" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_storage.log
@@ -280,12 +280,11 @@ fi
 # Fetch Cassandra storage info
 for pod in $(kubectl ${KUBE_OPTS} get pods -l role=cassandra  | grep -v "NAME" | awk '{print $1}')
 do
-    echo "Checking Cassandra Storage - ${pod}"
+    echo "Checking Used Cassandra Storage - ${pod}"
     mkdir -p ${LOG_DIR}/cassandra/${pod}
     printf "${pod}\n" | tee -a ${LOG_DIR}/cassandra/${pod}/cassandra_storage.log
     mountpath=$(kubectl ${KUBE_OPTS} get sts sysdigcloud-cassandra -ojsonpath='{.spec.template.spec.containers[].volumeMounts[?(@.name == "data")].mountPath}')
     if [ ! -z $mountpath ]; then
-        echo "Please check this value against the Cassandra PV size" | tee -a ${LOG_DIR}/cassandra/${pod}/cassandra_storage.log
         kubectl ${KUBE_OPTS} exec -it ${pod} -c cassandra -- du -ch ${mountpath} | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' | tee -a ${LOG_DIR}/cassandra/${pod}/cassandra_storage.log || true
    else
       printf "Error getting Cassandra ${pod} mount path\n" | tee -a ${LOG_DIR}/cassandra/${pod}/cassandra_storage.log
@@ -295,20 +294,18 @@ done
 # Fetch postgresql storage info
 for pod in $(kubectl ${KUBE_OPTS} get pods -l role=postgresql  | grep -v "NAME" | awk '{print $1}')
 do
-    echo "Checking PostgreSQL Storage - ${pod}"
+    echo "Checking Used PostgreSQL Storage - ${pod}"
     mkdir -p ${LOG_DIR}/postgresql/${pod}
     printf "${pod}\n" | tee -a ${LOG_DIR}/postgresql/${pod}/postgresql_storage.log
-    echo "Please check this value against the PostgreSQL PV size" | tee -a ${LOG_DIR}/postgresql/${pod}/postgresql_storage.log
     kubectl ${KUBE_OPTS} exec -it ${pod} -c postgresql -- du -ch /var/lib/postgresql | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' | tee -a ${LOG_DIR}/postgresql/${pod}/postgresql_storage.log || true
 done
 
 # Fetch mysql storage info
 for pod in $(kubectl ${KUBE_OPTS} get pods -l role=mysql  | grep -v "NAME" | awk '{print $1}')
 do
-    echo "Checking MySQL Storage - ${pod}"
+    echo "Checking Used MySQL Storage - ${pod}"
     mkdir -p ${LOG_DIR}/mysql/${pod}
     printf "${pod}\n" | tee -a ${LOG_DIR}/mysql/${pod}/mysql_storage.log
-    echo "Please check this value against the mysql PV size" | tee -a ${LOG_DIR}/mysql/${pod}/mysql_storage.log
     kubectl ${KUBE_OPTS} exec -it ${pod} -c mysql -- du -ch /var/lib/mysql | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' | tee -a ${LOG_DIR}/mysql/${pod}/mysql_storage.log || true
 done
 
