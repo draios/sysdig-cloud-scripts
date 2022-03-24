@@ -245,6 +245,7 @@ main() {
     #Collect PV info
     kubectl ${KUBE_OPTS} get pv | grep sysdig | tee -a ${LOG_DIR}/pv_output.log || echo "No permission to get PersistentVolumes"
     kubectl ${KUBE_OPTS} get pvc | grep sysdig | tee -a ${LOG_DIR}/pvc_output.log
+    kubectl ${KUBE_OPTS} get storageclass | tee -a ${LOG_DIR}/sc_output.log || echo "No permission to get StorageClasses"
     
     # Get info on deployments, statefulsets, persistentVolumeClaims, daemonsets, and ingresses
     echo "Gathering Manifest Information"
