@@ -19,13 +19,6 @@ API_KEY=""
 SKIP_LOGS="false"
 ELASTIC_CURL=""
 
-begins_with_short_option() {
-    local first_option all_short_options
-    all_short_options='acdhlns'
-    first_option="${1:0:1}"
-    test "$all_short_options" = "${all_short_options/$first_option/}" && return 1 || return 0
-}
-
 print_help() {
     printf 'Usage: %s [-a|--api-key <API_KEY>] [c|--context <CONTEXT>] [-d|--debug] [-l|--labels <LABELS>] [-n|--namespace <NAMESPACE>] [-s|--since <TIMEFRAME>] [--skip-logs] [-h|--help]\n' "$0"
     printf "\t%s\n" "-a,--api-key: Provide the Superuser API key for advanced data collection"
