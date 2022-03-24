@@ -239,8 +239,17 @@ main() {
     fi
     
     #Collect Describe Node Output
-    echo "Collecting describe node output"
-    kubectl ${KUBE_OPTS} describe nodes | tee -a ${LOG_DIR}/describe_node_output.log || echo "No permission to describe nodes"
+    echo "Collecting node information"
+    kubectl ${KUBE_OPTS} describe nodes | tee -a ${LOG_DIR}/describe_node_output.log || echo "No permission to describe nodes!"
+
+    NODES=$(kubectl ${KUBE_OPTS} get nodes --no-headers | awk '{print $1}') && RETVAL=0 || { RETVAL=$? && echo "No permission to get nodes!"; }
+    if [[ "${RETVAL}" == "0" ]]; then
+        mkdir -p ${LOG_DIR}/nodes
+        for node in ${NODES[@]}; do
+            kubectl ${KUBE_OPTS} get node ${node} -ojson > ${LOG_DIR}/nodes/${node}-kubectl.json
+        done
+        unset RETVAL
+    fi
     
     #Collect PV info
     kubectl ${KUBE_OPTS} get pv | grep sysdig | tee -a ${LOG_DIR}/pv_output.log || echo "No permission to get PersistentVolumes"
