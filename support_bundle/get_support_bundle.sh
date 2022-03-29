@@ -219,7 +219,6 @@ main() {
         do
             echo "Getting support logs for ${pod}"
             mkdir -p ${LOG_DIR}/${pod}
-            kubectl ${KUBE_OPTS} get pod ${pod} -o json > ${LOG_DIR}/${pod}/kubectl-describe.json
             containers=$(kubectl ${KUBE_OPTS} get pod ${pod} -o json | jq -r '.spec.containers[].name')
             for container in ${containers}; 
             do
@@ -237,6 +236,14 @@ main() {
             done
         done
     fi
+
+    echo "Gathering pod descriptions"
+    for pod in ${SYSDIGCLOUD_PODS}; 
+    do
+        echo "Getting pod description for ${pod}"
+        mkdir -p ${LOG_DIR}/${pod}
+        kubectl ${KUBE_OPTS} get pod ${pod} -o json > ${LOG_DIR}/${pod}/kubectl-describe.json
+    done
     
     #Collect Describe Node Output
     echo "Collecting node information"
