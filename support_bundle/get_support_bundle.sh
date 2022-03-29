@@ -13,7 +13,7 @@ CONTEXT=""
 CONTEXT_OPTS=""
 NAMESPACE="sysdigcloud"
 LOG_DIR=$(mktemp -d sysdigcloud-support-bundle-XXXX)
-SINCE_OPTS="" 
+SINCE_OPTS=""
 SINCE=""
 API_KEY=""
 SKIP_LOGS="false"
@@ -147,28 +147,27 @@ main() {
     if [[ -z ${NAMESPACE} ]]; then
         NAMESPACE="sysdig"
     fi
-    
+
     if [[ ! -z ${CONTEXT} ]]; then
         CONTEXT_OPTS="--context=${CONTEXT}"
     fi
-    
+
     if [[ ! -z ${SINCE} ]]; then
         SINCE_OPTS="--since ${SINCE}"
     fi
-    
+
     # Set options for kubectl commands
     KUBE_OPTS="--namespace ${NAMESPACE} ${CONTEXT_OPTS}"
-    
+
     #verify that the provided namespace exists
     KUBE_OUTPUT=$(kubectl ${KUBE_OPTS} get namespace ${NAMESPACE}) || true
-    
+
     # Check that the supplied namespace exists, and if not, output current namespaces
     if [[ "$(echo "$KUBE_OUTPUT" | grep -o "^sysdig " || true)" != "${NAMESPACE} " ]]; then
         echo "We could not determine the namespace. Please check the spelling and try again";
         echo "kubectl ${KUBE_OPTS} get ns";
         echo "$(kubectl ${KUBE_OPTS} get ns)";
     fi
-    
     # If API key is supplied, collect streamSnap, Index settings, and fastPath settings
     if [[ ! -z ${API_KEY} ]]; then
         API_URL=$(kubectl ${KUBE_OPTS} get cm sysdigcloud-config -o yaml | grep -i api.url: | head -1 | awk '{print$2}')
@@ -180,13 +179,13 @@ main() {
         curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/planSettings" >> ${LOG_DIR}/plan_settings.json
         curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/dataRetentionSettings" >> ${LOG_DIR}/dataRetention_settings.json
         curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/agents/connected" >> ${LOG_DIR}/agents-connected.json
-    
+
         TO_EPOCH_TIME=$(gnudate -d "$(gnudate +%H):00:00" +%s)
         FROM_EPOCH_TIME=$((TO_EPOCH_TIME-86400))
         METRICS=("syscall.count" "dragent.analyzer.sr" "container.count" "dragent.analyzer.n_drops_buffer" "dragent.analyzer.n_evts")
         DEFAULT_SEGMENT="host.hostName"
         SYSCALL_SEGMENTS=("host.hostName" "proc.name")
-    
+
         mkdir -p ${LOG_DIR}/metrics
         for metric in ${METRICS[@]}; do
             if [ "${metric}" == "syscall.count" ]; then
@@ -197,31 +196,30 @@ main() {
                 get_metrics "${metric}" "${DEFAULT_SEGMENT}"
             fi
         done
-    
+
         get_agent_version_metric_limits
     fi
-    
+
     # Configure kubectl command if labels are set
     if [[ -z ${LABELS} ]]; then
         SYSDIGCLOUD_PODS=$(kubectl ${KUBE_OPTS} get pods | awk '{ print $1 }' | grep -v NAME)
     else
         SYSDIGCLOUD_PODS=$(kubectl ${KUBE_OPTS} -l "role in (${LABELS})" get pods | awk '{ print $1 }' | grep -v NAME)
     fi
-    
+
     echo "Using namespace ${NAMESPACE}";
     echo "Using context ${CONTEXT}";
-    
+
     # Collect container logs for each pod
     if [[ "${SKIP_LOGS}" == "false" ]]; then
         echo "Gathering Logs from ${NAMESPACE} pods"
         command='tar czf - /logs/ /opt/draios/ /var/log/sysdigcloud/ /var/log/cassandra/ /tmp/redis.log /var/log/redis-server/redis.log /var/log/mysql/error.log /opt/prod.conf 2>/dev/null || true'
-        for pod in ${SYSDIGCLOUD_PODS}; 
+        for pod in ${SYSDIGCLOUD_PODS};
         do
             echo "Getting support logs for ${pod}"
             mkdir -p ${LOG_DIR}/${pod}
             containers=$(kubectl ${KUBE_OPTS} get pod ${pod} -o json | jq -r '.spec.containers[].name')
-            for container in ${containers}; 
-            do
+            for container in ${containers}; do
                 kubectl ${KUBE_OPTS} logs ${pod} -c ${container} ${SINCE_OPTS} > ${LOG_DIR}/${pod}/${container}-kubectl-logs.txt
                 echo "Execing into ${container}"
                 kubectl ${KUBE_OPTS} exec ${pod} -c ${container} -- bash >/dev/null 2>&1 && RETVAL=$? || RETVAL=$? && true
@@ -238,13 +236,12 @@ main() {
     fi
 
     echo "Gathering pod descriptions"
-    for pod in ${SYSDIGCLOUD_PODS}; 
-    do
+    for pod in ${SYSDIGCLOUD_PODS}; do
         echo "Getting pod description for ${pod}"
         mkdir -p ${LOG_DIR}/${pod}
         kubectl ${KUBE_OPTS} get pod ${pod} -o json > ${LOG_DIR}/${pod}/kubectl-describe.json
     done
-    
+
     #Collect Describe Node Output
     echo "Collecting node information"
     kubectl ${KUBE_OPTS} describe nodes | tee -a ${LOG_DIR}/describe_node_output.log || echo "No permission to describe nodes!"
@@ -257,29 +254,29 @@ main() {
         done
         unset RETVAL
     fi
-    
+
     #Collect PV info
     kubectl ${KUBE_OPTS} get pv | grep sysdig | tee -a ${LOG_DIR}/pv_output.log || echo "No permission to get PersistentVolumes"
     kubectl ${KUBE_OPTS} get pvc | grep sysdig | tee -a ${LOG_DIR}/pvc_output.log
     kubectl ${KUBE_OPTS} get storageclass | tee -a ${LOG_DIR}/sc_output.log || echo "No permission to get StorageClasses"
-    
+
     # Get info on deployments, statefulsets, persistentVolumeClaims, daemonsets, and ingresses
     echo "Gathering Manifest Information"
     for object in svc deployment sts pvc daemonset ingress replicaset
     do
         items=$(kubectl ${KUBE_OPTS} get ${object} -o jsonpath="{.items[*]['metadata.name']}")
         mkdir -p ${LOG_DIR}/${object}
-        for item in ${items}; do 
+        for item in ${items}; do
             kubectl ${KUBE_OPTS} get ${object} ${item} -o json > ${LOG_DIR}/${object}/${item}-kubectl.json
         done
     done
-    
+
     # Fetch container density information
     num_nodes=0
     num_pods=0
     num_running_containers=0
     num_total_containers=0
-    
+
     printf "%-30s %-10s %-10s %-10s %-10s\n" "Node" "Pods" "Running Containers" "Total Containers" >> ${LOG_DIR}/container_density.txt
     for node in $(kubectl ${KUBE_OPTS} get nodes --no-headers -o custom-columns=node:.metadata.name);
     do
@@ -292,13 +289,13 @@ main() {
         num_running_containers=$((num_running_containers+${running_containers}))
         num_total_containers=$((num_total_containers+${total_containers}))
     done
-      
+
     printf "\nTotals\n-----\n" >> ${LOG_DIR}/container_density.txt
     printf "Nodes: ${num_nodes}\n" >> ${LOG_DIR}/container_density.txt
     printf "Pods: ${num_pods}\n" >> ${LOG_DIR}/container_density.txt
     printf "Running Containers: ${num_running_containers}\n" >> ${LOG_DIR}/container_density.txt
     printf "Containers: ${num_total_containers}\n" >> ${LOG_DIR}/container_density.txt
-    
+
     # Fetch Cassandra Nodetool output
     echo "Fetching Cassandra statistics";
     for pod in $(kubectl ${KUBE_OPTS} get pod -l role=cassandra | grep -v "NAME" | awk '{print $1}')
@@ -313,36 +310,36 @@ main() {
         kubectl ${KUBE_OPTS} exec -it ${pod} -c cassandra -- nodetool tpstats | tee -a ${LOG_DIR}/cassandra/${pod}/nodetool_tpstats.log
         kubectl ${KUBE_OPTS} exec -it ${pod} -c cassandra -- nodetool compactionstats | tee -a ${LOG_DIR}/cassandra/${pod}/nodetool_compactionstats.log
     done
-    
+
     echo "Fetching Elasticsearch health info"
     # CHECK HERE IF THE TLS ENV VARIABLE IS SET IN ELASTICSEARCH, AND BUILD THE CURL COMMAND OUT
     ELASTIC_POD=$(kubectl ${KUBE_OPTS} get pods -l role=elasticsearch --no-headers | head -1 | awk '{print $1}') || true
-    
+
     if [ ! -z ${ELASTIC_POD} ]; then
         ELASTIC_TLS=$(kubectl ${KUBE_OPTS} exec -it ${ELASTIC_POD} -c elasticsearch -- env | grep -i ELASTICSEARCH_TLS_ENCRYPTION) || true
-        
+
         if [[ ${ELASTIC_TLS} == *"ELASTICSEARCH_TLS_ENCRYPTION=true"* ]]; then
             ELASTIC_CURL='curl -s --cacert /usr/share/elasticsearch/config/root-ca.pem https://${ELASTICSEARCH_ADMINUSER}:${ELASTICSEARCH_ADMIN_PASSWORD}'
         else
             ELASTIC_CURL='curl -s -k http://$(hostname)'
         fi
-        
+
         for pod in $(kubectl ${KUBE_OPTS} get pods -l role=elasticsearch | grep -v "NAME" | awk '{print $1}')
         do
             mkdir -p ${LOG_DIR}/elasticsearch/${pod}
             kubectl ${KUBE_OPTS} exec -it ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}@sysdigcloud-elasticsearch:9200/_cat/health" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_health.log
-        
+
             kubectl ${KUBE_OPTS} exec -it ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}@sysdigcloud-elasticsearch:9200/_cat/indices" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_indices.log
-        
+
             kubectl ${KUBE_OPTS} exec -it ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}@sysdigcloud-elasticsearch:9200/_cat/nodes?v" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_nodes.log
-        
+
             kubectl ${KUBE_OPTS} exec -it ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}@sysdigcloud-elasticsearch:9200/_cluster/allocation/explain?pretty" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_index_allocation.log
-    
+
             echo "Fetching ElasticSearch SSL Certificate Expiration Dates"
             kubectl ${KUBE_OPTS} exec -it ${pod}  -c elasticsearch -- openssl x509 -in /usr/share/elasticsearch/config/node.pem -noout -enddate | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_node_pem_expiration.log
             kubectl ${KUBE_OPTS} exec -it ${pod}  -c elasticsearch -- openssl x509 -in /usr/share/elasticsearch/config/admin.pem -noout -enddate | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_admin_pem_expiration.log
             kubectl ${KUBE_OPTS} exec -it ${pod}  -c elasticsearch -- openssl x509 -in /usr/share/elasticsearch/config/root-ca.pem -noout -enddate | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_root_ca_pem_expiration.log
-        
+
             echo "Checking Used Elasticsearch Storage - ${pod}"
             mountpath=$(kubectl ${KUBE_OPTS} get sts sysdigcloud-elasticsearch -ojsonpath='{.spec.template.spec.containers[].volumeMounts[?(@.name == "data")].mountPath}')
             if [ ! -z $mountpath ]; then
@@ -354,9 +351,7 @@ main() {
     else
         echo "Unable to fetch ElasticSearch pod to gather health info!"
     fi
-    
-    
-    
+
     # Fetch Cassandra storage info
     for pod in $(kubectl ${KUBE_OPTS} get pods -l role=cassandra  | grep -v "NAME" | awk '{print $1}')
     do
@@ -370,7 +365,7 @@ main() {
           printf "Error getting Cassandra ${pod} mount path\n" | tee -a ${LOG_DIR}/cassandra/${pod}/cassandra_storage.log
        fi
     done
-    
+
     # Fetch postgresql storage info
     for pod in $(kubectl ${KUBE_OPTS} get pods -l role=postgresql  | grep -v "NAME" | awk '{print $1}')
     do
@@ -379,7 +374,7 @@ main() {
         printf "${pod}\n" | tee -a ${LOG_DIR}/postgresql/${pod}/postgresql_storage.log
         kubectl ${KUBE_OPTS} exec -it ${pod} -c postgresql -- du -ch /var/lib/postgresql | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' | tee -a ${LOG_DIR}/postgresql/${pod}/postgresql_storage.log || true
     done
-    
+
     # Fetch mysql storage info
     for pod in $(kubectl ${KUBE_OPTS} get pods -l role=mysql  | grep -v "NAME" | awk '{print $1}')
     do
@@ -388,17 +383,17 @@ main() {
         printf "${pod}\n" | tee -a ${LOG_DIR}/mysql/${pod}/mysql_storage.log
         kubectl ${KUBE_OPTS} exec -it ${pod} -c mysql -- du -ch /var/lib/mysql | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' | tee -a ${LOG_DIR}/mysql/${pod}/mysql_storage.log || true
     done
-    
+
     # Collect the sysdigcloud-config configmap, and write to the log directory
     echo "Fetching the sysdigcloud-config ConfigMap"
     kubectl ${KUBE_OPTS} get configmap sysdigcloud-config -o yaml | grep -v password | grep -v apiVersion > ${LOG_DIR}/config.yaml || true
-    
+
     # Generate the bundle name, create a tarball, and remove the temp log directory
     BUNDLE_NAME=$(date +%s)_sysdig_cloud_support_bundle.tgz
     echo "Creating the ${BUNDLE_NAME} archive now"
     tar czf ${BUNDLE_NAME} ${LOG_DIR}
     rm -rf ${LOG_DIR}
-    
+
     echo "Support bundle generated:" ${BUNDLE_NAME}
 }
 
