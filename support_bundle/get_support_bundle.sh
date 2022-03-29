@@ -41,22 +41,10 @@ parse_commandline() {
                 API_KEY="$2"
                 shift
                 ;;
-            --api-key=*)
-                API_KEY="${_key##--api-key=}"
-                ;;
-            -a*)
-                API_KEY="${_key##-a}"
-                ;;
             -c|--context)
                 test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
                 CONTEXT="$2"
                 shift
-                ;;
-            --context=*)
-                CONTEXT="${_key##--context=}"
-                ;;
-            -c*)
-                CONTEXT="${_key##-c}"
                 ;;
             -d|--debug)
                 set -x
@@ -69,22 +57,10 @@ parse_commandline() {
                 LABELS="$2"
                 shift
                 ;;
-            --labels=*)
-                LABELS="${_key##--labels=}"
-                ;;
-            -l*)
-                LABELS="${_key##-l}"
-                ;;
             -s|--since)
                 test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
                 SINCE="$2"
                 shift
-                ;;
-            --since=*)
-                SINCE="${_key##--since=}"
-                ;;
-            -s*)
-                SINCE="${_key##-s}"
                 ;;
             --skip-logs)
                 SKIP_LOGS="true"
