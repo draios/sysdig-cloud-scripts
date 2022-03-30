@@ -183,8 +183,8 @@ main() {
         SYSDIGCLOUD_PODS=$(kubectl ${KUBE_OPTS} -l "role in (${LABELS})" get pods | awk '{ print $1 }' | grep -v NAME)
     fi
 
-    echo "Using namespace ${NAMESPACE}";
-    echo "Using context ${CONTEXT}";
+    echo "Using namespace ${NAMESPACE}"
+    echo "Using context ${CONTEXT}"
 
     # Collect container logs for each pod
     if [[ "${SKIP_LOGS}" == "false" ]]; then
