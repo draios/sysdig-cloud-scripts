@@ -37,6 +37,19 @@ Disk, and Replicas.<br>
 size: medium
 ```
 
+## **kubernetesServerVersion**
+**Required**: `false`<br>
+**Description**: The Kubernetes version of the targeted cluster.
+ This helps to programmatically determine which apiVersions should be used, i.e. for `Ingress` - `networking.k8s.io/v1` 
+ must be used with k8s version 1.22+. <br/>
+**Options**:<br>
+**Default**:If not provided, it will be pulled during `generate` and/or `import` phases. <br>
+**Example**:
+
+```yaml
+kubernetesServerVersion: v1.18.10
+```
+
 ## **storageClassProvisioner**
 **Required**: `false`<br>
 **Description**: The name of the [storage class
@@ -9888,6 +9901,34 @@ sysdig:
   secure:
     eventsForwarder:
       enabled: true
+```
+
+## **sysdig.secure.falcoRulesUpdater.enabled**
+**Required**: `false`<br>
+**Description**: Enable the falcoRulesUpdater CronJob. It runs an automated update of the Falco rules. For airgap installs, it expects to find the image in the same registry used for all other services.<br>
+**Options**:<br>
+**Default**: false<br>
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    falcoRulesUpdater:
+      enabled: true
+```
+
+## **sysdig.secure.falcoRulesUpdater.schedule**
+**Required**: `false`<br>
+**Description**: Sets the `.spec.schedule` for the falcoRulesUpdater CronJob<br>
+**Options**:<br>
+**Default**: "0 1 * * *"<br>
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    falcoRulesUpdater:
+      schedule: "*/10 * * * *"
 ```
 
 ## **sysdig.resources.rapid-response-connector.limits.cpu**
