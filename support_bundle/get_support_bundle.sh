@@ -140,9 +140,9 @@ main() {
 
     # Check that the supplied namespace exists, and if not, output current namespaces
     if [[ "$(echo "$KUBE_OUTPUT" | grep -o "^sysdig " || true)" != "${NAMESPACE} " ]]; then
-        echo "We could not determine the namespace. Please check the spelling and try again";
-        echo "kubectl ${KUBE_OPTS} get ns";
-        echo "$(kubectl ${KUBE_OPTS} get ns)";
+        echo "We could not determine the namespace. Please check the spelling and try again"
+        echo "kubectl ${KUBE_OPTS} get ns"
+        echo "$(kubectl ${KUBE_OPTS} get ns)"
     fi
     # If API key is supplied, collect streamSnap, Index settings, and fastPath settings
     if [[ ! -z ${API_KEY} ]]; then
@@ -190,13 +190,12 @@ main() {
     if [[ "${SKIP_LOGS}" == "false" ]]; then
         echo "Gathering Logs from ${NAMESPACE} pods"
         command='tar czf - /logs/ /opt/draios/ /var/log/sysdigcloud/ /var/log/cassandra/ /tmp/redis.log /var/log/redis-server/redis.log /var/log/mysql/error.log /opt/prod.conf 2>/dev/null || true'
-        for pod in ${SYSDIGCLOUD_PODS};
-        do
+        for pod in ${SYSDIGCLOUD_PODS}; do
             echo "Getting support logs for ${pod}"
             mkdir -p ${LOG_DIR}/${pod}
             containers=$(kubectl ${KUBE_OPTS} get pod ${pod} -o json | jq -r '.spec.containers[].name')
             for container in ${containers}; do
-                kubectl ${KUBE_OPTS} logs ${pod} -c ${container} ${SINCE_OPTS} > ${LOG_DIR}/${pod}/${container}-kubectl-logs.txt
+                kubectl ${KUBE_OPTS} logs ${pod} -c ${container} ${SINCE_OPTS} > ${LOG_DIR}/${pod}/${container}-kubectl-logs.txt || true
                 echo "Execing into ${container}"
                 kubectl ${KUBE_OPTS} exec ${pod} -c ${container} -- bash >/dev/null 2>&1 && RETVAL=$? || RETVAL=$? && true
                 kubectl ${KUBE_OPTS} exec ${pod} -c ${container} -- sh >/dev/null 2>&1 && RETVAL1=$? || RETVAL1=$? && true
@@ -254,8 +253,7 @@ main() {
     num_total_containers=0
 
     printf "%-30s %-10s %-10s %-10s %-10s\n" "Node" "Pods" "Running Containers" "Total Containers" >> ${LOG_DIR}/container_density.txt
-    for node in $(kubectl ${KUBE_OPTS} get nodes --no-headers -o custom-columns=node:.metadata.name);
-    do
+    for node in $(kubectl ${KUBE_OPTS} get nodes --no-headers -o custom-columns=node:.metadata.name); do
         total_pods=$(kubectl ${KUBE_OPTS} get pods -A --no-headers -o wide | grep ${node} |wc -l |xargs)
         running_containers=$( kubectl ${KUBE_OPTS} get pods -A --no-headers -o wide |grep ${node} |awk '{print $3}' |cut -f 1 -d/ | awk '{ SUM += $1} END { print SUM }' |xargs)
         total_containers=$( kubectl get ${KUBE_OPTS} pods -A --no-headers -o wide |grep ${node} |awk '{print $3}' |cut -f 2 -d/ | awk '{ SUM += $1} END { print SUM }' |xargs)
@@ -273,7 +271,7 @@ main() {
     printf "Containers: ${num_total_containers}\n" >> ${LOG_DIR}/container_density.txt
 
     # Fetch Cassandra Nodetool output
-    echo "Fetching Cassandra statistics";
+    echo "Fetching Cassandra statistics"
     for pod in $(kubectl ${KUBE_OPTS} get pod -l role=cassandra | grep -v "NAME" | awk '{print $1}')
     do
         mkdir -p ${LOG_DIR}/cassandra/${pod}
