@@ -1,4 +1,4 @@
-# RBAC for Installer (work in progress) v0.0.0a
+# RBAC for Installer
 
 - RBAC resources required to run the `installer`
 
@@ -20,6 +20,9 @@
 
 [openshift-pgha](openshift-pgha)
 - same of `openshift` but the installer sa has more grants since it need to create a clusterroles for the zalando postgres operator service account.
+
+[openshift-nopgha-noagent](openshift-nopgha-noagent)
+- openshift case where we don't need rbac to deploy the agent since is done externally to the installer and we already have a zalando postgres operator installed so we just need to use it.
 
 ## Instructions
 

@@ -7,13 +7,6 @@ rules:
 - apiGroups:
   - ""
   resources:
-  - events
-  verbs:
-  - patch
-  - create
-- apiGroups:
-  - ""
-  resources:
   - configmaps
   - endpoints
   - nodes
@@ -25,7 +18,6 @@ rules:
   - get
   - list
   - watch
-# No GS
 - apiGroups:
   - storage.k8s.io
   resources:
@@ -35,7 +27,6 @@ rules:
   - list
   - create
   - update
-# No Gs
 - apiGroups:
   - rbac.authorization.k8s.io
   resources:
