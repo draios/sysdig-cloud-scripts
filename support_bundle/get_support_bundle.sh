@@ -11,7 +11,7 @@ catch() {
 LABELS=""
 CONTEXT=""
 CONTEXT_OPTS=""
-NAMESPACE="sysdigcloud"
+NAMESPACE="sysdig"
 LOG_DIR=$(mktemp -d sysdigcloud-support-bundle-XXXX)
 SINCE_OPTS=""
 SINCE=""
@@ -55,6 +55,11 @@ parse_commandline() {
             -l|--labels)
                 test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
                 LABELS="$2"
+                shift
+                ;;
+            -n|--namespace)
+                test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
+                NAMESPACE="$2"
                 shift
                 ;;
             -s|--since)
