@@ -37,6 +37,19 @@ Disk, and Replicas.<br>
 size: medium
 ```
 
+## **kubernetesServerVersion**
+**Required**: `false`<br>
+**Description**: The Kubernetes version of the targeted cluster.
+ This helps to programmatically determine which apiVersions should be used, i.e. for `Ingress` - `networking.k8s.io/v1` 
+ must be used with k8s version 1.22+. <br/>
+**Options**:<br>
+**Default**:If not provided, it will be pulled during `generate` and/or `import` phases. <br>
+**Example**:
+
+```yaml
+kubernetesServerVersion: v1.18.10
+```
+
 ## **storageClassProvisioner**
 **Required**: `false`<br>
 **Description**: The name of the [storage class
@@ -204,7 +217,7 @@ cloudProvider:
 ## **cloudProvider.name**
 **Required**: `false`<br>
 **Description**: The name of the cloud provider Sysdig Platform will run on.<br>
-**Options**: `aws|gke`<br>
+**Options**: `aws|gcp`<br>
 **Default**:<br>
 **Example**:
 
@@ -1275,12 +1288,12 @@ sysdig:
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 5.0.5.11721<br>
+**Default**: 5.0.4.11001<br>
 **Example**:
 
 ```yaml
 sysdig:
-  monitorVersion: 5.0.5.11721
+  monitorVersion: 5.0.4.11001
 ```
 
 ## **sysdig.secureVersion**
@@ -1290,12 +1303,12 @@ configured it defaults to `sysdig.monitorVersion` **Do not modify
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 5.0.5.11721<br>
+**Default**: 5.0.4.11001<br>
 **Example**:
 
 ```yaml
 sysdig:
-  secureVersion: 5.0.5.11721
+  secureVersion: 5.0.4.11001
 ```
 
 ## **sysdig.sysdigAPIVersion**
@@ -1305,12 +1318,12 @@ this is not configured it defaults to `sysdig.monitorVersion` **Do not modify
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 5.0.5.11721<br>
+**Default**: 5.0.4.11001<br>
 **Example**:
 
 ```yaml
 sysdig:
-  sysdigAPIVersion: 5.0.5.11721
+  sysdigAPIVersion: 5.0.4.11001
 ```
 
 ## **sysdig.sysdigCollectorVersion**
@@ -1320,12 +1333,12 @@ this is not configured it defaults to `sysdig.monitorVersion` **Do not modify
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 5.0.5.11721<br>
+**Default**: 5.0.4.11001<br>
 **Example**:
 
 ```yaml
 sysdig:
-  sysdigCollectorVersion: 5.0.5.11721
+  sysdigCollectorVersion: 5.0.4.11001
 ```
 
 ## **sysdig.sysdigWorkerVersion**
@@ -1335,12 +1348,12 @@ this is not configured it defaults to `sysdig.monitorVersion` **Do not modify
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
 **Options**:<br>
-**Default**: 5.0.5.11721<br>
+**Default**: 5.0.4.11001<br>
 **Example**:
 
 ```yaml
 sysdig:
-  sysdigWorkerVersion: 5.0.5.11721
+  sysdigWorkerVersion: 5.0.4.11001
 ```
 
 ## **sysdig.enableAlerter**
@@ -2000,6 +2013,20 @@ sysdig:
       replicas: 3
 ```
 
+## **sysdig.postgresql.ha.checkCRDs**
+**Required**: `false`<br>
+**Description**: Check if zalando pg operator CRDs are already present, if yes stop the installation. If disable the installation will continue to be performed even if the CRDs are present.
+**Options**:<br>
+**Default**: `true`<br>
+
+**Example**:
+
+```yaml
+sysdig:
+  postgresql:
+    ha:
+      checkCRD: true
+```
 
 ## **sysdig.postgresql.ha.enableExporter**
 **Required**: `false`<br>
@@ -9888,6 +9915,34 @@ sysdig:
   secure:
     eventsForwarder:
       enabled: true
+```
+
+## **sysdig.secure.falcoRulesUpdater.enabled**
+**Required**: `false`<br>
+**Description**: Enable the falcoRulesUpdater CronJob. It runs an automated update of the Falco rules. For airgap installs, it expects to find the image in the same registry used for all other services.<br>
+**Options**:<br>
+**Default**: false<br>
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    falcoRulesUpdater:
+      enabled: true
+```
+
+## **sysdig.secure.falcoRulesUpdater.schedule**
+**Required**: `false`<br>
+**Description**: Sets the `.spec.schedule` for the falcoRulesUpdater CronJob<br>
+**Options**:<br>
+**Default**: "0 1 * * *"<br>
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    falcoRulesUpdater:
+      schedule: "*/10 * * * *"
 ```
 
 ## **sysdig.resources.rapid-response-connector.limits.cpu**
