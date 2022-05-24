@@ -5980,6 +5980,36 @@ sysdig:
         storageS3SecretAccessKey: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
 ```
 
+## **sysdig.secure.scanning.reporting.onDemandGenerationEnabled**
+**Required**: `true`<br />
+**Description**: The flag to enable on-demand generation of reports globally<br />
+**Options**: false, true<br />
+**Default**: false<br />
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanning:
+      reporting:
+        onDemandGenerationEnabled: true
+```
+
+## **sysdig.secure.scanning.reporting.onDemandGenerationCustomers**
+**Required**: `false`<br />
+**Description**: The list of customers where on-demand generation of reports has to be enabled, if on-demand generation wasn't enabled globally<br />
+**Options**: <br />
+**Default**: <br />
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanning:
+      reporting:
+        onDemandGenerationCustomers: "1,12,123"
+```
+
 ## **sysdig.secure.scanning.reporting.workerSleepTime**
 **Required**: `false`<br>
 **Description**: The sleep interval between two runs of the reporting worker<br>
