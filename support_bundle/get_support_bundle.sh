@@ -202,8 +202,8 @@ main() {
             for container in ${containers}; do
                 kubectl ${KUBE_OPTS} logs ${pod} -c ${container} ${SINCE_OPTS} > ${LOG_DIR}/${pod}/${container}-kubectl-logs.txt || true
                 echo "Execing into ${container}"
-                kubectl ${KUBE_OPTS} exec ${pod} -c ${container} -- bash >/dev/null 2>&1 && RETVAL=$? || RETVAL=$? && true
-                kubectl ${KUBE_OPTS} exec ${pod} -c ${container} -- sh >/dev/null 2>&1 && RETVAL1=$? || RETVAL1=$? && true
+                kubectl ${KUBE_OPTS} exec ${pod} -c ${container} -- bash -c "echo" >/dev/null 2>&1 && RETVAL=$? || RETVAL=$? && true
+                kubectl ${KUBE_OPTS} exec ${pod} -c ${container} -- sh -c "echo" >/dev/null 2>&1 && RETVAL1=$? || RETVAL1=$? && true
                 if [ $RETVAL -eq 0 ]; then
                     kubectl ${KUBE_OPTS} exec ${pod} -c ${container} -- bash -c "${command}" > ${LOG_DIR}/${pod}/${container}-support-files.tgz || true
                 elif [ $RETVAL1 -eq 0 ]; then
