@@ -395,8 +395,8 @@ function install_k8s_agent {
         if [ $AGENT_FULL -eq 1 ]; then
             sed -i.bak -e "s|\( *image: \).*sysdig/agent\(.*\)|\1${REGISTRY}/${AGENT_REPOSITORY}:${AGENT_VERSION}|" $DAEMONSET_FILE
         else
-            sed -i.bak -e "s|\( *image: \).*sysdig/agent-slim\(.*\)|\1${REGISTRY}/${AGENT_SLIM_REPOSITORY}:${AGENT_VERSION}|g" $DAEMONSET_FILE \
-            -e "s|\( *image: \).*sysdig/agent-kmodule\(.*\)|\1${REGISTRY}/${AGENT_KMOD_REPOSITORY}:${AGENT_VERSION}|g" $DAEMONSET_FILE
+            sed -i.bak -e "s|\( *image: \).*sysdig/agent-slim\(.*\)|\1${REGISTRY}/${AGENT_SLIM_REPOSITORY}:${AGENT_VERSION}|g" $DAEMONSET_FILE
+            sed -i.bak -e "s|\( *image: \).*sysdig/agent-kmodule\(.*\)|\1${REGISTRY}/${AGENT_KMOD_REPOSITORY}:${AGENT_VERSION}|g" $DAEMONSET_FILE
         fi
         ICR_SECRET_EXIST=$(kubectl -n default get secret -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' | grep -qE "default-icr-io|all-icr-io" || echo 1)
         if [ "$ICR_SECRET_EXIST" = 1 ]; then
