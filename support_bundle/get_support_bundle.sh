@@ -124,10 +124,8 @@ segment_by="${2}"
 }
 
 main() {
-    # Check for supplied namespace, kube context, and flags
-    if [[ -z ${NAMESPACE} ]]; then
-        NAMESPACE="sysdig"
-    fi
+    local error
+    local RETVAL
 
     if [[ ! -z ${CONTEXT} ]]; then
         CONTEXT_OPTS="--context=${CONTEXT}"
@@ -141,14 +139,14 @@ main() {
     KUBE_OPTS="--namespace ${NAMESPACE} ${CONTEXT_OPTS}"
 
     #verify that the provided namespace exists
-    KUBE_OUTPUT=$(kubectl ${KUBE_OPTS} get namespace ${NAMESPACE}) || true
+    KUBE_OUTPUT=$(kubectl ${CONTEXT_OPTS} get namespace ${NAMESPACE} --no-headers >/dev/null 2>&1) && RETVAL=$? || { RETVAL=$? && error=1; }
 
-    # Check that the supplied namespace exists, and if not, output current namespaces
-    if [[ "$(echo "$KUBE_OUTPUT" | grep -o "^sysdig " || true)" != "${NAMESPACE} " ]]; then
-        echo "We could not determine the namespace. Please check the spelling and try again"
-        echo "kubectl ${KUBE_OPTS} get ns"
-        echo "$(kubectl ${KUBE_OPTS} get ns)"
+    if [[ ${error} -eq 1 ]]; then
+        echo "We could not determine the namespace. Please check the spelling and try again.  Return Code: ${RETVAL}"
+        echo "kubectl ${CONTEXT_OPTS} get ns | grep ${NAMESPACE}"
+        exit 1
     fi
+
     # If API key is supplied, collect streamSnap, Index settings, and fastPath settings
     if [[ ! -z ${API_KEY} ]]; then
         API_URL=$(kubectl ${KUBE_OPTS} get cm sysdigcloud-config -o yaml | grep -i api.url: | head -1 | awk '{print$2}')
