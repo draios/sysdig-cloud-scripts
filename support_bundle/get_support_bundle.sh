@@ -139,7 +139,7 @@ main() {
     KUBE_OPTS="--namespace ${NAMESPACE} ${CONTEXT_OPTS}"
 
     #verify that the provided namespace exists
-    KUBE_OUTPUT=$(kubectl ${CONTEXT_OPTS} get namespace ${NAMESPACE} --no-headers >/dev/null 2>&1) && RETVAL=$? || { RETVAL=$? && error=1; }
+    KUBE_OUTPUT=$(kubectl ${CONTEXT_OPTS} get namespace ${NAMESPACE} --no-headers >/dev/null 2>&1) && RETVAL=$? && error=0 || { RETVAL=$? && error=1; }
 
     if [[ ${error} -eq 1 ]]; then
         echo "We could not determine the namespace. Please check the spelling and try again.  Return Code: ${RETVAL}"
