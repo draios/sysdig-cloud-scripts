@@ -27,6 +27,9 @@ spec:
       - name: docker-sock
         hostPath:
           path: /var/run/docker.sock
+      - name: etc-vol
+        hostPath:
+          path: /etc
       - name: dev-vol
         hostPath:
           path: /dev
@@ -98,6 +101,9 @@ spec:
         - mountPath: /host/var/run/docker.sock
           name: docker-sock
           readOnly: false
+        - mountPath: /host/etc
+          name: etc-vol
+          readOnly: true
         - mountPath: /host/dev
           name: dev-vol
           readOnly: false

@@ -29,6 +29,9 @@ spec:
       - name: dshm
         emptyDir:
           medium: Memory
+      - name: etc-vol
+        hostPath:
+          path: /etc
       - name: dev-vol
         hostPath:
           path: /dev
@@ -169,6 +172,9 @@ spec:
         #  - name: SYSDIG_BPF_PROBE
         #    value: ""
         volumeMounts:
+        - mountPath: /host/etc
+          name: etc-vol
+          readOnly: true
         - mountPath: /host/dev
           name: dev-vol
           readOnly: false
