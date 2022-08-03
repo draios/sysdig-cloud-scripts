@@ -88,6 +88,14 @@ rules:
   - get
   - list
   - watch
+- apiGroups:
+  - certificates.k8s.io
+  resources:
+  - certificatesigningrequests
+  verbs:
+  - get
+  - list
+  - watch
 - nonResourceURLs:
   - /metrics
   verbs:
