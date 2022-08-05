@@ -627,7 +627,7 @@ AGENT_KMOD_REPOSITORY="ext/sysdig/agent-kmodule"
 AGENT_VERSION="latest"
 IMAGE_PULL_SECRET=""
 AWS=0
-BPF=1
+BPF=0
 AGENT_FULL=0
 WORKDIR="$(mktemp -d /tmp/sysdig-agent-k8s.XXXXXX)"
 trap cleanup_workdir EXIT ERR
