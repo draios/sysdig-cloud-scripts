@@ -852,8 +852,8 @@ case ${key} in
         INSTALL_NODE_ANALYZER=1
         ;;
     -b|--bpf)
-		BPF=1
-		;;
+        BPF=1
+        ;;
     -h|--help)
         help
         exit 1
