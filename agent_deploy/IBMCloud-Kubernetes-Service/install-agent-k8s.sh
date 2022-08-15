@@ -112,7 +112,7 @@ function help {
     echo " -cs : CRI socket for Image Analyzer"
     echo " -cd : CRI-containerd socket for Image Analyzer"
     echo " -cv : custom volume for Image Analyzer"
-    echo " -b  : enable eBPF probe. 0 by default"
+    echo " -b  : enable eBPF probe"
     echo " -h  : print this usage and exit"
     echo
     exit 1
