@@ -85,7 +85,7 @@ storageClassProvisioner: aws
 **Description**: Specifies the Sysdig Platform components to be installed.<br />
 Combine multiple components by space separating them. Specify at least one
 app, for example, `monitor`.<br />
-**Options**: `monitor|monitor secure|agent|monitor agent|monitor secure agent`<br />
+**Options**: `monitor|monitor secure`<br />
 **Default**: `monitor secure`<br />
 **Example**:
 
@@ -174,6 +174,18 @@ If this param is not not or a blank value is specified, it will use the default 
 
 ```yaml
 context: production
+```
+
+## **clusterDomain**
+
+**Required**: `false`<br />
+**Description**: Domain of the kubernetes cluster.<br />
+**Options**:<br />
+**Default**: `cluster.local`<br />
+**Example**:
+
+```yaml
+clusterDomain: cluster.local
 ```
 
 ## **namespace**
@@ -942,9 +954,9 @@ sysdig:
 ## **sysdig.cassandraExporterVersion**
 
 **Required**: `false`<br />
-**Description**: The docker `image tag` of Cassandra's Prometheus JMX exporter. Default image: `<registry>/<repository>/promcat-jmx-exporter:latest` <br />
+**Description**: The docker `image tag` of Cassandra's Prometheus JMX exporter. Default image: `<registry>/<repository>/promcat-jmx-exporter:v0.17.0-ubi` <br />
 **Options**: <br />
-**Default**: latest<br />
+**Default**: v0.17.0-ubi<br />
 **Example**:
 
 ```yaml
@@ -3174,12 +3186,12 @@ sysdig:
 **Description**: Docker image tag of Redis 6, relevant when configured
 `sysdig.useRedis6` is `true`.<br />
 **Options**:<br />
-**Default**: 6.0.10.1<br />
+**Default**: 1.0.0<br />
 **Example**:
 
 ```yaml
 sysdig:
-  redis6Version: 6.0.10.1
+  redis6Version: 1.0.0
 ```
 
 ## **sysdig.redis6SentinelVersion**
@@ -3188,12 +3200,12 @@ sysdig:
 **Description**: Docker image tag of Redis Sentinel, relevant when configured
 `sysdig.useRedis6` is `true`.<br />
 **Options**:<br />
-**Default**: 6.0.10.1<br />
+**Default**: 1.0.0<br />
 **Example**:
 
 ```yaml
 sysdig:
-  redis6SentinelVersion: 6.0.10.1
+  redis6SentinelVersion: 1.0.0
 ```
 
 ## **sysdig.redis6ExporterVersion**
@@ -3202,12 +3214,52 @@ sysdig:
 **Description**: Docker image tag of Redis Metrics Exporter, relevant when configured
 `sysdig.useRedis6` is `true`.<br />
 **Options**:<br />
-**Default**: 1.15.1.1<br />
+**Default**: 1.0.9<br />
 **Example**:
 
 ```yaml
 sysdig:
-  redis6ExporterVersion: 1.15.1.1
+  redis6ExporterVersion: 1.0.9
+```
+
+
+## **sysdig.redis6ImageName**
+**Required**: `false`<br />
+**Description**: Docker image name of Redis 6, relevant when configured
+`sysdig.useRedis6` is `true`.<br />
+**Options**:<br />
+**Default**: redis-6<br />
+**Example**:
+
+```yaml
+sysdig:
+  redis6ImageName: redis-6
+```
+
+## **sysdig.redis6SentinelImageName**
+**Required**: `false`<br />
+**Description**: Docker image name of Redis Sentinel, relevant when configured
+`sysdig.useRedis6` is `true`.<br />
+**Options**:<br />
+**Default**: redis-sentinel-6<br />
+**Example**:
+
+```yaml
+sysdig:
+  redis6SentinelImageName: redis-sentinel-6
+```
+
+## **sysdig.redis6ExporterImageName**
+**Required**: `false`<br />
+**Description**: Docker image name of Redis Metrics Exporter, relevant when configured
+`sysdig.useRedis6` is `true`.<br />
+**Options**:<br />
+**Default**: redis-exporter-1<br />
+**Example**:
+
+```yaml
+sysdig:
+  redis6ExporterImageName: redis-exporter-1
 ```
 
 ## **sysdig.useRedisTls**
@@ -3234,6 +3286,17 @@ sysdig:
 ```yaml
 redisTls:
   enabled: true
+```
+## **redisTls.deploy**
+**Required**: `false`<br />
+**Description**: When also `redisTls.enabled` is `true`, installs a _Redis with TLS_ and _Sentinel_ support<br />
+**Options**: true|false<br />
+**Default**: true<br />
+**Example**:
+
+```yaml
+redisTls:
+  install: true
 ```
 
 ## **redisTls.deploy**
@@ -3274,36 +3337,86 @@ redisTls:
 redisTls:
   ha: true
 ```
-
-## **redisTls.version**
-
+## **redisTls.imageName**
 **Required**: `false`<br />
-**Description**: Docker image tag of Redis, relevant when configured
-`redisTls.enabled` is `true`.<br />
+**Description**: Docker image name of Redis, relevant when configured
+`redisTls.enabled` and `redisTls.deploy` are  `true`.<br />
 **Options**:<br />
-**Default**: 6.0.10.1<br />
+**Default**:redis-6<br />
 **Example**:
 
 ```yaml
 redisTls:
-  version: 6.0.10.1
+  imageName: redis-6
 ```
-
-## **redisTls.sentinel.version**
+## **redisTls.version**
 
 **Required**: `false`<br />
-**Description**: Docker image tag of Redis Sentinel, relevant when configured
-`redisTls.enabled` is `true`.<br />
+**Description**: Docker image tag of Redis, relevant when configured
+`redisTls.enabled` and `redisTls.deploy` are  `true`.<br />
 **Options**:<br />
-**Default**: 6.0.10.1<br />
+**Default**: 1.0.0<br />
+**Example**:
+
+```yaml
+redisTls:
+  version: 1.0.0
+```
+
+## **redisTls.sentinel.imageName**
+**Required**: `false`<br />
+**Description**: Docker image name of Redis Sentinel, relevant when configured
+`redisTls.enabled` and `redisTls.deploy` are  `true`.<br />
+**Options**:<br />
+**Default**:redis-sentinel-6<br />
 **Example**:
 
 ```yaml
 redisTls:
   sentinel:
-    version: 6.0.10.1
+    imageName: redis-sentinel-6
+```
+## **redisTls.sentinel.version**
+
+**Required**: `false`<br />
+**Description**: Docker image tag of Redis Sentinel, relevant when configured
+`redisTls.enabled` and `redisTls.deploy` are  `true`.<br />
+**Options**:<br />
+**Default**: 1.0.0<br />
+**Example**:
+
+```yaml
+redisTls:
+  sentinel:
+    version: 1.0.0
 ```
 
+## **redisTls.exporter.imageName**
+**Required**: `false`<br />
+**Description**: Docker image name of Redis exporter, relevant when configured
+`redisTls.enabled` and `redisTls.deploy` are  `true`.<br />
+**Options**:<br />
+**Default**:redis-exporter-1<br />
+**Example**:
+
+```yaml
+redisTls:
+  exporter:
+    imageName: redis-exporter-1
+```
+## **redisTls.exporter.version**
+**Required**: `false`<br />
+**Description**: Docker image tag of Redis exporter, relevant when configured
+`redisTls.enabled` and `redisTls.deploy` are  `true`.<br />
+**Options**:<br />
+**Default**: 1.0.9<br />
+**Example**:
+
+```yaml
+redisTls:
+  exporter:
+    version: 1.0.9
+```
 ## **redisClientsMonitor**
 
 **Required**: `false`<br />
@@ -4581,98 +4694,6 @@ sysdig:
 sysdig:
   resources:
     apiNginx:
-      requests:
-        memory: 100Mi
-```
-
-## **sysdig.resources.apiEmailRenderer.limits.cpu**
-
-**Required**: `false`<br />
-**Description**: The amount of cpu assigned to email-renderer containers in api pods<br />
-**Options**:<br />
-**Default**:
-
-| cluster-size | limits |
-| ------------ | ------ |
-| small        | 1      |
-| medium       | 1      |
-| large        | 1      |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    apiEmailRenderer:
-      limits:
-        cpu: 1
-```
-
-## **sysdig.resources.apiEmailRenderer.limits.memory**
-
-**Required**: `false`<br />
-**Description**: The amount of memory assigned to email-renderer containers in api pods<br />
-**Options**:<br />
-**Default**:
-
-| cluster-size | limits |
-| ------------ | ------ |
-| small        | 500Mi  |
-| medium       | 500Mi  |
-| large        | 500Mi  |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    apiEmailRenderer:
-      limits:
-        memory: 500Mi
-```
-
-## **sysdig.resources.apiEmailRenderer.requests.cpu**
-
-**Required**: `false`<br />
-**Description**: The amount of cpu required to schedule email-renderer containers in api pods<br />
-**Options**:<br />
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 500m     |
-| medium       | 500m     |
-| large        | 500m     |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    apiEmailRenderer:
-      requests:
-        cpu: 500m
-```
-
-## **sysdig.resources.apiEmailRenderer.requests.memory**
-
-**Required**: `false`<br />
-**Description**: The amount of memory required to schedule email-renderer containers in api pods<br />
-**Options**:<br />
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 100Mi    |
-| medium       | 100Mi    |
-| large        | 100Mi    |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    apiEmailRenderer:
       requests:
         memory: 100Mi
 ```
@@ -9183,968 +9204,6 @@ sysdig:
   alerter:
     jvmOptions: -Xms4G -Xmx4G -Ddraios.jvm-monitoring.ticker.enabled=true
       -XX:-UseContainerSupport
-```
-
-## **agent.apiKey**
-
-**Required**: `false`<br />
-**Description**: Sysdig Agent api key for running agents. Instructions for retrieving the api key can be found [here](https://docs.sysdig.com/en/agent-installation--overview-and-key.html).<br />
-_**Note**: Required for agent setup. If setting up Monitor and Agent at the same time, you can leave this as blank._<br />
-**Options**:<br />
-**Default**:<br />
-**Example**:
-
-```yaml
-agent:
-  apiKey: replace_with_your_monitor_access_key
-```
-
-## **agent.appChecks.settings.limit**
-
-**Required**: `false`<br />
-**Description**: The maximum number of app checks metrics that will be reported to Sysdig Monitor.<br />
-**Options**:<br />
-**Default**:<br />
-**Example**:
-
-```yaml
-agent:
-  appChecks:
-    settings:
-      limit: 1500
-```
-
-## **agent.collectorEndpoint**
-
-**Required**: `false`<br />
-**Description**: Sysdig Collector Address. Defaults to [`sysdig.collector.dnsName`](#sysdig.collector.dnsName) if monitor is included in apps.<br />
-**Options**:<br />
-**Default**:<br />
-**Example**:
-
-```yaml
-agent:
-  collectorEndpoint: my-awesome-collector-domain-name.com
-```
-
-## **agent.collectorPort**
-
-**Required**: `false`<br />
-**Description**: Sysdig Colletor TCP Port.<br />
-**Options**: `1024-65535`<br />
-**Default**: `6443`<br />
-**Example**:
-
-```yaml
-agent:
-  collectorPort: 6443
-```
-
-## **agent.namespace**
-
-**Required**: `false`<br />
-**Description**: A kubernetes namespace for setting up the agent in.<br />
-**Options**: <br />
-**Default**: `agent`<br />
-**Example**:
-
-```yaml
-agent:
-  namespace: sysdig-agent
-```
-
-## **agent.useSlim**
-
-**Required**: `false`<br />
-**Description**: Whether to use the slim version of agent or not.<br />
-**Options**: `true|false`<br />
-**Default**: `false`<br />
-**Example**:
-
-```yaml
-agent:
-  useSlim: true
-```
-
-## **agent.version**
-
-**Required**: `false`<br />
-**Description**: Version of agent to install.<br />
-_**Note**: You can lookup all the available versions of agent [here](https://hub.docker.com/r/sysdig/agent/tags)_<br />
-**Options**: <br />
-**Default**: `latest`<br />
-**Example**:
-
-```yaml
-agent:
-  version: 1.10.1
-```
-
-## **agent.useSSL**
-
-**Required**: `false`<br />
-**Description**: Whether Sysdig Collector accepts SSL connections or not.<br />
-**Options**: `true|false`<br />
-**Default**: `true`<br />
-**Example**:
-
-```yaml
-agent:
-  useSSL: false
-```
-
-## **agent.verifySSL**
-
-**Required**: `false`<br />
-**Description**: Whether to validate Sysdig Collector SSL certificate or not.<br />
-_**Note**: This should be set to false if a self-signed certificate or private, CA-signed cert is used._<br />
-**Options**: `true|false`<br />
-**Default**: `false`<br />
-**Example**:
-
-```yaml
-agent:
-  verifySSL: false
-```
-
-## **agent.clusterName**
-
-**Required**: `false`<br />
-**Description**: Setting a cluster name here allows you to view, scope, and segment metrics in the Sysdig Monitor UI by Kubernetes cluster.<br />
-**Options**: <br />
-**Default**: `production`<br />
-**Example**:
-
-```yaml
-agent:
-  clusterName: false
-```
-
-## **agent.tags**
-
-**Required**: `false`<br />
-**Description**: List of user-provided metadata at agent level.<br />
-**Options**: <br />
-**Default**: <br />
-**Example**:
-
-```yaml
-agent:
-  tags: environment:production linux:ubuntu
-```
-
-## **agent.capturesEnabled**
-
-**Required**: `false`<br />
-**Description**: TBD.<br />
-**Options**: `true|false`<br />
-**Default**: `true`<br />
-**Example**:
-
-```yaml
-agent:
-  capturesEnabled: false
-```
-
-## **agent.feature_mode**
-
-**Required**: `false`<br />
-**Description**: TBD.<br />
-**Options**: `monitor|monitor_light|essentials|troubleshooting|secure`<br />
-**Default**: `monitor`<br />
-**Example**:
-
-```yaml
-agent:
-  feature_mode: troubleshooting
-```
-
-## **agent.timezone**
-
-**Required**: `false`<br />
-**Description**: Set daemonset timezone.<br />
-**Options**: <br />
-**Default**: <br />
-**Example**:
-
-```yaml
-agent:
-  timezone: America/New_York.
-```
-
-## **agent.proxy.httpProxy**
-
-**Required**: `false`<br />
-**Description**: The URL to use as a proxy for http requests. If the proxy requires authentication, you need to specify this information as part of the URL.<br />
-**Options**: <br />
-**Default**: <br />
-**Example**:
-
-```yaml
-agent:
-  proxy:
-    httpProxy: http://username:password@your-awesome-http-proxy.com
-```
-
-## **agent.proxy.httpsProxy**
-
-**Required**: `false`<br />
-**Description**: The URL to use as a proxy for https requests. If the proxy requires authentication, you need to specify this information as part of the URL.<br />
-**Options**: <br />
-**Default**: <br />
-**Example**:
-
-```yaml
-agent:
-  proxy:
-    httpsProxy: https://username:password@your-awesome-https-proxy.com
-```
-
-## **agent.proxy.noProxy**
-
-**Required**: `false`<br />
-**Description**: A space-separated list of URLs for which no proxy should be used.<br />
-**Options**: <br />
-**Default**: <br />
-**Example**:
-
-```yaml
-agent:
-  proxy:
-    noProxy: your-awesome-no-proxy.com
-```
-
-## **agent.snaplenPortRange.start**
-
-**Required**: `false`<br />
-**Description**: Starting port in the range of ports to enable a larger snaplen on.<br />
-_**Note**: This should only be set if you push a lot of statsd metrics._<br />
-**Options**: <br />
-**Default**: `0`<br />
-**Example**:
-
-```yaml
-agent:
-  snaplenPortRange:
-    start: "8125"
-```
-
-## **agent.snaplenPortRange.end**
-
-**Required**: `false`<br />
-**Description**: Ending port in the range of ports to enable a larger snaplen on.<br />
-_**Note**: This should only be set if you push a lot of statsd metrics._<br />
-**Options**: <br />
-**Default**: `0`<br />
-**Example**:
-
-```yaml
-agent:
-  snaplenPortRange:
-    start: "8125"
-```
-
-## **agent.customKernelModules.enabled**
-
-**Required**: `false`<br />
-**Description**: Whether to pick up custom kernel modules from /root or not. This setting only applies to non-slim agent.<br />
-**Options**: `true|false`<br />
-**Default**: `false`<br />
-**Example**:
-
-```yaml
-agent:
-  customKernelModules:
-    enabled: true
-```
-
-## **agent.secure.enabled**
-
-**Required**: `false`<br />
-**Description**: Whether your Sysdig platform has Sysdig Secure enabled or not.<br />
-**Options**: `true|false`<br />
-**Default**: `false`<br />
-**Example**:
-
-```yaml
-agent:
-  secure:
-    enabled: true
-```
-
-## **agent.secure.commandLineCapturesEnabled**
-
-**Required**: `false`<br />
-**Description**: Whether you want to enable Command Line Captures or not.<br />
-_**Note**: This setting is dependent on `agent.secure.enabled` being set to `true`._<br />
-**Options**: `true|false`<br />
-**Default**: `true`<br />
-**Example**:
-
-```yaml
-agent:
-  secure:
-    commandLineCapturesEnabled: true
-```
-
-## **agent.secure.memoryDumpEnabled**
-
-**Required**: `false`<br />
-**Description**: Whether you want to enable Memory Dump or not.<br />
-_**Note**: This setting is dependent on `agent.secure.enabled` being set to `true`._<br />
-**Options**: `true|false`<br />
-**Default**: `true`<br />
-**Example**:
-
-```yaml
-agent:
-  secure:
-    memoryDumpEnabled: true
-```
-
-## **agent.secure.settings.k8sAuditServerURL**
-
-**Required**: `false`<br />
-**Description**: Kubernetes Audit Server URL.<br />
-_**Note**: This setting is dependent on `agent.secure.enabled` being set to `true`._<br />
-**Options**: <br />
-**Default**: `0.0.0.0`<br />
-**Example**:
-
-```yaml
-agent:
-  secure:
-    settings:
-    k8sAuditServerURL: 127.0.0.1
-```
-
-## **agent.secure.settings.k8sAuditServerPort**
-
-**Required**: `false`<br />
-**Description**: Kubernetes Audit Server Port.<br />
-_**Note**: This setting is dependent on `agent.secure.enabled` being set to `true`._<br />
-**Options**: `1024-65535`<br />
-**Default**: `7765`<br />
-**Example**:
-
-```yaml
-agent:
-  secure:
-    settings:
-    k8sAuditServerPort: 7765
-```
-
-## **agent.prometheus.enabled**
-
-**Required**: `false`<br />
-**Description**: Whether to enable ingestion of prometheus metrics or not.<br />
-**Options**: `true|false`<br />
-**Default**: `true`<br />
-**Example**:
-
-```yaml
-agent:
-  prometheus:
-    enabled: true
-```
-
-## **agent.prometheus.settings.interval**
-
-**Required**: `false`<br />
-**Description**: How often (in seconds) the agent will scrape a port for prometheus metrics.<br />
-_**Note**: This setting is dependent on `agent.prometheus.enabled` being set to true._<br />
-**Options**: <br />
-**Default**: `10`<br />
-**Example**:
-
-```yaml
-agent:
-  prometheus:
-    settings:
-      interval: 30
-```
-
-## **agent.prometheus.settings.logErrors**
-
-**Required**: `false`<br />
-**Description**: Whether the Agent should log details on failed attempts to scrape eligible targets or not.<br />
-_**Note**: This setting is dependent on `agent.prometheus.enabled` being set to true._<br />
-**Options**: `true|false`<br />
-**Default**: `true`<br />
-**Example**:
-
-```yaml
-agent:
-  prometheus:
-    settings:
-      logErrors: true
-```
-
-## **agent.prometheus.settings.maxMetrics**
-
-**Required**: `false`<br />
-**Description**: The maximum number of total prometheus metrics that will be scraped across all targets. This value is the maximum per-Agent, and is a separate limit from other Custom Metrics (e.g. statsd, JMX, and other Application Checks).<br />
-_**Note**: This setting is dependent on `agent.prometheus.enabled` being set to true._<br />
-**Options**: <br />
-**Default**: `3000`<br />
-**Example**:
-
-```yaml
-agent:
-  prometheus:
-    settings:
-      maxMetrics: 1000
-```
-
-## **agent.prometheus.settings.maxMetricsPerProcess**
-
-**Required**: `false`<br />
-**Description**: The maximum number of prometheus metrics that the agent will save from a single scraped target.<br />
-_**Note**: This setting is dependent on `agent.prometheus.enabled` being set to true._<br />
-**Options**: <br />
-**Default**: `3000`<br />
-**Example**:
-
-```yaml
-agent:
-  prometheus:
-    settings:
-      maxMetricsPerProcess: 1000
-```
-
-## **agent.prometheus.settings.maxTagsPerMetric**
-
-**Required**: `false`<br />
-**Description**: The maximum number of tags per prometheus metric that the Agent will save from a scraped target.<br />
-_**Note**: This setting is dependent on `agent.prometheus.enabled` being set to true._<br />
-**Options**: <br />
-**Default**: `40`<br />
-**Example**:
-
-```yaml
-agent:
-  prometheus:
-    settings:
-      maxTagsPerMetric: 20
-```
-
-## **agent.prometheus.settings.histograms**
-
-**Required**: `false`<br />
-**Description**: Whether the Agent should scrape and report histogram metrics.<br />
-_**Note**: This setting is dependent on `agent.prometheus.enabled` being set to true._<br />
-**Options**: `true|false`<br />
-**Default**: `true`<br />
-**Example**:
-
-```yaml
-agent:
-  prometheus:
-    settings:
-      histograms: 3000
-```
-
-## **agent.statsd.enabled**
-
-**Required**: `false`<br />
-**Description**: Whether to enable ingestion of statsd metrics or not.<br />
-**Options**: `true|false`<br />
-**Default**: `true`<br />
-**Example**:
-
-```yaml
-agent:
-  statsd:
-    enabled: true
-```
-
-## **agent.statsd.settings.limit**
-
-**Required**: `false`<br />
-**Description**: The maximum number of statsd metrics that will be reported to Sysdig Monitor.<br />
-**Options**: <br />
-**Default**: `100`<br />
-**Example**:
-
-```yaml
-agent:
-  statsd:
-    settings:
-      limit: 1000
-```
-
-## **agent.jmx.enabled**
-
-**Required**: `false`<br />
-**Description**: Whether to enable ingestion of jvm metrics via jmx protocol or not. If enabled, the agent will discover java virtual machines and poll them for basic jvm metrics like heap and gc as well as a few application sepecific metrics.<br />
-**Options**: `true|false`<br />
-**Default**: `true`<br />
-**Example**:
-
-```yaml
-agent:
-  jmx:
-    enabled: true
-```
-
-## **agent.jmx.settings.limit**
-
-**Required**: `false`<br />
-**Description**: The total number of JMX metrics polled per host.<br />
-**Options**: <br />
-**Default**: `3000`<br />
-**Example**:
-
-```yaml
-agent:
-  jmx:
-    settings:
-      limit: 1000
-```
-
-## **agent.ebpf.enabled**
-
-**Required**: `false`<br />
-**Description**: Enable eBPF support for Sysdig instead of sysdig-probe kernel module.<br />
-_**Note**: This should be enabled for GKE COS as the installation of sysdig-probe kernel is not allowed._<br />
-**Options**: `true|false`<br />
-**Default**: `false`<br />
-**Example**:
-
-```yaml
-agent:
-  ebpf:
-    enabled: true
-```
-
-## **agent.ebpf.settings.mountEtcVolume**
-
-**Required**: `false`<br />
-**Description**: Needed to detect which kernel version are running in Google COS.<br />
-_**Note**: This should be configured appropriately for GKE COS as the installation of sysdig-probe kernel is not allowed._<br />
-**Options**: `true|false`<br />
-**Default**: `true`<br />
-**Example**:
-
-```yaml
-agent:
-  ebpf:
-    settings:
-      mountEtcVolume: 1000
-```
-
-## **agent.appChecks.elasticsearch.authEnabled**
-
-**Required**: `false`<br />
-**Description**: Whether elasticsearch has auth enabled or not.<br />
-**Options**: `true|false`<br />
-**Default**: `false`<br />
-**Example**:
-
-```yaml
-agent:
-  appChecks:
-    elasticsearch:
-      authEnabled: true
-```
-
-## **agent.appChecks.elasticsearch.url**
-
-**Required**: `false`<br />
-**Description**: Elasticsearch Endpoint.<br />
-_**Note**: This should be configured if `agent.appChecks.elasticsearch.authEnabled` is set to `true`._<br />
-**Options**: <br />
-**Default**: <br />
-**Example**:
-
-```yaml
-agent:
-  appChecks:
-    elasticsearch:
-      url: https://sysdigcloud-elasticsearch
-```
-
-## **agent.appChecks.elasticsearch.port**
-
-**Required**: `false`<br />
-**Description**: Elasticsearch Port.<br />
-_**Note**: This should be configured if `agent.appChecks.elasticsearch.authEnabled` is set to `true`._<br />
-**Options**: `1024-65535`<br />
-**Default**: <br />
-**Example**:
-
-```yaml
-agent:
-  appChecks:
-    elasticsearch:
-      port: 9200
-```
-
-## **agent.appChecks.elasticsearch.username**
-
-**Required**: `false`<br />
-**Description**: Username to use for authentication to elasticsearch.<br />
-_**Note**: This should be configured if `agent.appChecks.elasticsearch.authEnabled` is set to `true`._<br />
-**Options**: <br />
-**Default**: <br />
-**Example**:
-
-```yaml
-agent:
-  appChecks:
-    elasticsearch:
-      username: readonly
-```
-
-## **agent.appChecks.elasticsearch.password**
-
-**Required**: `false`<br />
-**Description**: Password to use for authentication to elasticsearch.<br />
-_**Note**: This should be configured if `agent.appChecks.elasticsearch.authEnabled` is set to `true`._<br />
-**Options**: <br />
-**Default**: <br />
-**Example**:
-
-```yaml
-agent:
-  appChecks:
-    elasticsearch:
-      password: some_password
-```
-
-## **agent.appChecks.elasticsearch.verifySSL**
-
-**Required**: `false`<br />
-**Description**: Whether to validate Elasticsearch SSL certificate or not.<br />
-_**Note**: This should be configured if `agent.appChecks.elasticsearch.authEnabled` is set to `true`._<br />
-**Options**: `true|false`<br />
-**Default**: <br />
-**Example**:
-
-```yaml
-agent:
-  appChecks:
-    elasticsearch:
-      verifySSL: false
-```
-
-## **agent.appChecks.kafka.enabled**
-
-**Required**: `false`<br />enabled
-**Description**: Whether to enable collection of metrics for kafka using JMX polling or not.<br />
-**Options**: `true|false`<br />
-**Default**: `false`<br />
-**Example**:
-
-```yaml
-agent:
-  appChecks:
-    kafka:
-      enabled: true
-```
-
-## **agent.appChecks.kafka.arg**
-
-**Required**: `false`<br />enabled
-**Description**: Process arguments to match for Kafka<br />
-_**Note**: This should be configured if `agent.appChecks.kafka.enabled` is set to `true`._<br />
-**Options**: <br />
-**Default**: <br />
-**Example**:
-
-```yaml
-agent:
-  appChecks:
-    kafka:
-      arg: Kafka.kafka
-```
-
-## **agent.appChecks.kafka.url**
-
-**Required**: `false`<br />
-**Description**: Kafka Endpoint.<br />
-_**Note**: This should be configured if `agent.appChecks.kafka.enabled` is set to `true`._<br />
-**Options**: <br />
-**Default**: <br />
-**Example**:
-
-```yaml
-agent:enabled
-  appChecks:
-    kafka:
-      url: localhost
-```
-
-## **agent.appChecks.kafka.port**
-
-**Required**: `false`<br />
-**Description**: Kafka Port.<br />
-_**Note**: This should be configured if `agent.appChecks.kafka.enabled` is set to `true`._<br />
-**Options**: `1024-65535`<br />
-**Default**: <br />
-**Example**:
-
-```yaml
-agent:
-  appChecks:
-    kafka:
-      port: 9200
-```
-
-## **agent.appChecks.kafka.zk.url**
-
-**Required**: `false`<br />
-**Description**: Kafka Zookeeper Endpoint.<br />
-_**Note**: This should be configured if `agent.appChecks.kafka.enabled` is set to `true`._<br />
-**Options**: <br />
-**Default**: <br />
-**Example**:
-
-```yaml
-agent:enabled
-  appChecks:
-    kafka:
-      zk:
-        url: localhost
-```
-
-## **agent.appChecks.kafka.zk.port**
-
-**Required**: `false`<br />
-**Description**: Kafka Zookeeper Port.<br />
-_**Note**: This should be configured if `agent.appChecks.kafka.enabled` is set to `true`._<br />
-**Options**: `1024-65535`<br />
-**Default**: <br />
-**Example**:
-
-```yaml
-agent:
-  appChecks:
-    kafka:
-      zk:
-        port: 2181
-```
-
-## **agent.appChecks.kafka.enableConsumerOffsets**
-
-**Required**: `false`<br />enabled
-**Description**: Whether to store consumer group config info inside Kafka itself or not. Enabling this will provide better performance.<br />
-**Options**: `true|false`<br />
-**Default**: `false`<br />
-**Example**:
-
-```yaml
-agent:
-  appChecks:
-    kafka:
-      enableConsumerOffsets: true
-```
-
-## **agent.appChecks.kafka.enableAggregationPartitions**
-
-**Required**: `false`<br />enabled
-**Description**: Whether to enable aggregation of partitions at the topic level or not.<br />
-**Options**: `true|false`<br />
-**Default**: `false`<br />
-**Example**:
-
-```yaml
-agent:
-  appChecks:
-    kafka:
-      enableAggregationPartitions: true
-```
-
-## **agent.appChecks.mysql.enabled**
-
-**Required**: `false`<br />
-**Description**: Whether to enable mysql app check.<br />
-**Options**: `true|false`<br />
-**Default**: `false`<br />
-**Example**:
-
-```yaml
-agent:
-  appChecks:
-    mysql:
-      enabled: true
-```
-
-## **agent.appChecks.mysql.hostname**
-
-**Required**: `false`<br />
-**Description**: Name of the mySQL host that the agent should connect to.<br />
-**Options**: `true|false`<br />
-**Default**: `false`<br />
-**Example**:
-
-```yaml
-agent:
-  appChecks:
-    mysql:
-      hostname: mysql-service-url
-```
-
-## **agent.appChecks.mysql.user**
-
-**Required**: `false`<br />
-**Description**: The username of the MySQL user that the agent will use in communicating with MySQL.<br />
-**Options**: `true|false`<br />
-**Default**: `false`<br />
-**Example**:
-
-```yaml
-agent:
-  appChecks:
-    mysql:
-      user: mysql-user
-```
-
-## **agent.appChecks.mysql.password**
-
-**Required**: `false`<br />
-**Description**: The password of the MySQL user that the agent will use in communicating with MySQL.<br />
-**Options**: `true|false`<br />
-**Default**: `false`<br />
-**Example**:
-
-```yaml
-agent:
-  appChecks:
-    mysql:
-      password: mysql-password
-```
-
-## **agent.resources.limits.cpu**
-
-**Required**: `false`<br />
-**Description**: The amount of cpu assigned to agent pods.<br />
-**Options**:<br />
-**Default**:
-
-| cluster-size | limits |
-| ------------ | ------ |
-| small        | 3      |
-| medium       | 5      |
-| large        | 8      |
-
-**Example**:
-
-```yaml
-agent:
-  resources:
-    limits:
-      cpu: 2
-```
-
-## **agent.resources.limits.memory**
-
-**Required**: `false`<br />
-**Description**: The amount of memory assigned to agent pods.<br />
-**Options**:<br />
-**Default**:
-
-| cluster-size | limits |
-| ------------ | ------ |
-| small        | 3Gi    |
-| medium       | 6Gi    |
-| large        | 10Gi   |
-
-**Example**:
-
-```yaml
-agent:
-  resources:
-    limits:
-      memory: 2
-```
-
-## **agent.resources.requests.cpu**
-
-**Required**: `false`<br />
-**Description**: The amount of cpu required to schedule agent pods.<br />
-**Options**:<br />
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 1        |
-| medium       | 3        |
-| large        | 5        |
-
-**Example**:
-
-```yaml
-agent:
-  resources:
-    requests:
-      cpu: 2
-```
-
-## **agent.resources.requests.memory**
-
-**Required**: `false`<br />
-**Description**: The amount of memory required to schedule agent pods.<br />
-**Options**:<br />
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 1Gi      |
-| medium       | 3Gi      |
-| large        | 6Gi      |
-
-**Example**:
-
-```yaml
-agent:
-  resources:
-    requests:
-      memory: 2
-```
-
-## **agent.resources.watchdog.max_memory_usage_mb**
-
-**Required**: `false`<br />
-**Description**: The max amount of memory the dragent process can take. Units for this value are Megabytes(mb)<br />
-**Options**:<br />
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 512      |
-| medium       | 1024     |
-| large        | 2048     |
-
-**Example**:
-
-```yaml
-agent:
-  resources:
-    watchdog:
-      max_memory_usage_mb: 1024
-```
-
-## **agent.resources.watchdog.cointerface**
-
-**Required**: `false`<br />
-**Description**: The max amount of memory cointerface is allowed to consume. Units for this value are Megabytes(mb). Cointerface is responsible for fetching k8s events from api server and also builds the relationship graph for all k8s objects. This can take up a lot of memory during startup and in large clusters.<br />
-**Options**:<br />
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 512      |
-| medium       | 2048     |
-| large        | 4096     |
-
-**Example**:
-
-```yaml
-agent:
-  resources:
-    watchdog:
-      cointerface: 1024
 ```
 
 ## **sysdig.eventsForwarderEnabledIntegrations**

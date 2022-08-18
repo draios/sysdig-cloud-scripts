@@ -123,8 +123,3 @@ step 3 until you are fine with the differences. Then set scripts to deploy
 and run for the final time.
 
 <br />
-
-### Step 5
-
-The datastores Cassandra and ElasticSearch have onDelete update strategy
-and need to be manually restarted to complete upgrade.
