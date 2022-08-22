@@ -55,6 +55,7 @@ rules:
   - networking.k8s.io
   resources:
   - networkpolicies
+  - ingresses
   verbs:
   - get
   - list
@@ -64,7 +65,6 @@ rules:
   resources:
   - daemonsets
   - deployments
-  - ingresses
   - replicasets
   verbs:
   - get
