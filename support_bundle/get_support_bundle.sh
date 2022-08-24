@@ -183,9 +183,9 @@ main() {
 
     # Configure kubectl command if labels are set
     if [[ -z ${LABELS} ]]; then
-        SYSDIGCLOUD_PODS=$(kubectl ${KUBE_OPTS} get pods | awk '{ print $1 }' | grep -v NAME)
+        SYSDIGCLOUD_PODS=$(kubectl ${KUBE_OPTS} get pods --no-headers -o custom-columns=NAME:metadata.name)
     else
-        SYSDIGCLOUD_PODS=$(kubectl ${KUBE_OPTS} -l "role in (${LABELS})" get pods | awk '{ print $1 }' | grep -v NAME)
+        SYSDIGCLOUD_PODS=$(kubectl ${KUBE_OPTS} -l "role in (${LABELS})" get pods --no-headers -o custom-columns=NAME:metadata.name)
     fi
 
     echo "Using namespace ${NAMESPACE}"
@@ -226,7 +226,7 @@ main() {
     echo "Collecting node information"
     kubectl ${KUBE_OPTS} describe nodes | tee -a ${LOG_DIR}/describe_node_output.log || echo "No permission to describe nodes!"
 
-    NODES=$(kubectl ${KUBE_OPTS} get nodes --no-headers | awk '{print $1}') && RETVAL=0 || { RETVAL=$? && echo "No permission to get nodes!"; }
+    NODES=$(kubectl ${KUBE_OPTS} get nodes --no-headers -o custom-columns=NAME:metadata.name) && RETVAL=0 || { RETVAL=$? && echo "No permission to get nodes!"; }
     if [[ "${RETVAL}" == "0" ]]; then
         mkdir -p ${LOG_DIR}/nodes
         for node in ${NODES[@]}; do
@@ -277,7 +277,7 @@ main() {
 
     # Fetch Cassandra Nodetool output
     echo "Fetching Cassandra statistics"
-    for pod in $(kubectl ${KUBE_OPTS} get pod -l role=cassandra | grep -v "NAME" | awk '{print $1}')
+    for pod in $(kubectl ${KUBE_OPTS} get pod -l role=cassandra --no-headers -o custom-columns=NAME:metadata.name)
     do
         mkdir -p ${LOG_DIR}/cassandra/${pod}
         kubectl ${KUBE_OPTS} exec -it ${pod} -c cassandra -- nodetool info | tee -a ${LOG_DIR}/cassandra/${pod}/nodetool_info.log
@@ -303,7 +303,7 @@ main() {
             ELASTIC_CURL='curl -s -k http://$(hostname)'
         fi
 
-        for pod in $(kubectl ${KUBE_OPTS} get pods -l role=elasticsearch | grep -v "NAME" | awk '{print $1}')
+        for pod in $(kubectl ${KUBE_OPTS} get pods -l role=elasticsearch --no-headers -o custom-columns=NAME:metadata.name)
         do
             mkdir -p ${LOG_DIR}/elasticsearch/${pod}
             kubectl ${KUBE_OPTS} exec -it ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}@sysdigcloud-elasticsearch:9200/_cat/health" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_health.log
@@ -332,7 +332,7 @@ main() {
     fi
 
     # Fetch Cassandra storage info
-    for pod in $(kubectl ${KUBE_OPTS} get pods -l role=cassandra  | grep -v "NAME" | awk '{print $1}')
+    for pod in $(kubectl ${KUBE_OPTS} get pods -l role=cassandra --no-headers -o custom-columns=NAME:metadata.name)
     do
         echo "Checking Used Cassandra Storage - ${pod}"
         mkdir -p ${LOG_DIR}/cassandra/${pod}
@@ -346,7 +346,7 @@ main() {
     done
 
     # Fetch postgresql storage info
-    for pod in $(kubectl ${KUBE_OPTS} get pods -l role=postgresql  | grep -v "NAME" | awk '{print $1}')
+    for pod in $(kubectl ${KUBE_OPTS} get pods -l role=postgresql --no-headers -o custom-columns=NAME:metadata.name)
     do
         echo "Checking Used PostgreSQL Storage - ${pod}"
         mkdir -p ${LOG_DIR}/postgresql/${pod}
@@ -355,7 +355,7 @@ main() {
     done
 
     # Fetch mysql storage info
-    for pod in $(kubectl ${KUBE_OPTS} get pods -l role=mysql  | grep -v "NAME" | awk '{print $1}')
+    for pod in $(kubectl ${KUBE_OPTS} get pods -l role=mysql --no-headers -o custom-columns=NAME:metadata.name)
     do
         echo "Checking Used MySQL Storage - ${pod}"
         mkdir -p ${LOG_DIR}/mysql/${pod}
