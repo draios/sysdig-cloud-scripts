@@ -21,10 +21,6 @@ spec:
       - name: modprobe-d
         hostPath:
           path: /etc/modprobe.d
-      - name: osrel
-        hostPath:
-          path: /etc/os-release
-          type: FileOrCreate
 ### uncomment for minikube
 #      - name: etc-version
 #        hostPath:
@@ -165,9 +161,6 @@ spec:
           name: sysdig-agent-config
         - mountPath: /opt/draios/etc/kubernetes/secrets
           name: sysdig-agent-secrets
-        - mountPath: /host/etc/os-release
-          name: osrel
-          readOnly: true
         - mountPath: /etc/podinfo
           name: podinfo
 ### Uncomment these lines if you'd like to map /root/ from the
