@@ -114,6 +114,9 @@ spec:
         #  - name: SYSDIG_BPF_PROBE
         #    value: ""
         volumeMounts:
+        - mountPath: /host/etc
+          name: etc-vol
+          readOnly: true
         - mountPath: /etc/modprobe.d
           name: modprobe-d
           readOnly: true
