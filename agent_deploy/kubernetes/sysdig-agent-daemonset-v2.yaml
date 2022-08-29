@@ -21,10 +21,6 @@ spec:
       - name: modprobe-d
         hostPath:
           path: /etc/modprobe.d
-      - name: osrel
-        hostPath:
-          path: /etc/os-release
-          type: FileOrCreate
 ### uncomment for minikube
 #      - name: etc-version
 #        hostPath:
@@ -33,6 +29,9 @@ spec:
       - name: dshm
         emptyDir:
           medium: Memory
+      - name: etc-vol
+        hostPath:
+          path: /etc
       - name: dev-vol
         hostPath:
           path: /dev
@@ -103,6 +102,7 @@ spec:
         imagePullPolicy: Always
         securityContext:
           privileged: true
+          runAsUser: 0
         resources:
           # Resources needed are subjective to the actual workload.
           # Please refer to Sysdig Support for more info.
@@ -134,6 +134,9 @@ spec:
 #        - mountPath: /host/etc/VERSION
 #          name: etc-version
 #          readOnly: true
+        - mountPath: /host/etc
+          name: etc-vol
+          readOnly: true
         - mountPath: /host/dev
           name: dev-vol
           readOnly: false
@@ -159,9 +162,6 @@ spec:
           name: sysdig-agent-config
         - mountPath: /opt/draios/etc/kubernetes/secrets
           name: sysdig-agent-secrets
-        - mountPath: /host/etc/os-release
-          name: osrel
-          readOnly: true
         - mountPath: /etc/podinfo
           name: podinfo
 ### Uncomment these lines if you'd like to map /root/ from the
