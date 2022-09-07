@@ -78,7 +78,7 @@ function help {
     echo "                [-ar | --agent_registry] [-arr | --agent_repository] [-asr | --agent_slim_repository] [-akr | --agent_kmod_repository] \ "
     echo "                [-ae | --api_endpoint <value> ] [-na | --nodeanalyzer ] \ "
     echo "                [-ia | --imageanalyzer ] [-am | --analysismanager <value>] [-ds | --dockersocket <value>] [-cs | --crisocket <value>] [-cv | --customvolume <value>] \ "
-    echo "                [-av | --agent-version <value>] [-ips | --image_pull_secret <value>] [ -r | --remove ] [ -aws | --aws ] [-h | --help]"
+    echo "                [-av | --agent-version <value>] [-ips | --image_pull_secret <value>] [ -r | --remove ] [ -aws | --aws ] [-b | --bpf] [-h | --help]"
     echo ""
     echo " -a  : secret access key, as shown in Sysdig Monitor"
     echo " -t  : list of tags for this host (ie. \"role:webserver,location:europe\", \"role:webserver\" or \"webserver\")"
@@ -112,6 +112,7 @@ function help {
     echo " -cs : CRI socket for Image Analyzer"
     echo " -cd : CRI-containerd socket for Image Analyzer"
     echo " -cv : custom volume for Image Analyzer"
+    echo " -b  : enable eBPF probe"
     echo " -h  : print this usage and exit"
     echo
     exit 1
@@ -457,6 +458,31 @@ function install_k8s_agent {
 \1  sysdig-instance: '$SYSDIG_INSTANCE_NAME'/' $DAEMONSET_FILE
     fi
 
+    # add the bpf configs if enabled
+    if [[ ($BPF -eq 1) ]]; then
+		echo "* Enabling eBPF"
+		sed -i.bak -e "s|#env:|env:|" $DAEMONSET_FILE
+		sed -i.bak -e "s|#  - name: SYSDIG_BPF_PROBE|  - name: SYSDIG_BPF_PROBE|" $DAEMONSET_FILE
+		sed -i.bak -e "s|#    value: \"\"|    value: \"\"|" $DAEMONSET_FILE
+		sed -i.bak -e "s|#- name: sys-tracing|- name: sys-tracing|" $DAEMONSET_FILE
+		sed -i.bak -e "s|#  hostPath:|  hostPath:|" $DAEMONSET_FILE
+		sed -i.bak -e "s|#    path: /sys/kernel/debug|    path: /sys/kernel/debug|" $DAEMONSET_FILE
+		sed -i.bak -e "s|#- mountPath: /sys/kernel/debug|- mountPath: /sys/kernel/debug|" $DAEMONSET_FILE
+		sed -i.bak -e "s|#  name: sys-tracing|  name: sys-tracing|" $DAEMONSET_FILE
+		sed -i.bak -e "s|#  readOnly: true|  readOnly: true|" $DAEMONSET_FILE
+		if [ $AGENT_FULL -eq 0 ]; then
+			sed -i.bak -e "s|#- name: bpf-probes|- name: bpf-probes|" $DAEMONSET_FILE
+			sed -i.bak -e "s|#  emptyDir: {}|  emptyDir: {}|" $DAEMONSET_FILE
+			sed -i.bak -e "s|#- name: osrel|- name: osrel|" $DAEMONSET_FILE
+			sed -i.bak -e "s|#    path: /etc/os-release|    path: /etc/os-release|" $DAEMONSET_FILE
+			sed -i.bak -e "s|#    type: FileOrCreate|    type: FileOrCreate|" $DAEMONSET_FILE
+			sed -i.bak -e "s|#- mountPath: /root/.sysdig|- mountPath: /root/.sysdig|" $DAEMONSET_FILE
+			sed -i.bak -e "s|#  name: bpf-probes|  name: bpf-probes|" $DAEMONSET_FILE
+			sed -i.bak -e "s|#- mountPath: /host/etc/os-release|- mountPath: /host/etc/os-release|" $DAEMONSET_FILE
+			sed -i.bak -e "s|#  name: osrel|  name: osrel|" $DAEMONSET_FILE
+		fi
+	fi
+
     echo "* Deploying the sysdig agent"
     kubectl apply -f $DAEMONSET_FILE --namespace=$NAMESPACE
     sleep 5 # So we gave some time to create the pods and show something meaningful in the next command
@@ -601,6 +627,7 @@ AGENT_KMOD_REPOSITORY="ext/sysdig/agent-kmodule"
 AGENT_VERSION="latest"
 IMAGE_PULL_SECRET=""
 AWS=0
+BPF=0
 AGENT_FULL=0
 WORKDIR="$(mktemp -d /tmp/sysdig-agent-k8s.XXXXXX)"
 trap cleanup_workdir EXIT ERR
@@ -823,6 +850,9 @@ case ${key} in
         ;;
     -na|--nodeanalyzer)
         INSTALL_NODE_ANALYZER=1
+        ;;
+    -b|--bpf)
+        BPF=1
         ;;
     -h|--help)
         help
