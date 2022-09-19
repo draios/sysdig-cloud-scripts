@@ -1,7 +1,8 @@
 # Installer
 
 The Sysdig Installer tool is a collection of scripts that help automate the
-on-premises deployment of the Sysdig platform (Sysdig Monitor and Secure), for environments using Kubernetes or OpenShift. Use the Installer to
+on-premises deployment of the Sysdig platform (Sysdig Monitor, Secure and
+Agent), for environments using Kubernetes or OpenShift. Use the Installer to
 install or upgrade your Sysdig platform. It is recommended as a replacement
 for the earlier manual install/upgrade procedures.
 
@@ -121,6 +122,29 @@ future upgrades. There will also be a generated directory containing various
 Kubernetes configuration yaml files which were applied by Installer against
 your cluster. It is not necessary to keep the generated directory, as the
 Installer can regenerate is consistently with the same values.yaml file.
+
+# Agent Install
+
+The sysdig agent can be installed along with Sysdig Monitor and/or Sysdig Secure or just by itself. This is determined by the value `apps` in `values.yaml` file.
+
+This section assumes you will run the agent container as a Kubernetes pod, which then enables the Sysdig agent automatically to detect and monitor your Kubernetes environment. For setting up Sysdig Agent, you will need the api key for agent from you Sysdig Monitor. Instructions for retrieving the api key can be found [here](https://docs.sysdig.com/en/agent-installation--overview-and-key.html).
+
+In case, you are setting up both Monitor and Agent together, you can provide a blank value for the `agent.apiKey`. The agent will be launched with the appropriate api key and the value updated in the `values.yaml` file.
+
+- Copy the current version sysdig-chart/values.yaml to your working directory.
+
+  ```bash
+  wget https://raw.githubusercontent.com/draios/sysdigcloud-kubernetes/installer/installer/values.yaml
+  ```
+
+- The following values are necessary for setting up Sysdig Agent. Edit the values.yaml to contain the following values:
+
+  - [`apps`](docs/configuration_parameters.md#apps): Specifies the Sysdig Platform components to be installed. Make sure `agent` is one of the values here.
+  - [`size`](docs/configuration_parameters.md#size): Specifies the size of the cluster. Size
+    defines CPU and Memory limits for the Agent Pods. Valid options are: small, medium and
+    large.
+  - [`agent.apiKey`](docs/configuration_parameters.md#agentapikey): Sysdig Agent api key for running agents.
+  - [`agent.collectorEndpoint`](docs/configuration_parameters.md#agentcollectorendpoint): Sysdig Collector Address
 
 # Airgapped Installation Options
 
@@ -325,3 +349,4 @@ of resources required if `redisHa: true` is configured.
 | Platform    | 8.1          | 36         | 14.6            | 50            | 115     |     | 35.6         | 118        | 42.1            | 142           | 685     |     |       | 82.1         | 298        | 142.1           | 304           | 1885    |
 | Monitor     | 5.6          | 18         | 10.1            | 30            | 85      |     | 30.6         | 98         | 37.1            | 122           | 625     |     |       | 76.1         | 278        | 136.1           | 280           | 1825    |
 | Redis HA    | 0.45         | 6.9        | 0.345           | 6.06          |         |     | 0.45         | 6.9        | 0.345           | 6.06          |         |     |       | 0.45         | 6.9        | 0.345           | 6.06          |         |
+| Agent       | 1            | 3          | 1               | 3             |         |     | 3            | 5          | 3               | 6             |         |     |       | 5            | 8          | 6               | 10            |         |
