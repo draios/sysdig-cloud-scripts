@@ -319,8 +319,8 @@ main() {
             kubectl ${KUBE_OPTS} exec -it ${pod}  -c elasticsearch -- openssl x509 -in /usr/share/elasticsearch/config/admin.pem -noout -enddate | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_admin_pem_expiration.log
             kubectl ${KUBE_OPTS} exec -it ${pod}  -c elasticsearch -- openssl x509 -in /usr/share/elasticsearch/config/root-ca.pem -noout -enddate | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_root_ca_pem_expiration.log
 
-            echo "Fetching Elasticsearch Indexes with version 5"
-            kubectl ${KUBE_OPTS} exec -it ${pod} -c elasticsearch -- bash -c "${ELASTIC_CURL}/_all/_settings/index.version\*?pretty" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_index_version_5.log
+            echo "Fetching Elasticsearch Index Versions"
+            kubectl ${KUBE_OPTS} exec -it ${pod} -c elasticsearch -- bash -c "${ELASTIC_CURL}/_all/_settings/index.version\*?pretty" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_index_versions.log
 
             echo "Checking Used Elasticsearch Storage - ${pod}"
             mountpath=$(kubectl ${KUBE_OPTS} get sts sysdigcloud-elasticsearch -ojsonpath='{.spec.template.spec.containers[].volumeMounts[?(@.name == "data")].mountPath}')
