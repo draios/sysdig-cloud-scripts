@@ -53,6 +53,7 @@ rules:
   - networking.k8s.io
   resources:
   - networkpolicies
+  - ingresses
   verbs:
   - get
   - list
@@ -62,7 +63,6 @@ rules:
   resources:
   - daemonsets
   - deployments
-  - ingresses
   - replicasets
   verbs:
   - get
@@ -82,6 +82,14 @@ rules:
   - storage.k8s.io
   resources:
   - storageclasses
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - certificates.k8s.io
+  resources:
+  - certificatesigningrequests
   verbs:
   - get
   - list

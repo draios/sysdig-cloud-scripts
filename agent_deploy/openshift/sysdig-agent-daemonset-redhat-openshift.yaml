@@ -21,18 +21,12 @@ spec:
       - name: modprobe-d
         hostPath:
           path: /etc/modprobe.d
-      - name: osrel
-        hostPath:
-          path: /etc/os-release
-          type: FileOrCreate
-### uncomment for minikube
-#      - name: etc-version
-#        hostPath:
-#          path: /etc/VERSION
-#          type: FileOrCreate
       - name: dshm
         emptyDir:
           medium: Memory
+      - name: etc-vol
+        hostPath:
+          path: /etc
       - name: dev-vol
         hostPath:
           path: /dev
@@ -103,6 +97,7 @@ spec:
         imagePullPolicy: Always
         securityContext:
           privileged: true
+          runAsUser: 0
         resources:
           # Resources needed are subjective to the actual workload.
           # Please refer to Sysdig Support for more info.
@@ -117,19 +112,22 @@ spec:
           exec:
             command: [ "test", "-e", "/opt/draios/logs/running" ]
           initialDelaySeconds: 10
+        env:
+          - name: K8S_NODE
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
         # This section is for eBPF support. Please refer to Sysdig Support before
         # uncommenting, as eBPF is recommended for only a few configurations.
-        #env:
         #  - name: SYSDIG_BPF_PROBE
         #    value: ""
         volumeMounts:
         - mountPath: /etc/modprobe.d
           name: modprobe-d
           readOnly: true
-### uncomment for minikube
-#        - mountPath: /host/etc/VERSION
-#          name: etc-version
-#          readOnly: true
+        - mountPath: /host/etc
+          name: etc-vol
+          readOnly: true
         - mountPath: /host/dev
           name: dev-vol
           readOnly: false
@@ -147,17 +145,16 @@ spec:
           readOnly: true
         - mountPath: /host/run
           name: run-vol
+          readOnly: false
         - mountPath: /host/var/run
           name: varrun-vol
+          readOnly: false
         - mountPath: /dev/shm
           name: dshm
         - mountPath: /opt/draios/etc/kubernetes/config
           name: sysdig-agent-config
         - mountPath: /opt/draios/etc/kubernetes/secrets
           name: sysdig-agent-secrets
-        - mountPath: /host/etc/os-release
-          name: osrel
-          readOnly: true
         - mountPath: /etc/podinfo
           name: podinfo
 ### Uncomment these lines if you'd like to map /root/ from the
@@ -170,5 +167,3 @@ spec:
         #- mountPath: /sys/kernel/debug
         #  name: sys-tracing
         #  readOnly: true
-
-

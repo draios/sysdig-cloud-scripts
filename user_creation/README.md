@@ -1,13 +1,13 @@
 # User creation via API
 
-The typical workflow for creating users in the Sysdig platform is via [email invite](https://sysdigdocs.atlassian.net/wiki/spaces/Platform/pages/206405831/Manage+Users). However, [on-premises deployments](https://sysdigdocs.atlassian.net/wiki/spaces/Platform/pages/13598894/On-Premises+Deployments) may also choose to use the Sysdig platform API to directly create user records and set an initial password.
+The typical workflow for creating users in the Sysdig platform is via [email invite](https://docs.sysdig.com/en/docs/administration/administration-settings/user-and-team-administration/manage-users/). However, [on-premises deployments](https://docs.sysdig.com/en/docs/administration/on-premises-deployments/) may also choose to use the Sysdig platform API to directly create user records and set an initial password.
 
 The `create_user.sh` helper script in this directory will assist you in hitting the correct API endpoints to:
 
 1. Enable/disable the ability to create users via the API (this ability is enabled by default)
 2. Create user records via the API
 
-Access to the API endpoints needed to run `create_user.sh` is only permitted by the ["super" Admin](https://sysdigdocs.atlassian.net/wiki/spaces/Platform/pages/206569685/Access+the+Super+Admin+User+Token) for your environment. To prepare, modify `env.sh` to set the required values for the `API_TOKEN` of the "super" Admin user, the URL for accessing the Sysdig platform API (which will be the same URL that your users access for the Sysdig Monitor application), and review the `CUSTOMER_ID` setting (which should be `1`, but confirm this via the steps described in [Find Your Customer Number](https://sysdigdocs.atlassian.net/wiki/spaces/Platform/pages/208994483/Find+Your+Customer+Number)).
+Access to the API endpoints needed to run `create_user.sh` is only permitted by the ["super" Admin](https://docs.sysdig.com/en/docs/administration/on-premises-deployments/find-the-super-admin-credentials-and-api-token/) for your environment. To prepare, modify `env.sh` to set the required values for the `API_TOKEN` of the "super" Admin user, the URL for accessing the Sysdig platform API (which will be the same URL that your users access for the Sysdig Monitor application), and review the `CUSTOMER_ID` setting (which should be `1`, but confirm this via the steps described in [Find Your Customer Number](https://docs.sysdig.com/en/docs/administration/administration-settings/find-your-customer-id-and-name/)).
 
 # Usage examples:
 
