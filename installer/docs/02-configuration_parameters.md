@@ -1370,6 +1370,23 @@ sysdig:
   ingressNetworking: loadbalancer
 ```
 
+
+## **sysdig.ingressClassName**
+
+**Required**: `false`<br />
+**Description**: Ingress class name to assign on generated `Ingress` resources. This is useful in cases where the value of [`ingressNetworking`](#sysdigingressnetworking) is set to `external` and the targeted Ingress controller has a class name which is different from the default.
+
+**Options**: <br />
+
+**Default**: `haproxy`
+**Example**:
+
+```yaml
+sysdig:
+  ingressClassName: haproxy
+```
+
+
 ## **sysdig.ingressNetworkingInsecureApiNodePort**
 
 **Required**: `false`<br />
@@ -9923,7 +9940,7 @@ sysdig:
 sysdig:
   secure:
     padvisor:
-      enabled: true
+      enabled: false
 ```
 
 ## **sysdig.secure.profiling.enabled**
