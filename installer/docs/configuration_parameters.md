@@ -40,7 +40,7 @@ size: medium
 ## **kubernetesServerVersion**
 **Required**: `false`<br>
 **Description**: The Kubernetes version of the targeted cluster.
- This helps to programmatically determine which apiVersions should be used, i.e. for `Ingress` - `networking.k8s.io/v1` 
+ This helps to programmatically determine which apiVersions should be used, i.e. for `Ingress` - `networking.k8s.io/v1`
  must be used with k8s version 1.22+. <br/>
 **Options**:<br>
 **Default**:If not provided, it will be pulled during `generate` and/or `import` phases. <br>
@@ -755,12 +755,12 @@ pvStorageSize:
 **Required**: `false`<br>
 **Description**: The docker image tag of the Sysdig Anchore Core.<br>
 **Options**:<br>
-**Default**: 0.8.1.32<br>
+**Default**: 0.8.1-49<br>
 **Example**:
 
 ```yaml
 sysdig:
-  anchoreVersion: 0.8.1.32
+  anchoreVersion: 0.8.1-49
 ```
 
 ## **sysdig.accessKey**
@@ -1109,13 +1109,13 @@ The Sysdig platform may sometimes open connections over SSL to certain external 
  - SAML over SSL
  - OpenID Connect over SSL
  - HTTPS Proxies<br>
-If the signing authorities for the certificates presented by these services are not well-known to the Sysdig Platform 
+If the signing authorities for the certificates presented by these services are not well-known to the Sysdig Platform
    (e.g., if you maintain your own Certificate Authority), they are not trusted by default.
 
-To allow the Sysdig platform to trust these certificates, use this configuration to upload one or more 
+To allow the Sysdig platform to trust these certificates, use this configuration to upload one or more
 PEM-format CA certificates. You must ensure you've uploaded all certificates in the CA approval chain to the root CA.
 
-This configuration when set expects certificates with .crt, .pem or .p12 extensions under certs/custom-java-certs/ 
+This configuration when set expects certificates with .crt, .pem or .p12 extensions under certs/custom-java-certs/
 in the same level as `values.yaml`.<br>
 
 **Options**: `true|false`<br>
@@ -1298,7 +1298,7 @@ sysdig:
 
 ## **sysdig.secureVersion**
 **Required**: `false`<br>
-**Description**: The docker image tag of the Sysdig Secure, if this is not 
+**Description**: The docker image tag of the Sysdig Secure, if this is not
 configured it defaults to `sysdig.monitorVersion` **Do not modify
 this unless you know what you are doing as modifying it could have unintended
 consequences**<br>
@@ -1916,7 +1916,7 @@ sysdig:
 
 ```yaml
 sysdig:
-  postgresql:      
+  postgresql:
     pgParameters:
       max_connections: '1024'
       shared_buffers: '110MB'
@@ -2648,7 +2648,7 @@ sysdig:
 ```yaml
 sysdig:
   slack:
-    client: 
+    client:
       id: 2255883163.123123123534
 ```
 
@@ -2663,7 +2663,7 @@ sysdig:
 ```yaml
 sysdig:
   slack:
-    client: 
+    client:
       secret: 8a8af18123128acd312d12d12da
 ```
 
@@ -2678,7 +2678,7 @@ sysdig:
 ```yaml
 sysdig:
   slack:
-    client: 
+    client:
       scope: incoming-webhook
 ```
 
@@ -2693,7 +2693,7 @@ sysdig:
 ```yaml
 sysdig:
   slack:
-    client: 
+    client:
       endpoint: https://slack.com/oauth/v2/authorize
 ```
 
@@ -2708,13 +2708,13 @@ sysdig:
 ```yaml
 sysdig:
   slack:
-    client: 
+    client:
       oauth:
         endpoint: https://slack.com/api/oauth.v2.access
 ```
 ## **sysdig.saml.certificate.name**
 **Required**: `false`<br>
-**Description**: The filename of the certificate that will be used for signing SAML requests. 
+**Description**: The filename of the certificate that will be used for signing SAML requests.
 The certificate file needs to be passed via `sysdig.certificate.customCA` and the filename should match
 the certificate name used when creating the certificate.<br>
 **Options**:<br>
@@ -2730,7 +2730,7 @@ sysdig:
 ```
 ## **sysdig.saml.certificate.password**
 **Required**: `false`<br>
-**Description**: The password required to read the certificate that will be used for signing SAML requests. 
+**Description**: The password required to read the certificate that will be used for signing SAML requests.
 If `sysdig.saml.certificate.name` is set, this parameter needs to be set as well.<br>
 **Options**:<br>
 **Default**:  <br>
@@ -10156,7 +10156,7 @@ sysdig:
 
 ## **sysdig.secure.scanning.feedsEnabled**
 **Required**: `false`<br>
-**Description**: Deploys a local Sysdig Secure feeds API and DB for airgapped installs that cannot reach out to one of Sysdig SaaS products<br>	
+**Description**: Deploys a local Sysdig Secure feeds API and DB for airgapped installs that cannot reach out to one of Sysdig SaaS products<br>
 **Options**: `true|false`<br>
 **Default**: `false`<br>
 
