@@ -309,7 +309,7 @@ main() {
         fi
 
         if [[ ${ELASTIC_TLS} == "true" ]]; then
-            ELASTIC_CURL='curl -s --cacert ${CERTIFICATE_DIRECTORY}/root-ca.pem https://${ELASTICSEARCH_ADMINUSER}:${ELASTICSEARCH_ADMIN_PASSWORD}@$(hostname):9200'
+            ELASTIC_CURL="curl -s --cacert ${CERTIFICATE_DIRECTORY}/root-ca.pem https://\${ELASTICSEARCH_ADMINUSER}:\${ELASTICSEARCH_ADMIN_PASSWORD}@\$(hostname):9200"
         else
             ELASTIC_CURL='curl -s -k http://$(hostname):9200'
         fi
