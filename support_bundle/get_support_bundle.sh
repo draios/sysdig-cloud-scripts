@@ -326,14 +326,14 @@ main() {
 
             kubectl ${KUBE_OPTS} exec ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}/_cluster/allocation/explain?pretty" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_index_allocation.log || true
 
-            echo "Fetching Elasticsearch Index Versions"
-            kubectl ${KUBE_OPTS} exec ${pod} -c elasticsearch -- bash -c "${ELASTIC_CURL}/_all/_settings/index.version\*?pretty" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_index_versions.log || true
-
-
             echo "Fetching ElasticSearch SSL Certificate Expiration Dates"
             kubectl ${KUBE_OPTS} exec ${pod}  -c elasticsearch -- openssl x509 -in ${CERTIFICATE_DIRECTORY}/node.pem -noout -enddate | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_node_pem_expiration.log || true
             kubectl ${KUBE_OPTS} exec ${pod}  -c elasticsearch -- openssl x509 -in ${CERTIFICATE_DIRECTORY}/admin.pem -noout -enddate | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_admin_pem_expiration.log || true
             kubectl ${KUBE_OPTS} exec ${pod}  -c elasticsearch -- openssl x509 -in ${CERTIFICATE_DIRECTORY}/root-ca.pem -noout -enddate | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_root_ca_pem_expiration.log || true
+
+
+            echo "Fetching Elasticsearch Index Versions"
+            kubectl ${KUBE_OPTS} exec ${pod} -c elasticsearch -- bash -c "${ELASTIC_CURL}/_all/_settings/index.version\*?pretty" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_index_versions.log || true
 
             echo "Checking Used Elasticsearch Storage - ${pod}"
             mountpath=$(kubectl ${KUBE_OPTS} get sts sysdigcloud-elasticsearch -ojsonpath='{.spec.template.spec.containers[].volumeMounts[?(@.name == "data")].mountPath}')
