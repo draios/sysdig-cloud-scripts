@@ -295,10 +295,21 @@ main() {
     ELASTIC_POD=$(kubectl ${KUBE_OPTS} get pods -l role=elasticsearch --no-headers | head -1 | awk '{print $1}') || true
 
     if [ ! -z ${ELASTIC_POD} ]; then
-        ELASTIC_TLS=$(kubectl ${KUBE_OPTS} exec -it ${ELASTIC_POD} -c elasticsearch -- env | grep -i ELASTICSEARCH_TLS_ENCRYPTION) || true
+        ELASTIC_IMAGE=$(kubectl ${KUBE_OPTS} get pod ${ELASTIC_POD} -ojsonpath='{.spec.containers[?(@.name == "elasticsearch")].image}' | awk -F '/' '{print $NF}' | cut -f 1 -d ':') || true
 
-        if [[ ${ELASTIC_TLS} == *"ELASTICSEARCH_TLS_ENCRYPTION=true"* ]]; then
-            ELASTIC_CURL='curl -s --cacert /usr/share/elasticsearch/config/root-ca.pem https://${ELASTICSEARCH_ADMINUSER}:${ELASTICSEARCH_ADMIN_PASSWORD}@$(hostname):9200'
+        if [[ ${ELASTIC_IMAGE} == "opensearch"* ]]; then
+            CERTIFICATE_DIRECTORY="/usr/share/opensearch/config"
+            ELASTIC_TLS="true"
+        else
+            CERTIFICATE_DIRECTORY="/usr/share/elasticsearch/config"
+            ELASTIC_TLS=$(kubectl ${KUBE_OPTS} exec ${ELASTIC_POD} -c elasticsearch -- env | grep -i ELASTICSEARCH_TLS_ENCRYPTION) || true
+            if [[ ${ELASTIC_TLS} == *"ELASTICSEARCH_TLS_ENCRYPTION=true"* ]]; then
+                ELASTIC_TLS="true"
+            fi
+        fi
+
+        if [[ ${ELASTIC_TLS} == "true" ]]; then
+            ELASTIC_CURL="curl -s --cacert ${CERTIFICATE_DIRECTORY}/root-ca.pem https://\${ELASTICSEARCH_ADMINUSER}:\${ELASTICSEARCH_ADMIN_PASSWORD}@\$(hostname):9200"
         else
             ELASTIC_CURL='curl -s -k http://$(hostname):9200'
         fi
@@ -306,26 +317,28 @@ main() {
         for pod in $(kubectl ${KUBE_OPTS} get pods -l role=elasticsearch | grep -v "NAME" | awk '{print $1}')
         do
             mkdir -p ${LOG_DIR}/elasticsearch/${pod}
-            kubectl ${KUBE_OPTS} exec -it ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}/_cat/health" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_health.log
 
-            kubectl ${KUBE_OPTS} exec -it ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}/_cat/indices" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_indices.log
+            kubectl ${KUBE_OPTS} exec ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}/_cat/health" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_health.log || true
 
-            kubectl ${KUBE_OPTS} exec -it ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}/_cat/nodes?v" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_nodes.log
+            kubectl ${KUBE_OPTS} exec ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}/_cat/indices" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_indices.log || true
 
-            kubectl ${KUBE_OPTS} exec -it ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}/_cluster/allocation/explain?pretty" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_index_allocation.log
+            kubectl ${KUBE_OPTS} exec ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}/_cat/nodes?v" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_nodes.log || true
+
+            kubectl ${KUBE_OPTS} exec ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}/_cluster/allocation/explain?pretty" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_index_allocation.log || true
 
             echo "Fetching ElasticSearch SSL Certificate Expiration Dates"
-            kubectl ${KUBE_OPTS} exec -it ${pod}  -c elasticsearch -- openssl x509 -in /usr/share/elasticsearch/config/node.pem -noout -enddate | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_node_pem_expiration.log
-            kubectl ${KUBE_OPTS} exec -it ${pod}  -c elasticsearch -- openssl x509 -in /usr/share/elasticsearch/config/admin.pem -noout -enddate | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_admin_pem_expiration.log
-            kubectl ${KUBE_OPTS} exec -it ${pod}  -c elasticsearch -- openssl x509 -in /usr/share/elasticsearch/config/root-ca.pem -noout -enddate | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_root_ca_pem_expiration.log
+            kubectl ${KUBE_OPTS} exec ${pod}  -c elasticsearch -- openssl x509 -in ${CERTIFICATE_DIRECTORY}/node.pem -noout -enddate | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_node_pem_expiration.log || true
+            kubectl ${KUBE_OPTS} exec ${pod}  -c elasticsearch -- openssl x509 -in ${CERTIFICATE_DIRECTORY}/admin.pem -noout -enddate | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_admin_pem_expiration.log || true
+            kubectl ${KUBE_OPTS} exec ${pod}  -c elasticsearch -- openssl x509 -in ${CERTIFICATE_DIRECTORY}/root-ca.pem -noout -enddate | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_root_ca_pem_expiration.log || true
+
 
             echo "Fetching Elasticsearch Index Versions"
-            kubectl ${KUBE_OPTS} exec -it ${pod} -c elasticsearch -- bash -c "${ELASTIC_CURL}/_all/_settings/index.version\*?pretty" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_index_versions.log
+            kubectl ${KUBE_OPTS} exec ${pod} -c elasticsearch -- bash -c "${ELASTIC_CURL}/_all/_settings/index.version\*?pretty" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_index_versions.log || true
 
             echo "Checking Used Elasticsearch Storage - ${pod}"
             mountpath=$(kubectl ${KUBE_OPTS} get sts sysdigcloud-elasticsearch -ojsonpath='{.spec.template.spec.containers[].volumeMounts[?(@.name == "data")].mountPath}')
             if [ ! -z $mountpath ]; then
-               kubectl ${KUBE_OPTS} exec -it ${pod} -c elasticsearch -- du -ch ${mountpath} | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_storage.log
+               kubectl ${KUBE_OPTS} exec ${pod} -c elasticsearch -- du -ch ${mountpath} | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_storage.log || true
            else
               printf "Error getting ElasticSearch ${pod} mount path\n" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_storage.log
            fi
