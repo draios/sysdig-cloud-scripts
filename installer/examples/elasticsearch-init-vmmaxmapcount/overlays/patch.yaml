@@ -9,7 +9,7 @@ spec:
     spec:
       initContainers:
         - name: elasticsearch-init-vmmaxmapcount
-          image: quay.io/sysdig/elasticsearch:<CURRENT_ES_VERSION>
+          image: quay.io/sysdig/opensearch-1:<CURRENT_ES_VERSION>
           securityContext:
             privileged: true
             runAsUser: 0

@@ -27,7 +27,7 @@ sysdig:
   dnsName: <PLEASE_REPLACE>
   admin:
     username: pov@sysdig.com
-  # Replace with license provided by the sales team
+  # Replace with license provided by the sales team.
   license: <PLEASE_REPLACE>
   # For PoC do not change the below
   resources:
