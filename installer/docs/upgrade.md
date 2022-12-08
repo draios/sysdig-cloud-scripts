@@ -19,7 +19,7 @@ To upgrade:<br>
 
 1. Copy the current version sysdig-chart/values.yaml to your working directory.
   ```bash
-  wget https://raw.githubusercontent.com/draios/sysdigcloud-kubernetes/installer/installer/values.yaml
+  wget https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/installer/installer/values.yaml
   ```
 2. Edit the following values:
   - [`scripts`](docs/configuration_parameters.md#scripts): Set this to
