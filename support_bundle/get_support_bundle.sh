@@ -198,7 +198,7 @@ main() {
         for pod in ${SYSDIGCLOUD_PODS}; do
             echo "Getting support logs for ${pod}"
             mkdir -p ${LOG_DIR}/${pod}
-            containers=$(kubectl ${KUBE_OPTS} get pod ${pod} -o json | jq -r '.spec.containers[].name')
+            containers=$(kubectl ${KUBE_OPTS} get pod ${pod} -o json | jq -r '.spec.containers[].name' || echo "")
             for container in ${containers}; do
                 kubectl ${KUBE_OPTS} logs ${pod} -c ${container} ${SINCE_OPTS} > ${LOG_DIR}/${pod}/${container}-kubectl-logs.txt || true
                 echo "Execing into ${container}"
