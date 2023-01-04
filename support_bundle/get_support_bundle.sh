@@ -151,12 +151,12 @@ main() {
     if [[ ! -z ${API_KEY} ]]; then
         API_URL=$(kubectl ${KUBE_OPTS} get cm sysdigcloud-config -o yaml | grep -i api.url: | head -1 | awk '{print$2}')
 
-				# Check that the API_KEY for the Super User is valid and exit 
-				CURL_OUT=$(curl -fks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/license" >/dev/null 2>&1) && RETVAL=$? && error=0 || { RETVAL=$? && error=1; }
-				if [[ ${error} -eq 1 ]]; then
-				    echo "The API_KEY supplied is Unauthorized.  Please check and try again.  Return Code: ${RETVAL}"
-				    exit 1
-				fi
+        # Check that the API_KEY for the Super User is valid and exit 
+        CURL_OUT=$(curl -fks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/license" >/dev/null 2>&1) && RETVAL=$? && error=0 || { RETVAL=$? && error=1; }
+        if [[ ${error} -eq 1 ]]; then
+            echo "The API_KEY supplied is Unauthorized.  Please check and try again.  Return Code: ${RETVAL}"
+            exit 1
+        fi
 
         curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/license" >> ${LOG_DIR}/license.json
         curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/streamsnapSettings" >> ${LOG_DIR}/streamSnap_settings.json
