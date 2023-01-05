@@ -40,7 +40,7 @@ This install assumes the Kubernetes cluster has network access to pull images fr
 
 - Copy the current version sysdig-chart/values.yaml to your working directory.
   ```bash
-  wget https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/installer/installer/values.yaml
+  wget https://raw.githubusercontent.com/draios/sysdigcloud-kubernetes/installer/installer/values.yaml
   ```
 - Edit the following values:
 
@@ -134,7 +134,7 @@ In case, you are setting up both Monitor and Agent together, you can provide a b
 - Copy the current version sysdig-chart/values.yaml to your working directory.
 
   ```bash
-  wget https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/installer/installer/values.yaml
+  wget https://raw.githubusercontent.com/draios/sysdigcloud-kubernetes/installer/installer/values.yaml
   ```
 
 - The following values are necessary for setting up Sysdig Agent. Edit the values.yaml to contain the following values:
@@ -202,11 +202,11 @@ the installation machine.
 - Follow the Docker Log In to quay.io steps under the Access Requirements section.
 - Pull the image containing the self-extracting tar:
   ```bash
-  docker pull quay.io/sysdig/installer:4.0.8-2-uber
+  docker pull quay.io/sysdig/installer:3.5.1-1-uber
   ```
 - Extract the tarball:
   ```bash
-  docker create --name uber_image quay.io/sysdig/installer:4.0.8-2-uber
+  docker create --name uber_image quay.io/sysdig/installer:3.5.1-1-uber
   docker cp uber_image:/sysdig_installer.tar.gz .
   docker rm uber_image
   ```
@@ -216,7 +216,7 @@ the installation machine.
 
 - Copy the current version sysdig-chart/values.yaml to your working directory.
   ```bash
-  wget https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/installer/installer/values.yaml
+  wget https://raw.githubusercontent.com/draios/sysdigcloud-kubernetes/installer/installer/values.yaml
   ```
 - Edit the following values:
 
