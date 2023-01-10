@@ -87,6 +87,8 @@ spec:
           key: node-role.kubernetes.io/master
         - effect: NoSchedule
           key: node-role.kubernetes.io/control-plane
+        - effect: NoExecute
+          key: node-role.kubernetes.io/etcd
       # The following line is necessary for RBAC
       serviceAccount: sysdig-agent
       terminationGracePeriodSeconds: 5
@@ -146,7 +148,7 @@ spec:
       containers:
       - name: sysdig-agent
         # WARNING: the agent-slim release is currently dependent on the above
-        # initContainer and thus only functions correctly in a kubernetes cluster 
+        # initContainer and thus only functions correctly in a kubernetes cluster
         image: quay.io/sysdig/agent-slim
         imagePullPolicy: Always
         securityContext:
