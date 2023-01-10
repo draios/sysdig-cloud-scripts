@@ -161,7 +161,11 @@ main() {
         curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/v2/users/light" >> ${LOG_DIR}/users.json
         curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/v2/teams/light" >> ${LOG_DIR}/teams.json
 
-        TO_EPOCH_TIME=$(gnudate -d "$(gnudate +%H):00:00" +%s)
+        if [[ $OSTYPE == 'darwin'* ]]; then
+            TO_EPOCH_TIME=$(date -j -f "%a %b %d %T %Z %Y" "`date`" "+%s")
+        else
+            TO_EPOCH_TIME=$(gnudate -d "$(gnudate +%H):00:00" +%s)
+        fi
         FROM_EPOCH_TIME=$((TO_EPOCH_TIME-86400))
         METRICS=("syscall.count" "dragent.analyzer.sr" "container.count" "dragent.analyzer.n_drops_buffer" "dragent.analyzer.n_evts")
         DEFAULT_SEGMENT="host.hostName"
