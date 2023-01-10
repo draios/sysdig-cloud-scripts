@@ -34,29 +34,29 @@ function install_curl_rpm {
 function download_yamls {
     echo "* Downloading yamls files to the temp directory: $WORKDIR"
     echo "* Downloading Sysdig cluster role yaml"
-    curl -s -o $WORKDIR/sysdig-agent-clusterrole.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/master/agent_deploy/kubernetes/sysdig-agent-clusterrole.yaml
+    curl -s -o $WORKDIR/sysdig-agent-clusterrole.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/add_branch_option/agent_deploy/kubernetes/sysdig-agent-clusterrole.yaml
     echo "* Downloading Sysdig config map yaml"
-    curl -s -o $WORKDIR/sysdig-agent-configmap.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/master/agent_deploy/kubernetes/sysdig-agent-configmap.yaml
+    curl -s -o $WORKDIR/sysdig-agent-configmap.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/add_branch_option/agent_deploy/kubernetes/sysdig-agent-configmap.yaml
     echo "* Downloading Sysdig daemonset v2 yaml"
-    curl -s -o $WORKDIR/sysdig-agent-daemonset-v2.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/master/agent_deploy/kubernetes/sysdig-agent-daemonset-v2.yaml
+    curl -s -o $WORKDIR/sysdig-agent-daemonset-v2.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/add_branch_option/agent_deploy/kubernetes/sysdig-agent-daemonset-v2.yaml
     echo "* Downloading Sysdig daemonset slim v2 yaml"
-    curl -s -o $WORKDIR/sysdig-agent-slim-daemonset-v2.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/master/agent_deploy/kubernetes/sysdig-agent-slim-daemonset-v2.yaml
+    curl -s -o $WORKDIR/sysdig-agent-slim-daemonset-v2.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/add_branch_option/agent_deploy/kubernetes/sysdig-agent-slim-daemonset-v2.yaml
     echo "* Downloading Sysdig kmod-thin-agent-slim daemonset"
-    curl -s -o $WORKDIR/sysdig-kmod-thin-agent-slim-daemonset.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/master/agent_deploy/kubernetes/sysdig-kmod-thin-agent-slim-daemonset.yaml
+    curl -s -o $WORKDIR/sysdig-kmod-thin-agent-slim-daemonset.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/add_branch_option/agent_deploy/kubernetes/sysdig-kmod-thin-agent-slim-daemonset.yaml
     if [ $INSTALL_IMAGE_ANALYZER -eq 1 ]; then
         echo "* Downloading Sysdig Image Analyzer config map yaml"
-        curl -H 'Cache-Control: no-cache' -s -o $WORKDIR/sysdig-image-analyzer-configmap.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/master/agent_deploy/kubernetes/sysdig-image-analyzer-configmap.yaml
+        curl -H 'Cache-Control: no-cache' -s -o $WORKDIR/sysdig-image-analyzer-configmap.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/add_branch_option/agent_deploy/kubernetes/sysdig-image-analyzer-configmap.yaml
         echo "* Downloading Sysdig Image Analyzer daemonset v1 yaml"
-        curl -H 'Cache-Control: no-cache' -s -o $WORKDIR/sysdig-image-analyzer-daemonset.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/master/agent_deploy/kubernetes/sysdig-image-analyzer-daemonset.yaml
+        curl -H 'Cache-Control: no-cache' -s -o $WORKDIR/sysdig-image-analyzer-daemonset.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/add_branch_option/agent_deploy/kubernetes/sysdig-image-analyzer-daemonset.yaml
     elif [ $INSTALL_NODE_ANALYZER -eq 1 ]; then
         echo "* Downloading Sysdig Image Analyzer config map yaml"
-        curl -H 'Cache-Control: no-cache' -s -o $WORKDIR/sysdig-image-analyzer-configmap.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/master/agent_deploy/kubernetes/sysdig-image-analyzer-configmap.yaml
+        curl -H 'Cache-Control: no-cache' -s -o $WORKDIR/sysdig-image-analyzer-configmap.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/add_branch_option/agent_deploy/kubernetes/sysdig-image-analyzer-configmap.yaml
         echo "* Downloading Sysdig Benchmark Runner config map yaml"
-        curl -H 'Cache-Control: no-cache' -s -o $WORKDIR/sysdig-benchmark-runner-configmap.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/master/agent_deploy/kubernetes/sysdig-benchmark-runner-configmap.yaml
+        curl -H 'Cache-Control: no-cache' -s -o $WORKDIR/sysdig-benchmark-runner-configmap.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/add_branch_option/agent_deploy/kubernetes/sysdig-benchmark-runner-configmap.yaml
         echo "* Downloading Sysdig Host Analyzer config map yaml"
-        curl -H 'Cache-Control: no-cache' -s -o $WORKDIR/sysdig-host-analyzer-configmap.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/master/agent_deploy/kubernetes/sysdig-host-analyzer-configmap.yaml
+        curl -H 'Cache-Control: no-cache' -s -o $WORKDIR/sysdig-host-analyzer-configmap.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/add_branch_option/agent_deploy/kubernetes/sysdig-host-analyzer-configmap.yaml
         echo "* Downloading Sysdig Node Analyzer daemonset v1 yaml"
-        curl -H 'Cache-Control: no-cache' -s -o $WORKDIR/sysdig-node-analyzer-daemonset.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/master/agent_deploy/kubernetes/sysdig-node-analyzer-daemonset.yaml
+        curl -H 'Cache-Control: no-cache' -s -o $WORKDIR/sysdig-node-analyzer-daemonset.yaml https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/add_branch_option/agent_deploy/kubernetes/sysdig-node-analyzer-daemonset.yaml
     fi
 }
 
