@@ -83,14 +83,6 @@ parse_commandline() {
     done
 }
 
-gnudate() {
-    if hash gdate 2>/dev/null; then
-        gdate "$@"
-    else
-        date "$@"
-    fi
-}
-
 get_agent_version_metric_limits() {
 # function used to get metric JSON data for Agent versions and metric counts for each agent.
 # This is taken from the Sysdig Agent and Health Status Dashboard
@@ -164,7 +156,7 @@ main() {
         if [[ $OSTYPE == 'darwin'* ]]; then
             TO_EPOCH_TIME=$(date -jf "%H:%M:%S" $(date +%H):00:00 +%s)
         else
-            TO_EPOCH_TIME=$(gnudate -d "$(gnudate +%H):00:00" +%s)
+            TO_EPOCH_TIME=$(date -d "$(date +%H):00:00" +%s)
         fi
         FROM_EPOCH_TIME=$((TO_EPOCH_TIME-86400))
         METRICS=("syscall.count" "dragent.analyzer.sr" "container.count" "dragent.analyzer.n_drops_buffer" "dragent.analyzer.n_evts")
