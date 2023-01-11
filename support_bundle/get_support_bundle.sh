@@ -162,7 +162,7 @@ main() {
         curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/v2/teams/light" >> ${LOG_DIR}/teams.json
 
         if [[ $OSTYPE == 'darwin'* ]]; then
-            TO_EPOCH_TIME=$(date -j -f "%a %b %d %T %Z %Y" "`date`" "+%s")
+            TO_EPOCH_TIME=$(date -jf "%H:%M:%S" $(date +%H):00:00 +%s)
         else
             TO_EPOCH_TIME=$(gnudate -d "$(gnudate +%H):00:00" +%s)
         fi
