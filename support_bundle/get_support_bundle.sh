@@ -159,7 +159,6 @@ main() {
         curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/indexSettings" >> ${LOG_DIR}/index_settings.json
         curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/planSettings" >> ${LOG_DIR}/plan_settings.json
         curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/dataRetentionSettings" >> ${LOG_DIR}/dataRetention_settings.json
-        curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/agents/connected" >> ${LOG_DIR}/agents-connected.json
         curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/v2/users/light" >> ${LOG_DIR}/users.json
         curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/v2/teams/light" >> ${LOG_DIR}/teams.json
 
