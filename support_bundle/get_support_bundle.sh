@@ -196,7 +196,9 @@ main() {
     echo "Using context ${CONTEXT}"
 
     # Collect kubectl cluster dump
-    kubectl ${KUBE_OPTS} cluster-info dump >> ${LOG_DIR}/kubectl-cluster-dump.json
+    CLUSTER_DUMP_DIR="${LOG_DIR}/kubectl-cluster-dump"
+    mkdir ${CLUSTER_DUMP_DIR}
+    kubectl ${KUBE_OPTS} cluster-info dump --output-directory=${CLUSTER_DUMP_DIR}
 
     # Collect container logs for each pod
     if [[ "${SKIP_LOGS}" == "false" ]]; then
