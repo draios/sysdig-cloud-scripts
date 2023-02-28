@@ -195,6 +195,9 @@ main() {
     echo "Using namespace ${NAMESPACE}"
     echo "Using context ${CONTEXT}"
 
+    # Collect kubectl cluster dump
+    kubectl ${KUBE_OPTS} cluster-info dump >> ${LOG_DIR}/kubectl-cluster-dump.json
+
     # Collect container logs for each pod
     if [[ "${SKIP_LOGS}" == "false" ]]; then
         echo "Gathering Logs from ${NAMESPACE} pods"
