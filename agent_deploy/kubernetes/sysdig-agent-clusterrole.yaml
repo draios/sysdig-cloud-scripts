@@ -96,6 +96,14 @@ rules:
   - get
   - list
   - watch
+- apiGroups:
+  - policy
+  resources:
+  - poddisruptionbudgets
+  verbs:
+  - get
+  - list
+  - watch
 - nonResourceURLs:
   - /metrics
   verbs:
