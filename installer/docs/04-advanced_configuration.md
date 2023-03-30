@@ -116,7 +116,7 @@ Make sure that subnets have internet gateway configured and has enough ips.
 
 This is a procedure that can be used to automatically update the feeds database:
 
-1. download the image file quay.io/sysdig/vuln-feed-database:latest from Sysdig registry to the jumpbox server and save it locally
+1. download the image file quay.io/sysdig/vuln-feed-database-12:latest from Sysdig registry to the jumpbox server and save it locally
 2. move the file from the jumpbox server to the customer airgapped environment (optional)
 3. load the image file and push it to the customer's airgapped image registry
 4. restart the pod sysdigcloud-feeds-db
@@ -133,16 +133,16 @@ QUAY_PASSWORD="<change_me>"
 
 # Download image
 docker login quay.io/sysdig -u ${QUAY_USERNAME} -p ${QUAY_PASSWORD}
-docker image pull quay.io/sysdig/vuln-feed-database:latest
+docker image pull quay.io/sysdig/vuln-feed-database-12:latest
 # Save image
-docker image save quay.io/sysdig/vuln-feed-database:latest -o vuln-feed-database.tar
+docker image save quay.io/sysdig/vuln-feed-database-12:latest -o vuln-feed-database-12.tar
 # Optionally move image
-mv vuln-feed-database.tar /var/shared-folder
+mv vuln-feed-database-12.tar /var/shared-folder
 # Load image remotely
-ssh -t user@airgapped-host "docker image load -i /var/shared-folder/vuln-feed-database.tar"
+ssh -t user@airgapped-host "docker image load -i /var/shared-folder/vuln-feed-database-12.tar"
 # Push image remotely
-ssh -t user@airgapped-host "docker tag vuln-feed-database:latest airgapped-registry/vuln-feed-database:latest"
-ssh -t user@airgapped-host "docker image push airgapped-registry/vuln-feed-database:latest"
+ssh -t user@airgapped-host "docker tag vuln-feed-database-12:latest airgapped-registry/vuln-feed-database-12:latest"
+ssh -t user@airgapped-host "docker image push airgapped-registry/vuln-feed-database-12:latest"
 # Restart database pod
 ssh -t user@airgapped-host "kubectl -n sysdigcloud scale deploy sysdigcloud-feeds-db --replicas=0"
 ssh -t user@airgapped-host "kubectl -n sysdigcloud scale deploy sysdigcloud-feeds-db --replicas=1"

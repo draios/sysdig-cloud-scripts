@@ -319,6 +319,28 @@ elasticsearch:
     - my-cool-host6.com
 ```
 
+## **elasticsearch.hostPathMasterNodes**
+
+**Required**: `false`<br />
+**Description**: An array of node hostnames printed out by the `kubectl get node -o name` command. ElasticSearch hostPath persistent volumes should be
+created on these nodes for Master nodes. The number of nodes must be at minimum whatever the
+value of
+[`sysdig.elasticsearchMastersReplicaCount`](#sysdigelasticsearchmastersreplicacount) is.
+This is required if configured
+[`storageClassProvisioner`](#storageclassprovisioner) is `hostPath` and `dedicatedMasters` is `true` .<br />
+**Options**:<br />
+**Default**: [] <br />
+
+**Example**:
+
+```yaml
+elasticsearch:
+  hostPathMasterNodes:
+    - my-cool-host1.com
+    - my-cool-host2.com
+    - my-cool-host3.com
+```
+
 ## **elasticsearch.jvmOptions**
 
 **Required**: `false`<br />
@@ -360,23 +382,32 @@ elasticsearch:
   hostname: external.elasticsearch.cluster
 ```
 
-## **elasticsearch.useES6**
+## **elasticsearch.jobs.rollNodes**
 
 **Required**: `false`<br />
-**Description**: Install Elasticsearch 6.8.x along with user authentication and TLS-encrypted data-in-transit
-using Elasticsearch's native TLS Encrpytion.
-If TLS Encrpytion is enabled Installer does the following in the provided order:
-
-1. Checks for existing Elasticsearch certificates in the provided environment to setup ES cluster. (applicable for upgrades)
-2. If they are not present Installer autogenerates tls certificates and uses them to setup es cluster.
-
+**Description**: safely roll the elasticsearch nodes, if needed, after a change in the manifests. This can potentially take several minutes per node to restart. In case of an upgrade from elasticsearch to opensearch and this is false then a cluster restart will be performed, i.e. all elasticsearch nodes will be restarted at the same time.<br />
 **Options**: `true|false`<br />
-**Default**: `true`<br />
+**Default**: `false`<br />
 **Example**:
 
 ```yaml
 elasticsearch:
-  useES6: true
+  jobs:
+    rollNodes: true
+```
+
+## **elasticsearch.jobs.toolsImageVersion**
+
+**Required**: `false`<br />
+**Description**: The docker image tag of the elasticsearch jobs<br />
+**Options**:<br />
+**Default**: 0.0.35<br />
+**Example**:
+
+```yaml
+elasticsearch:
+  jobs:
+    toolsImageVersion: 0.0.35
 ```
 
 ## **elasticsearch.enableMetrics**
@@ -551,6 +582,20 @@ only when `storageClassProvisioner` is `hostPath`.<br />
 hostPathCustomPaths:
   postgresql: `/sysdig/pgdata`
 ```
+
+## **hostPathCustomPaths.nats**
+
+**Required**: `false`<br />
+**Description**: The directory to bind mount nats streaming (in HA mode) pod's
+`/var/lib/stan` to on the host. This parameter is relevant
+only when `storageClassProvisioner` is `hostPath`.<br />
+**Options**: <br />
+**Default**: `/var/lib/stan`<br />
+**Example**:
+
+```yaml
+hostPathCustomPaths:
+  postgresql: `/sysdig/stan`
 
 ## **nodeaffinityLabel.key**
 
@@ -829,12 +874,12 @@ pvStorageSize:
 **Required**: `false`<br />
 **Description**: The docker image tag of the Sysdig Anchore Core.<br />
 **Options**:<br />
-**Default**: 0.8.1.32<br />
+**Default**: 0.8.1-53<br />
 **Example**:
 
 ```yaml
 sysdig:
-  anchoreVersion: 0.8.1.32
+  anchoreVersion: 0.8.1-53
 ```
 
 ## **sysdig.accessKey**
@@ -1257,7 +1302,8 @@ The Sysdig platform may sometimes open connections over SSL to certain external 
 - LDAP over SSL
 - SAML over SSL
 - OpenID Connect over SSL
-- HTTPS Proxies<br />
+- HTTPS Proxies
+- SMTPS SMTP over SSL<br />
 
 If the signing authorities for the certificates presented by these services are not well-known to the Sysdig Platform
 (e.g., if you maintain your own Certificate Authority), they are not trusted by default.
@@ -1330,6 +1376,19 @@ sysdig:
 ```yaml
 sysdig:
   elasticsearch6Version: 6.8.6.12
+```
+
+## **sysdig.opensearchVersion**
+
+**Required**: `false`<br />
+**Description**: The docker image tag of Opensearch.<br />
+**Options**:<br />
+**Default**: 0.0.16<br />
+**Example**:
+
+```yaml
+sysdig:
+  opensearchVersion: 0.0.16
 ```
 
 ## **sysdig.haproxyVersion**
@@ -2002,6 +2061,24 @@ sysdig:
 sysdig:
   nats:
     urltls: nats://sysdigcloud-nats-streaming-tls:4222
+```
+
+## **sysdig.nats.hostPathNodes**
+
+**Required**: `false`<br />
+**Description**: An array of node hostnames has shown in `kubectl get node -o name` that nats streaming (in HA mode) hostPath persistent volumes should be created on. The number of nodes must be 3. This is
+required if configured [`storageClassProvisioner`](#storageclassprovisioner)
+is `hostPath`.<br />
+**Options**:<br />
+**Default**: [] <br />
+
+**Example**:
+
+```yaml
+sysdig:
+  nats:
+    hostPathNodes:
+      - my-cool-host1.com
 ```
 
 ## **sysdig.openshiftUrl**
@@ -3130,10 +3207,10 @@ sysdig:
       enableMetrics: true
 ```
 
-## **sysdig.redis.deploy **
+## ~~**sysdig.redis.deploy**~~ (**Deprecated**)
 
 **Required**: `false`<br />
-**Description**: Determines if redis should be deployed by the installer<br />
+**Description**: Determines if redis should be deployed by the installer **deprecated use redisTls instead**<br />
 **Options**: `true|false`<br />
 **Default**: `true`<br />
 **Example**:
@@ -3171,10 +3248,10 @@ sysdig:
   redisHaVersion: 4.0.12-1.0.1
 ```
 
-## **sysdig.redisHa**
+## ~~**sysdig.redisHa**~~ (**Deprecated**)
 
 **Required**: `false`<br />
-**Description**: Determines if redis should run in HA mode<br />
+**Description**: Determines if redis should run in HA mode **deprecated use redisTls instead**<br />
 **Options**: `true|false`<br />
 **Default**: `false`<br />
 **Example**:
@@ -3184,10 +3261,10 @@ sysdig:
   redisHa: false
 ```
 
-## **sysdig.useRedis6**
+## ~~**sysdig.useRedis6**~~ (**Deprecated**)
 
 **Required**: `false`<br />
-**Description**: Determines if redis should be installed with version 6.x<br />
+**Description**: Determines if redis should be installed with version 6.x **deprecated use redisTls instead**<br />
 **Options**: `true|false`<br />
 **Default**: `true`<br />
 **Example**:
@@ -3439,18 +3516,31 @@ redisTls:
 **Required**: `false`<br />
 **Description**: Setup component connection to a specified Redis for Monitor. Is possible to define on which Redis to connect: _Redis standalone/Redis HA_, _Redis with TLS_ or to an _external Redis_. _Redis standalone/Redis HA_ are defined using `useRedis6` and `redisHa` values. Current available components:
 
-- cache
-- ibmCache
-- common
 - agent
-- metering
+- common
+- cache
 - distributedJobs
+- ibmCache
+- promchap
+- policiesCache
 - alerting
+- meerkat
+- metering
+- prws
 
-A Monitor service can have multiple component [connection](https://docs.google.com/spreadsheets/d/1vuNIc4tPInTbAiMwlV8xgFdjWKoTmP8AYm04hwnqHN8/edit#gid=700533343)<br />
+A Monitor service can have multiple [component connection](https://docs.google.com/spreadsheets/d/1vuNIc4tPInTbAiMwlV8xgFdjWKoTmP8AYm04hwnqHN8/edit#gid=700533343):<br />
+
+| Instance  | Component |
+| --------- | --------- |
+| agent     | agent     |
+| common    | common    |
+| monitor-1 | cache, distributedJobs, ibmCache, promchap, policiesCache |
+| monitor-2 | alerting, meerkat, metering, prws |
+
 **Options**: _Redis standalone/Redis HA_ | _Redis with TLS_ | _external Redis_<br />
 **Default**: _Redis standalone/Redis HA_<br />
 **Example**:
+
 
 If `tls` is `true` the component `ibmCache` will use the TLS solution (`redisTls.enabled` to `true` is required)
 
@@ -3473,11 +3563,16 @@ Connect the component `ibmCache` to an external Redis
 ```yaml
 redisClientsMonitor:
   ibmCache:
-    endpoint: redistls
-    password: "yourSecret!"
-    tls: true
+    endpoint: redis-service-or-host.domain
+    port: 6379
+    user: "provided-username"
+    password: "yourPassword!"
     sentinel:
-      endpoint: redistls
+      enabled: false
+    pubCaCrt: |
+    -----BEGIN CERTIFICATE-----
+    clear-text-certificate-with-no-base64-encoding
+    -----END CERTIFICATE-----
 ```
 
 ## **redisClientsSecure**
@@ -3487,11 +3582,23 @@ redisClientsMonitor:
 
 - scanning
 - forensic
+- events
+- eventsForwarder
+- rapidResponse
+- profiling
 - overview
 - compliance
+- cloudsec
 - policies
 - netsec
 - padvisor
+
+A Secure service can have multiple [component connection](https://docs.google.com/spreadsheets/d/1vuNIc4tPInTbAiMwlV8xgFdjWKoTmP8AYm04hwnqHN8/edit#gid=700533343):<br />
+
+| Instance  | Component |
+| --------- | --------- |
+| profiling | profiling |
+| secure-1  | scanning, forensic, events, rapidResponse, overview, compliance, cloudsec, policies, netsec, padvisor |
 
 **Options**: _Redis standalone/Redis HA_ | _Redis with TLS_ | _external Redis_<br />
 **Default**: _Redis standalone/Redis HA_<br />
@@ -3518,17 +3625,59 @@ Connect the component `scanning` to an external Redis
 ```yaml
 redisClientsSecure:
   scanning:
-    endpoint: redistls
-    password: "yourSecret!"
+    endpoint: redis-external-host.domain
+    user: "provided-username"
+    password: "yourPassword!"
     tls: true
     sentinel:
-      endpoint: redistls
+      enabled: false
 ```
 
 If a CA is needed for `scanning` to trust the connection you must add it in the installer path `certs/redis-certs/`. IE most cloud provider Redis aaS doesn't need that
 
 ```yaml
 certs/redis-certs/scanning_ca.crt
+```
+
+## redisExporters
+
+**Required**: `false`<br />
+**Description**: Setup a Redis exporter per managed cloud or external instance. Is possible to define on which Redis to connect:
+
+- agent
+- common
+- monitor-1
+- monitor-2
+- profiling
+- secure-1
+
+Connect managed instances for a Monitor only setup sharing the public certificate:
+
+```yaml
+redisExporters:
+  agent:
+    redisAddr: rediss://redis-host.domain:port
+    redisUser: provided-username
+    redisPassword: "yourPasword!"
+    redisCertificateExistingSecret: redis-exporter-common-ca-pub-cert
+  common:
+    redisAddr: rediss://redis-host.domain:port
+    redisUser: provided-username
+    redisPassword: "yourPasword!"
+    redisCertificate: |
+      -----BEGIN CERTIFICATE-----
+      clear-text-certificate-with-no-base64-encoding
+      -----END CERTIFICATE-----
+  monitor-1:
+    redisAddr: rediss://redis-host.domain:port
+    redisUser: provided-username
+    redisPassword: "yourPasword!"
+    redisCertificateExistingSecret: redis-exporter-common-ca-pub-cert
+  monitor-2:
+    redisAddr: rediss://redis-host.domain:port
+    redisUser: provided-username
+    redisPassword: "yourPasword!"
+    redisCertificateExistingSecret: redis-exporter-common-ca-pub-cert
 ```
 
 ## **sysdig.resources.cassandra.limits.cpu**
@@ -4396,7 +4545,7 @@ sysdig:
 ## **sysdig.resources.ingressControllerHaProxy.requests.cpu**
 
 **Required**: `false`<br />
-**Description**: The amount of cpu required to schedule haproxy-ingress containers in haproxy-ingress daemon set<br />
+**Description**: The amount of cpu required to schedule haproxy-ingress containers in haproxyCollectorAPI daemon set<br />
 **Options**:<br />
 **Default**:
 
@@ -6638,6 +6787,36 @@ sysdig:
         storageS3SecretAccessKey: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
 ```
 
+## **sysdig.secure.scanning.reporting.onDemandGenerationEnabled**
+**Required**: `true`<br />
+**Description**: The flag to enable on-demand generation of reports globally<br />
+**Options**: false, true<br />
+**Default**: false<br />
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanning:
+      reporting:
+        onDemandGenerationEnabled: true
+```
+
+## **sysdig.secure.scanning.reporting.onDemandGenerationCustomers**
+**Required**: `false`<br />
+**Description**: The list of customers where on-demand generation of reports has to be enabled, if on-demand generation wasn't enabled globally<br />
+**Options**: <br />
+**Default**: <br />
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanning:
+      reporting:
+        onDemandGenerationCustomers: "1,12,123"
+```
+
 ## **sysdig.secure.scanning.reporting.workerSleepTime**
 
 **Required**: `false`<br />
@@ -7572,98 +7751,6 @@ sysdig:
     profiling-worker:
       requests:
         memory: 50Mi
-```
-
-## **sysdig.resources.secure-overview-api.limits.cpu**
-
-**Required**: `false`<br />
-**Description**: The amount of cpu assigned to secure-overview-api containers<br />
-**Options**:<br />
-**Default**:
-
-| cluster-size | limits |
-| ------------ | ------ |
-| small        | 2      |
-| medium       | 2      |
-| large        | 2      |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    secure-overview-api:
-      limits:
-        cpu: 2
-```
-
-## **sysdig.resources.secure-overview-api.limits.memory**
-
-**Required**: `false`<br />
-**Description**: The amount of memory assigned to secure-overview-api containers<br />
-**Options**:<br />
-**Default**:
-
-| cluster-size | limits |
-| ------------ | ------ |
-| small        | 1Gi    |
-| medium       | 1Gi    |
-| large        | 1Gi    |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    secure-overview-api:
-      limits:
-        memory: 1Gi
-```
-
-## **sysdig.resources.secure-overview-api.requests.cpu**
-
-**Required**: `false`<br />
-**Description**: The amount of cpu required to schedule secure-overview-api containers<br />
-**Options**:<br />
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 500m     |
-| medium       | 500m     |
-| large        | 500m     |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    secure-overview-api:
-      requests:
-        cpu: 500m
-```
-
-## **sysdig.resources.secure-overview-api.requests.memory**
-
-**Required**: `false`<br />
-**Description**: The amount of memory required to schedule secure-overview-api containers<br />
-**Options**:<br />
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 512Mi    |
-| medium       | 512Mi    |
-| large        | 512Mi    |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    secure-overview-api:
-      requests:
-        memory: 512Mi
 ```
 
 ## **sysdig.resources.secure-prometheus.limits.cpu**
@@ -8821,6 +8908,27 @@ sysdig:
   elasticsearchReplicaCount: 20
 ```
 
+## **sysdig.elasticsearchMastersReplicaCount**
+
+**Required**: `false`<br />
+**Description**: Number of ElasticSearch Master replicas, this is a noop for clusters of
+`size` `small`.<br />
+**Options**:<br />
+**Default**:<br />
+
+| cluster-size | count |
+| ------------ | ----- |
+| small        | 3     |
+| medium       | 3     |
+| large        | 3     |
+
+**Example**:
+
+```yaml
+sysdig:
+  elasticsearchMastersReplicaCount: 3
+```
+
 ## **sysdig.workerReplicaCount**
 
 **Required**: `false`<br />
@@ -9574,12 +9682,25 @@ sysdig:
 **Required**: `false`<br />
 **Description**: Docker image tag of metadataService, relevant when `sysdig.metadataService.operatorEnabled` is `true`.<br />
 **Options**:<br />
-**Default**: 1.0.1.1<br />
+**Default**: 1.0.1.27<br />
 **Example**:
 
 ```yaml
 sysdig:
-  mdsOperatorVersion: 1.0.1.5
+  mdsOperatorVersion: 1.0.1.27
+```
+
+## **sysdig.MdsServerVersion**
+
+**Required**: `false`<br />
+**Description**: Docker image tag of metadataServiceServer, relevant when `sysdig.metadataService.enabled` is `true`.<br />
+**Options**:<br />
+**Default**: 1.10.250-vf2bcc4a <br />
+**Example**:
+
+```yaml
+sysdig:
+  mdsServerVersion: 1.10.250-vf2bcc4a
 ```
 
 ## **sysdig.helmRenderer.enabled**
@@ -9910,21 +10031,6 @@ sysdig:
 sysdig:
   secure:
     netsec:
-      enabled: true
-```
-
-## **sysdig.secure.overview.enabled**
-
-**Required**: `false`<br />
-**Description**: Enable overview for Sysdig Secure.<br />
-**Options**:<br />
-**Default**: true<br />
-**Example**:
-
-```yaml
-sysdig:
-  secure:
-    overview:
       enabled: true
 ```
 
@@ -10263,3 +10369,6 @@ sysdig:
 sysdig:
   feedsVerifySSL: false
 ```
+
+## **networkPolicies**
+Please check the [dedicated page](05-networkPolicies.md)

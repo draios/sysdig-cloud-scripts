@@ -33,7 +33,7 @@ Options](../README.md#quickstart-install) for more context.
 Copy the current version sysdig-chart/values.yaml to your working directory.
 
 ```bash
-wget https://raw.githubusercontent.com/draios/sysdigcloud-kubernetes/installer/installer/values.yaml
+wget https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/installer/installer/values.yaml
 ```
 
 <br />
