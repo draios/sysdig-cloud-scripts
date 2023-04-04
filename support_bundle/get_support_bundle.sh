@@ -145,10 +145,8 @@ main() {
         VERSION_CHECK=$(kubectl ${KUBE_OPTS} get cm | grep 'sysdigcloud-api-config' | wc -l | awk '{print $1}') || true
         if [[ ${VERSION_CHECK} == 1 ]]; then
             VERSION=6
-            echo "version is ${VERSION}"
         else
             VERSION=5
-            echo "version is ${VERSION}"
         fi
        
         if [[ ${VERSION} == 5 ]]; then 
