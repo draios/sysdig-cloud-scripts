@@ -395,6 +395,24 @@ main() {
         printf "${pod}\n" | tee -a ${LOG_DIR}/mysql/${pod}/mysql_storage.log
         kubectl ${KUBE_OPTS} exec -it ${pod} -c mysql -- du -ch /var/lib/mysql | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' | tee -a ${LOG_DIR}/mysql/${pod}/mysql_storage.log || true
     done
+    
+    # Fetch kafka storage info
+    for pod in $(kubectl ${KUBE_OPTS} get pods -l role=cp-kafka  | grep -v "NAME" | awk '{print $1}')
+    do
+        echo "Checking Used Kafka Storage - ${pod}"
+        mkdir -p ${LOG_DIR}/kafka/${pod}
+        printf "${pod}\n" | tee -a ${LOG_DIR}/kafka/${pod}/kafka_storage.log
+        kubectl ${KUBE_OPTS} exec -it ${pod} -c broker -- du -ch /opt/kafka/data | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' | tee -a ${LOG_DIR}/kafka/${pod}/kafka_storage.log || true
+    done
+
+    # Fetch zookeeper storage info
+    for pod in $(kubectl ${KUBE_OPTS} get pods -l role=zookeeper  | grep -v "NAME" | awk '{print $1}')
+    do
+        echo "Checking Used Zookeeper Storage - ${pod}"
+        mkdir -p ${LOG_DIR}/zookeeper/${pod}
+        printf "${pod}\n" | tee -a ${LOG_DIR}/zookeeper/${pod}/zookeeper_storage.log
+        kubectl ${KUBE_OPTS} exec -it ${pod} -c server -- du -ch /var/lib/zookeeper/data | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' | tee -a ${LOG_DIR}/zookeeper/${pod}/zookeeper_storage.log || true
+    done
 
     # Collect the sysdigcloud-config configmap, and write to the log directory
     echo "Fetching the sysdigcloud-config ConfigMap"
