@@ -141,7 +141,6 @@ main() {
 
     # If API key is supplied, collect streamSnap, Index settings, and fastPath settings
     if [[ ! -z ${API_KEY} ]]; then
-        #Check if we are on version 6
         VERSION_CHECK=$(kubectl ${KUBE_OPTS} get cm | grep -c 'sysdigcloud-api-config') || true
         if [[ ${VERSION_CHECK} == 1 ]]; then
             VERSION=6
