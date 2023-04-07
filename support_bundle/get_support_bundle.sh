@@ -143,8 +143,6 @@ main() {
     if [[ ! -z ${API_KEY} ]]; then
         #Check if we are on version 6
         VERSION_CHECK=$(kubectl ${KUBE_OPTS} get cm | grep -c 'sysdigcloud-api-config') || true
-
-        echo "version check is ${VERSION_CHECK}"
         if [[ ${VERSION_CHECK} == 1 ]]; then
             VERSION=6
             API_URL=$(kubectl ${KUBE_OPTS} get cm sysdigcloud-collector-config -ojsonpath='{.data.collector-config\.conf}' | awk 'p&&$0~/"/{gsub("\"","");print} /{/{p=0} /sso/{p=1}' | grep serverName | awk '{print $3}')
