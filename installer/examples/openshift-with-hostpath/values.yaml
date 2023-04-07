@@ -13,6 +13,9 @@ elasticsearch:
     - my-cool-host1.com
     - my-cool-host2.com
     - my-cool-host3.com
+    - my-cool-host4.com
+    - my-cool-host5.com
+    - my-cool-host6.com
 sysdig:
   # Openshift API url along with its port number
   openshiftUrl: <REPLACE_WITH_OPENSHIFT_URL>
@@ -22,23 +25,34 @@ sysdig:
   openshiftPassword: <REPLACE_WITH_OPENSHIFT_PASSWORD>
   collector:
     dnsName: <PLEASE_REPLACE>
-  mysql:
-    hostPathNodes:
-      # replace with the name section of kubectl get nodes
-      - my-cool-host1.com
-  postgresql:
-    hostPathNodes:
-      # replace with the name section of kubectl get nodes
-      - my-cool-host1.com
-  cassandra:
-    hostPathNodes:
-      # replace with the name section of kubectl get nodes
-      - my-cool-host1.com
-      - my-cool-host2.com
-      - my-cool-host3.com
   # Replace with domain name the api should be served on.
   dnsName: <PLEASE_REPLACE>
   admin:
     username: <REPLACE_WITH_A_VALID_EMAIL_ADDRESS>
   # Replace with license provided by the sales team.
   license: <PLEASE_REPLACE>
+  cassandra:
+    hostPathNodes:
+      # replace with the name section of kubectl get nodes
+      - my-cool-host1.com
+      - my-cool-host2.com
+      - my-cool-host3.com
+      - my-cool-host4.com
+      - my-cool-host5.com
+      - my-cool-host6.com
+  postgresql:
+    hostPathNodes:
+      # replace with the name section of kubectl get nodes
+      - my-cool-host1.com
+  kafka:
+    hostPathNodes:
+      # replace with the name section of kubectl get nodes
+      - my-cool-host1.com
+      - my-cool-host2.com
+      - my-cool-host3.com
+  zookeeper:
+    hostPathNodes:
+      # replace with the name section of kubectl get nodes
+      - my-cool-host1.com
+      - my-cool-host2.com
+      - my-cool-host3.com
