@@ -141,8 +141,15 @@ main() {
 
     # If API key is supplied, collect streamSnap, Index settings, and fastPath settings
     if [[ ! -z ${API_KEY} ]]; then
-        API_URL=$(kubectl ${KUBE_OPTS} get cm sysdigcloud-config -o yaml | grep -i api.url: | head -1 | awk '{print$2}')
-
+        VERSION_CHECK=$(kubectl ${KUBE_OPTS} get cm | grep -c 'sysdigcloud-api-config') || true
+        if [[ ${VERSION_CHECK} == 1 ]]; then
+            # This api endpoint is found in 6.x and above
+            API_URL=$(kubectl ${KUBE_OPTS} get cm sysdigcloud-collector-config -ojsonpath='{.data.collector-config\.conf}' | awk 'p&&$0~/"/{gsub("\"","");print} /{/{p=0} /sso/{p=1}' | grep serverName | awk '{print $3}')
+        else
+            # This api endpoint is found in 5.x and below
+            API_URL=$(kubectl ${KUBE_OPTS} get cm sysdigcloud-config -o yaml | grep -i api.url: | head -1 | awk '{print $2}')
+        fi
+       
         # Check that the API_KEY for the Super User is valid and exit 
         CURL_OUT=$(curl -fks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/license" >/dev/null 2>&1) && RETVAL=$? && error=0 || { RETVAL=$? && error=1; }
         if [[ ${error} -eq 1 ]]; then
@@ -160,6 +167,7 @@ main() {
         curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/agents/connected" >> ${LOG_DIR}/agents-connected.json
         curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/v2/users/light" >> ${LOG_DIR}/users.json
         curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/v2/teams/light" >> ${LOG_DIR}/teams.json
+        curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/alerts" >> ${LOG_DIR}/alerts.json
 
         if [[ $OSTYPE == 'darwin'* ]]; then
             TO_EPOCH_TIME=$(date -jf "%H:%M:%S" $(date +%H):00:00 +%s)
@@ -187,9 +195,9 @@ main() {
 
     # Configure kubectl command if labels are set
     if [[ -z ${LABELS} ]]; then
-        SYSDIGCLOUD_PODS=$(kubectl ${KUBE_OPTS} get pods | awk '{ print $1 }' | grep -v NAME)
+        SYSDIGCLOUD_PODS=$(kubectl ${KUBE_OPTS} get pods --no-headers | awk '{ print $1 }')
     else
-        SYSDIGCLOUD_PODS=$(kubectl ${KUBE_OPTS} -l "role in (${LABELS})" get pods | awk '{ print $1 }' | grep -v NAME)
+        SYSDIGCLOUD_PODS=$(kubectl ${KUBE_OPTS} -l "role in (${LABELS})" get pods --no-headers | awk '{ print $1 }')
     fi
 
     echo "Using namespace ${NAMESPACE}"
@@ -281,7 +289,7 @@ main() {
 
     # Fetch Cassandra Nodetool output
     echo "Fetching Cassandra statistics"
-    for pod in $(kubectl ${KUBE_OPTS} get pod -l role=cassandra | grep -v "NAME" | awk '{print $1}')
+    for pod in $(kubectl ${KUBE_OPTS} get pod -l role=cassandra --no-headers| awk '{print $1}')
     do
         mkdir -p ${LOG_DIR}/cassandra/${pod}
         kubectl ${KUBE_OPTS} exec -it ${pod} -c cassandra -- nodetool info | tee -a ${LOG_DIR}/cassandra/${pod}/nodetool_info.log
@@ -318,7 +326,7 @@ main() {
             ELASTIC_CURL='curl -s -k http://$(hostname):9200'
         fi
 
-        for pod in $(kubectl ${KUBE_OPTS} get pods -l role=elasticsearch | grep -v "NAME" | awk '{print $1}')
+        for pod in $(kubectl ${KUBE_OPTS} get pods -l role=elasticsearch --no-headers | awk '{print $1}')
         do
             mkdir -p ${LOG_DIR}/elasticsearch/${pod}
 
@@ -352,7 +360,7 @@ main() {
     fi
 
     # Fetch Cassandra storage info
-    for pod in $(kubectl ${KUBE_OPTS} get pods -l role=cassandra  | grep -v "NAME" | awk '{print $1}')
+    for pod in $(kubectl ${KUBE_OPTS} get pods -l role=cassandra --no-headers | awk '{print $1}')
     do
         echo "Checking Used Cassandra Storage - ${pod}"
         mkdir -p ${LOG_DIR}/cassandra/${pod}
@@ -366,7 +374,7 @@ main() {
     done
 
     # Fetch postgresql storage info
-    for pod in $(kubectl ${KUBE_OPTS} get pods -l role=postgresql  | grep -v "NAME" | awk '{print $1}')
+    for pod in $(kubectl ${KUBE_OPTS} get pods -l role=postgresql --no-headers  | awk '{print $1}')
     do
         echo "Checking Used PostgreSQL Storage - ${pod}"
         mkdir -p ${LOG_DIR}/postgresql/${pod}
@@ -375,12 +383,30 @@ main() {
     done
 
     # Fetch mysql storage info
-    for pod in $(kubectl ${KUBE_OPTS} get pods -l role=mysql  | grep -v "NAME" | awk '{print $1}')
+    for pod in $(kubectl ${KUBE_OPTS} get pods -l role=mysql --no-headers | awk '{print $1}')
     do
         echo "Checking Used MySQL Storage - ${pod}"
         mkdir -p ${LOG_DIR}/mysql/${pod}
         printf "${pod}\n" | tee -a ${LOG_DIR}/mysql/${pod}/mysql_storage.log
         kubectl ${KUBE_OPTS} exec -it ${pod} -c mysql -- du -ch /var/lib/mysql | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' | tee -a ${LOG_DIR}/mysql/${pod}/mysql_storage.log || true
+    done
+
+    # Fetch kafka storage info
+    for pod in $(kubectl ${KUBE_OPTS} get pods -l role=cp-kafka --no-headers | awk '{print $1}')
+    do
+        echo "Checking Used Kafka Storage - ${pod}"
+        mkdir -p ${LOG_DIR}/kafka/${pod}
+        printf "${pod}\n" | tee -a ${LOG_DIR}/kafka/${pod}/kafka_storage.log
+        kubectl ${KUBE_OPTS} exec -it ${pod} -c broker -- du -ch /opt/kafka/data | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' | tee -a ${LOG_DIR}/kafka/${pod}/kafka_storage.log || true
+    done
+
+    # Fetch zookeeper storage info
+    for pod in $(kubectl ${KUBE_OPTS} get pods -l role=zookeeper --no-headers | awk '{print $1}')
+    do
+        echo "Checking Used Zookeeper Storage - ${pod}"
+        mkdir -p ${LOG_DIR}/zookeeper/${pod}
+        printf "${pod}\n" | tee -a ${LOG_DIR}/zookeeper/${pod}/zookeeper_storage.log
+        kubectl ${KUBE_OPTS} exec -it ${pod} -c server -- du -ch /var/lib/zookeeper/data | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' | tee -a ${LOG_DIR}/zookeeper/${pod}/zookeeper_storage.log || true
     done
 
     # Collect the sysdigcloud-config configmap, and write to the log directory
