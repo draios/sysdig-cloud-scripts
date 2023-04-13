@@ -219,12 +219,8 @@ function install_k8s_agent {
 
     echo "* Retrieving the Cluster ID and Cluster Name"
     IKS_CLUSTER_ID=$(kubectl get cm -n kube-system cluster-info -o yaml | grep ' "cluster_id": ' | cut -d'"' -f4)
-    if [ $OPENSHIFT -eq 0 ]; then
-        CLUSTER_NAME=$(kubectl config current-context)
-        # Parse  out AWS cluster name
-        if [ $AWS -eq 1 ]; then
-            CLUSTER_NAME=$(echo $CLUSTER_NAME | cut -d'/' -f2)
-        fi
+    if [ $AWS -eq 1 ]; then
+	CLUSTER_NAME=$(echo $CLUSTER_NAME | cut -d'/' -f2 | cut -d: -f1)
     else
         # Pull the cluster name using the cluster ID using ibmcloud ks
         # since the current-context is not a user-friendly value
