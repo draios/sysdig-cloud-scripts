@@ -21,4 +21,3 @@ sysdig:
   dnsName: <change-me>
   #supports hostnetwork | loadbalancer | nodeport
   ingressNetworking: hostnetwork
-  ingressClassName: haproxy
