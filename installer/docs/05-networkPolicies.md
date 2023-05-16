@@ -1,9 +1,9 @@
 <!-- Space: TOOLS -->
 <!-- Parent: Installer -->
-<!-- Title: Network Policies v2 in the installer -->
+<!-- Title: Network policies v2 in the installer -->
 <!-- Layout: plain -->
 
-# Network Policies
+# Network policies
 
 <br />
 
@@ -13,7 +13,7 @@
 
 ## Introduction
 
-The current version of Sysdig Network Policies v2 supports Sysdig HAProxy Ingress and IBM Cloud IKS ALBs.
+The current version of Sysdig Network policies v2 supports Sysdig HAProxy Ingress and IBM Cloud IKS ALBs.
 
 The NetworkPolicies (NP) are controlled via two flags:
 

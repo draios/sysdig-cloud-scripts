@@ -7,7 +7,7 @@
 
 <br />
 
-## Phase: `deploy`
+## Command: `deploy`
 
 `--skip-namespace`
 
@@ -54,12 +54,12 @@ Events:
 - installer does not apply the StorageClass manifest.
   It expects the storageClassName specified in values.yaml to exist.
 
-## Phase `import`
+## Command: `import`
 
 `--zookeeper-workloadname <string value>`
 
 - This is the value that will be used for the `zookeeper` StatefulSet.
-The default value is `zookeeper`, this argument must be used when the 
+The default value is `zookeeper`, this argument must be used when the
 actual name of the STS in the cluster differs
 
 `--kafka-workloadname <value>`
@@ -70,7 +70,7 @@ actual name of the STS in the cluster differs
 
 - Same as above for `cassandra`
 
-## `update-license`
+## Command: `update-license`
 
 Added November 2022, this is a new command.
 
@@ -89,7 +89,7 @@ This command performs the following:
 
 - If `secure` and `anchore` are enabled, it also applies and restarts all Anchore services.
 
-## image-list
+## Command: `image-list`
 
 Added November 2022
 
