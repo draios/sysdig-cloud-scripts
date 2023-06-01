@@ -945,6 +945,20 @@ sysdig:
 sysdig:
   cassandraExporterVersion: latest
 ```
+## **sysdig.cassandra.snitch.extractCMD**
+
+**Required**: `false`<br />
+**Description**: Shell command applied to the zone label extracted from the Kubernetes worker to extract a string to use for the `rack` <br />
+**Options**: <br />
+**Default**: `""`<br />
+**Example**:
+
+```yaml
+sysdig:
+  cassandra:
+    snitch:
+      extractCMD: "cat /node-labels/failure-domain.beta.kubernetes.io/zone || cat /node-labels/topology.kubernetes.io/zone"
+```
 
 ## **sysdig.cassandra.useCassandra3**
 
@@ -2657,7 +2671,7 @@ sysdig:
 **Description**: Determines if a [web
 proxy](https://en.wikipedia.org/wiki/Proxy_server#Web_proxy_servers) should be
 used by Anchore for fetching CVE feed from
-[https://api.sysdigcloud.com/api/scanning-feeds/v1/feeds](https://api.sysdigcloud.com/api/scanning-feeds/v1/feeds) and by the events forwarder to forward to HTTP based targets.<br />
+[https://api.sysdigcloud.com/api/scanning-feeds/v1/feeds](https://api.sysdigcloud.com/api/scanning-feeds/v1/feeds) in scanningV1, by the events forwarder to forward to HTTP based targets and for the scanningv2 feeds download (remote SaaS cloud environment to get a pre-signed object-storage URL + cloud provider object-storage HTTP download).<br />
 **Options**:<br />
 **Default**: `false`<br />
 
@@ -12103,6 +12117,1202 @@ sysdig:
         memory: 2Gi
 ```
 
+## **sysdig.resources.scanningv2-agents-conf.limits.cpu**
+
+**Required**: `false`<br />
+**Description**: The amount of cpu assigned to scanningv2-agents-conf pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 500m   |
+| medium       | 500m   |
+| large        | 1      |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-agents-conf:
+      limits:
+        cpu: 500m
+```
+
+## **sysdig.resources.scanningv2-agents-conf.limits.memory**
+
+**Required**: `false`<br />
+**Description**: The amount of memory assigned to scanningv2-agents-conf pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 500Mi  |
+| medium       | 1Gi    |
+| large        | 2Gi    |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-agents-conf:
+      limits:
+        memory: 500Mi
+```
+
+## **sysdig.resources.scanningv2-agents-conf.requests.cpu**
+
+**Required**: `false`<br />
+**Description**: The amount of cpu required to schedule scanningv2-agents-conf pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 250m     |
+| medium       | 250m     |
+| large        | 500m     |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-agents-conf:
+      requests:
+        cpu: 250m
+```
+
+## **sysdig.resources.scanningv2-agents-conf.requests.memory**
+
+**Required**: `false`<br />
+**Description**: The amount of memory required to schedule scanningv2-agents-conf pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 100Mi    |
+| medium       | 250Mi    |
+| large        | 500Mi    |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-agents-conf:
+      requests:
+        memory: 100Mi
+```
+
+## **sysdig.resources.scanningv2-collector.limits.cpu**
+
+**Required**: `false`<br />
+**Description**: The amount of cpu assigned to scanningv2-collector pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 1      |
+| medium       | 1      |
+| large        | 2      |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-collector:
+      limits:
+        cpu: 1
+```
+
+## **sysdig.resources.scanningv2-collector.limits.memory**
+
+**Required**: `false`<br />
+**Description**: The amount of memory assigned to scanningv2-collector pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 1Gi    |
+| medium       | 1Gi    |
+| large        | 2Gi    |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-collector:
+      limits:
+        memory: 1Gi
+```
+
+## **sysdig.resources.scanningv2-collector.requests.cpu**
+
+**Required**: `false`<br />
+**Description**: The amount of cpu required to schedule scanningv2-collector pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 500m     |
+| medium       | 500m     |
+| large        | 1        |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-collector:
+      requests:
+        cpu: 500m
+```
+
+## **sysdig.resources.scanningv2-collector.requests.memory**
+
+**Required**: `false`<br />
+**Description**: The amount of memory required to schedule scanningv2-collector pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 250Mi    |
+| medium       | 500Mi    |
+| large        | 1Gi      |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-collector:
+      requests:
+        memory: 250Mi
+```
+
+## **sysdig.resources.scanningv2-pkgmeta-api.limits.cpu**
+
+**Required**: `false`<br />
+**Description**: The amount of cpu assigned to scanningv2-pkgmeta-api pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 500m   |
+| medium       | 1      |
+| large        | 2      |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-pkgmeta-api:
+      limits:
+        cpu: 500m
+```
+
+## **sysdig.resources.scanningv2-pkgmeta-api.limits.memory**
+
+**Required**: `false`<br />
+**Description**: The amount of memory assigned to scanningv2-pkgmeta-api pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 1Gi    |
+| medium       | 1Gi    |
+| large        | 2Gi    |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-pkgmeta-api:
+      limits:
+        memory: 1Gi
+```
+
+## **sysdig.resources.scanningv2-pkgmeta-api.requests.cpu**
+
+**Required**: `false`<br />
+**Description**: The amount of cpu required to schedule scanningv2-pkgmeta-api pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 250m     |
+| medium       | 500m     |
+| large        | 1        |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-pkgmeta-api:
+      requests:
+        cpu: 250m
+```
+
+## **sysdig.resources.scanningv2-pkgmeta-api.requests.memory**
+
+**Required**: `false`<br />
+**Description**: The amount of memory required to schedule scanningv2-pkgmeta-api pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 250Mi    |
+| medium       | 500Mi    |
+| large        | 1Gi      |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-pkgmeta-api:
+      requests:
+        memory: 250Mi
+```
+
+## **sysdig.resources.scanningv2-policies-api.limits.cpu**
+
+**Required**: `false`<br />
+**Description**: The amount of cpu assigned to scanningv2-policies-api pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 500m   |
+| medium       | 1      |
+| large        | 1      |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-policies-api:
+      limits:
+        cpu: 500m
+```
+
+## **sysdig.resources.scanningv2-policies-api.limits.memory**
+
+**Required**: `false`<br />
+**Description**: The amount of memory assigned to scanningv2-policies-api pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 1Gi    |
+| medium       | 1Gi    |
+| large        | 2Gi    |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-policies-api:
+      limits:
+        memory: 1Gi
+```
+
+## **sysdig.resources.scanningv2-policies-api.requests.cpu**
+
+**Required**: `false`<br />
+**Description**: The amount of cpu required to schedule scanningv2-policies-api pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 250m     |
+| medium       | 500m     |
+| large        | 1        |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-policies-api:
+      requests:
+        cpu: 250m
+```
+
+## **sysdig.resources.scanningv2-policies-api.requests.memory**
+
+**Required**: `false`<br />
+**Description**: The amount of memory required to schedule scanningv2-policies-api pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 250Mi    |
+| medium       | 500Mi    |
+| large        | 1Gi      |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-policies-api:
+      requests:
+        memory: 250Mi
+```
+
+## **sysdig.resources.scanningv2-reporting-api.limits.cpu**
+
+**Required**: `false`<br />
+**Description**: The amount of cpu assigned to scanningv2-reporting-api pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 500m   |
+| medium       | 1      |
+| large        | 1      |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-reporting-api:
+      limits:
+        cpu: 500m
+```
+
+## **sysdig.resources.scanningv2-reporting-api.limits.memory**
+
+**Required**: `false`<br />
+**Description**: The amount of memory assigned to scanningv2-reporting-api pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 1Gi    |
+| medium       | 1Gi    |
+| large        | 2Gi    |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-reporting-api:
+      limits:
+        memory: 1Gi
+```
+
+## **sysdig.resources.scanningv2-reporting-api.requests.cpu**
+
+**Required**: `false`<br />
+**Description**: The amount of cpu required to schedule scanningv2-reporting-api pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 250m     |
+| medium       | 500m     |
+| large        | 1        |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-reporting-api:
+      requests:
+        cpu: 250m
+```
+
+## **sysdig.resources.scanningv2-reporting-api.requests.memory**
+
+**Required**: `false`<br />
+**Description**: The amount of memory required to schedule scanningv2-reporting-api pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 250Mi    |
+| medium       | 500Mi    |
+| large        | 1Gi      |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-reporting-api:
+      requests:
+        memory: 250Mi
+```
+
+## **sysdig.resources.scanningv2-reporting-generator.limits.cpu**
+
+**Required**: `false`<br />
+**Description**: The amount of cpu assigned to scanningv2-reporting-generator pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 500m   |
+| medium       | 1      |
+| large        | 2      |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-reporting-generator:
+      limits:
+        cpu: 500m
+```
+
+## **sysdig.resources.scanningv2-reporting-generator.limits.memory**
+
+**Required**: `false`<br />
+**Description**: The amount of memory assigned to scanningv2-reporting-generator pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 1Gi    |
+| medium       | 2Gi    |
+| large        | 4Gi    |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-reporting-generator:
+      limits:
+        memory: 1Gi
+```
+
+## **sysdig.resources.scanningv2-reporting-generator.requests.cpu**
+
+**Required**: `false`<br />
+**Description**: The amount of cpu required to schedule scanningv2-reporting-generator pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 500m     |
+| medium       | 1        |
+| large        | 2        |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-reporting-generator:
+      requests:
+        cpu: 500m
+```
+
+## **sysdig.resources.scanningv2-reporting-generator.requests.memory**
+
+**Required**: `false`<br />
+**Description**: The amount of memory required to schedule scanningv2-reporting-generator pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 250Mi    |
+| medium       | 1Gi      |
+| large        | 2Gi      |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-reporting-generator:
+      requests:
+        memory: 250Mi
+```
+
+## **sysdig.resources.scanningv2-reporting-janitor.limits.cpu**
+
+**Required**: `false`<br />
+**Description**: The amount of cpu assigned to scanningv2-reporting-janitor pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 1      |
+| medium       | 1      |
+| large        | 1      |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-reporting-janitor:
+      limits:
+        cpu: 1
+```
+
+## **sysdig.resources.scanningv2-reporting-janitor.limits.memory**
+
+**Required**: `false`<br />
+**Description**: The amount of memory assigned to scanningv2-reporting-janitor pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 1Gi    |
+| medium       | 1Gi    |
+| large        | 1Gi    |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-reporting-janitor:
+      limits:
+        memory: 1Gi
+```
+
+## **sysdig.resources.scanningv2-reporting-janitor.requests.cpu**
+
+**Required**: `false`<br />
+**Description**: The amount of cpu required to schedule scanningv2-reporting-janitor pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 250m     |
+| medium       | 250m     |
+| large        | 250m     |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-reporting-janitor:
+      requests:
+        cpu: 250m
+```
+
+## **sysdig.resources.scanningv2-reporting-janitor.requests.memory**
+
+**Required**: `false`<br />
+**Description**: The amount of memory required to schedule scanningv2-reporting-janitor pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 50Mi     |
+| medium       | 50Mi     |
+| large        | 50Mi     |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-reporting-janitor:
+      requests:
+        memory: 50Mi
+```
+
+## **sysdig.resources.scanningv2-reporting-scheduler.limits.cpu**
+
+**Required**: `false`<br />
+**Description**: The amount of cpu assigned to scanningv2-reporting-scheduler pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 500m   |
+| medium       | 500m   |
+| large        | 1      |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-reporting-scheduler:
+      limits:
+        cpu: 500m
+```
+
+## **sysdig.resources.scanningv2-reporting-scheduler.limits.memory**
+
+**Required**: `false`<br />
+**Description**: The amount of memory assigned to scanningv2-reporting-scheduler pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 500Mi  |
+| medium       | 1Gi    |
+| large        | 2Gi    |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-reporting-scheduler:
+      limits:
+        memory: 500Mi
+```
+
+## **sysdig.resources.scanningv2-reporting-scheduler.requests.cpu**
+
+**Required**: `false`<br />
+**Description**: The amount of cpu required to schedule scanningv2-reporting-scheduler pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 250m     |
+| medium       | 250m     |
+| large        | 500m     |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-reporting-scheduler:
+      requests:
+        cpu: 250m
+```
+
+## **sysdig.resources.scanningv2-reporting-scheduler.requests.memory**
+
+**Required**: `false`<br />
+**Description**: The amount of memory required to schedule scanningv2-reporting-scheduler pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 100Mi    |
+| medium       | 250Mi    |
+| large        | 500Mi    |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-reporting-scheduler:
+      requests:
+        memory: 100Mi
+```
+
+## **sysdig.resources.scanningv2-reporting-worker-host.limits.cpu**
+
+**Required**: `false`<br />
+**Description**: The amount of cpu assigned to scanningv2-reporting-worker-host pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 1      |
+| medium       | 1      |
+| large        | 1      |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-reporting-worker-host:
+      limits:
+        cpu: 1
+```
+
+## **sysdig.resources.scanningv2-reporting-worker-host.limits.memory**
+
+**Required**: `false`<br />
+**Description**: The amount of memory assigned to scanningv2-reporting-worker-host pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 1Gi    |
+| medium       | 1Gi    |
+| large        | 2Gi    |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-reporting-worker-host:
+      limits:
+        memory: 1Gi
+```
+
+## **sysdig.resources.scanningv2-reporting-worker-host.requests.cpu**
+
+**Required**: `false`<br />
+**Description**: The amount of cpu required to schedule scanningv2-reporting-worker-host pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 250m     |
+| medium       | 500m     |
+| large        | 1        |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-reporting-worker-host:
+      requests:
+        cpu: 250m
+```
+
+## **sysdig.resources.scanningv2-reporting-worker-host.requests.memory**
+
+**Required**: `false`<br />
+**Description**: The amount of memory required to schedule scanningv2-reporting-worker-host pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 250Mi    |
+| medium       | 500Mi    |
+| large        | 1Gi      |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-reporting-worker-host:
+      requests:
+        memory: 250Mi
+```
+
+## **sysdig.resources.scanningv2-reporting-worker-k8s.limits.cpu**
+
+**Required**: `false`<br />
+**Description**: The amount of cpu assigned to scanningv2-reporting-worker-k8s pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 1      |
+| medium       | 1      |
+| large        | 1      |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-reporting-worker-k8s:
+      limits:
+        cpu: 1
+```
+
+## **sysdig.resources.scanningv2-reporting-worker-k8s.limits.memory**
+
+**Required**: `false`<br />
+**Description**: The amount of memory assigned to scanningv2-reporting-worker-k8s pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 1Gi    |
+| medium       | 1Gi    |
+| large        | 2Gi    |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-reporting-worker-k8s:
+      limits:
+        memory: 1Gi
+```
+
+## **sysdig.resources.scanningv2-reporting-worker-k8s.requests.cpu**
+
+**Required**: `false`<br />
+**Description**: The amount of cpu required to schedule scanningv2-reporting-worker-k8s pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 250m     |
+| medium       | 500m     |
+| large        | 1        |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-reporting-worker-k8s:
+      requests:
+        cpu: 250m
+```
+
+## **sysdig.resources.scanningv2-reporting-worker-k8s.requests.memory**
+
+**Required**: `false`<br />
+**Description**: The amount of memory required to schedule scanningv2-reporting-worker-k8s pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 250Mi    |
+| medium       | 500Mi    |
+| large        | 1Gi      |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-reporting-worker-k8s:
+      requests:
+        memory: 250Mi
+```
+
+## **sysdig.resources.scanningv2-riskmanager-api.limits.cpu**
+
+**Required**: `false`<br />
+**Description**: The amount of cpu assigned to scanningv2-riskmanager-api pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 500m   |
+| medium       | 1      |
+| large        | 1      |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-riskmanager-api:
+      limits:
+        cpu: 500m
+```
+
+## **sysdig.resources.scanningv2-riskmanager-api.limits.memory**
+
+**Required**: `false`<br />
+**Description**: The amount of memory assigned to scanningv2-riskmanager-api pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 1Gi    |
+| medium       | 1Gi    |
+| large        | 2Gi    |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-riskmanager-api:
+      limits:
+        memory: 1Gi
+```
+
+## **sysdig.resources.scanningv2-riskmanager-api.requests.cpu**
+
+**Required**: `false`<br />
+**Description**: The amount of cpu required to schedule scanningv2-riskmanager-api pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 250m     |
+| medium       | 500m     |
+| large        | 1        |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-riskmanager-api:
+      requests:
+        cpu: 250m
+```
+
+## **sysdig.resources.scanningv2-riskmanager-api.requests.memory**
+
+**Required**: `false`<br />
+**Description**: The amount of memory required to schedule scanningv2-riskmanager-api pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 250Mi    |
+| medium       | 500Mi    |
+| large        | 1Gi      |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-riskmanager-api:
+      requests:
+        memory: 250Mi
+```
+
+## **sysdig.resources.scanningv2-scanresults-api.limits.cpu**
+
+**Required**: `false`<br />
+**Description**: The amount of cpu assigned to scanningv2-scanresults-api pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 500m   |
+| medium       | 1      |
+| large        | 1      |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-scanresults-api:
+      limits:
+        cpu: 500m
+```
+
+## **sysdig.resources.scanningv2-scanresults-api.limits.memory**
+
+**Required**: `false`<br />
+**Description**: The amount of memory assigned to scanningv2-scanresults-api pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 500Mi  |
+| medium       | 1Gi    |
+| large        | 2Gi    |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-scanresults-api:
+      limits:
+        memory: 500Mi
+```
+
+## **sysdig.resources.scanningv2-scanresults-api.requests.cpu**
+
+**Required**: `false`<br />
+**Description**: The amount of cpu required to schedule scanningv2-scanresults-api pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 500m     |
+| medium       | 1        |
+| large        | 1        |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-scanresults-api:
+      requests:
+        cpu: 500m
+```
+
+## **sysdig.resources.scanningv2-scanresults-api.requests.memory**
+
+**Required**: `false`<br />
+**Description**: The amount of memory required to schedule scanningv2-scanresults-api pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 250Mi    |
+| medium       | 500Mi    |
+| large        | 500Mi    |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-scanresults-api:
+      requests:
+        memory: 250Mi
+```
+
+## **sysdig.resources.scanningv2-vulns-api.limits.cpu**
+
+**Required**: `false`<br />
+**Description**: The amount of cpu assigned to scanningv2-vulns-api pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 500m   |
+| medium       | 1      |
+| large        | 2      |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-vulns-api:
+      limits:
+        cpu: 500m
+```
+
+## **sysdig.resources.scanningv2-vulns-api.limits.memory**
+
+**Required**: `false`<br />
+**Description**: The amount of memory assigned to scanningv2-vulns-api pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 1Gi    |
+| medium       | 1Gi    |
+| large        | 2Gi    |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-vulns-api:
+      limits:
+        memory: 1Gi
+```
+
+## **sysdig.resources.scanningv2-vulns-api.requests.cpu**
+
+**Required**: `false`<br />
+**Description**: The amount of cpu required to schedule scanningv2-vulns-api pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 250m     |
+| medium       | 500m     |
+| large        | 1        |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-vulns-api:
+      requests:
+        cpu: 250m
+```
+
+## **sysdig.resources.scanningv2-vulns-api.requests.memory**
+
+**Required**: `false`<br />
+**Description**: The amount of memory required to schedule scanningv2-vulns-api pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 250Mi    |
+| medium       | 500Mi    |
+| large        | 1Gi      |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-vulns-api:
+      requests:
+        memory: 250Mi
+```
+
 ## **sysdig.secureOnly**
 
 **Required**: `false`<br />
@@ -12397,3 +13607,250 @@ sysdig:
 | small        | 200   |
 | medium       | 200   |
 | large        | 200   |
+
+## **sysdig.secure.scanningv2.enabled**
+
+**Required**: `false`<br />
+**Description**: Enable Vulnerability Engine V2 for Sysdig Secure.<br />
+NOTE: Vulnerability Engine V2 is not yet supported for airgapped installation.<br />
+**Options**:<br />
+**Default**: true<br />
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanningv2:
+      enabled: true
+```
+
+## **sysdig.secure.scanningv2.vulnsApi.remoteSaaSEndpoint**
+
+**Required**: `true`<br />
+**Description**: Remote endpoint that will be used to retrieve vulnerability feed metadata. Select the optimal Sysdig secure endpoint from https://docs.sysdig.com/en/docs/administration/saas-regions-and-ip-ranges/.<br />
+
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanningv2:
+      vulnsApi:
+        remoteSaaSEndpoint: "https://eu1.app.sysdig.com"
+```
+
+## **sysdig.secure.scanningv2.vulnsApi.remoteSaaSTlsSkip**
+
+**Required**: `false`<br />
+**Description**: Whether to validate SSL certificates for the remote vuln feed download, especially useful when connecting via a proxy using self-signed certificate.<br />
+**Options**:<br />
+**Default**: `false`<br />
+
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanningv2:
+      vulnsApi:
+        remoteSaaSTlsSkip: true
+```
+
+## **sysdig.secure.scanningv2.pkgMetaApi.remoteSaaSEndpoint**
+
+**Required**: `true`<br />
+**Description**: Remote endpoint that will be used to retrieve vulnerability feed metadata. Select the optimal Sysdig secure endpoint from https://docs.sysdig.com/en/docs/administration/saas-regions-and-ip-ranges/.<br />
+
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanningv2:
+      pkgMetaApi:
+        remoteSaaSEndpoint: "https://eu1.app.sysdig.com"
+```
+
+## **sysdig.secure.scanningv2.pkgMetaApi.remoteSaaSTlsSkip**
+
+**Required**: `false`<br />
+**Description**: Whether to validate SSL certificates for the remote vuln feed download, especially useful when connecting via a proxy using self-signed certificate.<br />
+**Options**:<br />
+**Default**: `false`<br />
+
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanningv2:
+      pkgMetaApi:
+        remoteSaaSTlsSkip: true
+```
+
+## **sysdig.secure.scanningv2.reporting.enabled**
+
+**Required**: `false`<br />
+**Description**: Enable reporting for the Vulnerability Engine V2 of Sysdig Secure.<br />
+**Options**:<br />
+**Default**: true<br />
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanningv2:
+      reporting:
+        enabled: true
+```
+
+## **sysdig.secure.scanningv2.reporting.reportingJanitor.schedule**
+
+**Required**: `false`<br />
+**Description**: K8s Cronjob schedule string for Vulnerability Engine V2 reporting cleanup process<br />
+**Options**:<br />
+**Default**: "0 3 \* \* \*"<br />
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanningv2:
+      reporting:
+        reportingJanitor:
+          schedule: "0 3 * * *"
+```
+
+## **sysdig.secure.scanningv2.reporting.storageDriver**
+
+**Required**: `false`<br />
+**Description**: Storage kind for the generated reports<br />
+**Options**: postgres, s3<br />
+**Default**: postgres<br />
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanningv2:
+      reporting:
+        storageDriver: postgres
+```
+
+## **sysdig.secure.scanningv2.reporting.aws.bucket**
+
+**Required**: `false`<br />
+**Description**: The AWS S3-compatible storage bucket name where reports will be saved (required when using `s3` driver)<br />
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanningv2:
+      reporting:
+        aws:
+          bucket: secure-scanningv2-reporting
+```
+
+## **sysdig.secure.scanningv2.reporting.aws.endpoint**
+
+**Required**: `false`<br />
+**Description**: The service endpoint of a AWS S3-compatible storage (required when using `s3` driver in a non-AWS deployment)<br />
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanningv2:
+      reporting:
+        aws:
+          endpoint: s3.example.com
+```
+
+## **sysdig.secure.scanningv2.reporting.aws.region**
+
+**Required**: `false`<br />
+**Description**: The AWS region where the S3 bucket is created (required when using `s3` driver in a AWS deployment)<br />
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanningv2:
+      reporting:
+        aws:
+          region: us-east-1
+```
+
+## **sysdig.secure.scanningv2.reporting.aws.accessKeyId**
+
+**Required**: `false`<br />
+**Description**: The Access Key ID used to authenticate with a S3-compatible storage (required when using `s3` driver in a non-AWS deployment)<br />
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanningv2:
+      reporting:
+        aws:
+          accessKeyId: AKIAIOSFODNN7EXAMPLE
+```
+
+## **sysdig.secure.scanningv2.reporting.aws.secretAccessKey**
+
+**Required**: `false`<br />
+**Description**: The Secret Access Key used to authenticate with a S3-compatible storage (required when using `s3` driver in a non-AWS deployment)<br />
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanningv2:
+      reporting:
+        aws:
+          secretAccessKey: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+```
+
+## **sysdig.secure.scanningv2.reporting.aws.secretAccessKey**
+
+**Required**: `false`<br />
+**Description**: The Secret Access Key used to authenticate with a S3-compatible storage (required when using `s3` driver in a non-AWS deployment)<br />
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanningv2:
+      reporting:
+        aws:
+          secretAccessKey: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+```
+
+## **sysdig.secure.scanningv2.customCerts**
+
+**Required**: `false`<br />
+**Description**:
+To allow the scanningv2 subsystem to trust these certificates, use this configuration to upload one or more PEM-format CA certificates. You must ensure you've uploaded all certificates in the CA approval chain to the root CA.
+
+This configuration when set expects certificates with .crt, .pem extension under certs/scanningv2-custom-certs/ in the same level as `values.yaml`<br />
+**Options**: `true|false`<br />
+**Default**: false<br />
+**Example**:
+
+```bash
+#In the example directory structure below, certificate1.crt and certificate2.crt will be added to the trusted list.
+bash-5.0$ find certs values.yaml
+certs
+certs/scanningv2-custom-certs
+certs/scanningv2-custom-certs/certificate1.crt
+certs/scanningv2-custom-certs/certificate2.crt
+values.yaml
+```
+
+```yaml
+sysdig:
+  secure:
+    scanningv2:
+      customCerts: true
+```
