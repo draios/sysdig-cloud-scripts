@@ -13833,7 +13833,7 @@ sysdig:
 **Description**:
 To allow the scanningv2 subsystem to trust these certificates, use this configuration to upload one or more PEM-format CA certificates. You must ensure you've uploaded all certificates in the CA approval chain to the root CA.
 
-This configuration when set expects certificates with .crt, .pem extension under certs/scanningv2-custom-certs/ in the same level as `values.yaml`<br />
+This configuration when set expects certificates with .pem extension under certs/scanningv2-custom-certs/ in the same level as `values.yaml`<br />
 **Options**: `true|false`<br />
 **Default**: false<br />
 **Example**:
@@ -13843,8 +13843,8 @@ This configuration when set expects certificates with .crt, .pem extension under
 bash-5.0$ find certs values.yaml
 certs
 certs/scanningv2-custom-certs
-certs/scanningv2-custom-certs/certificate1.crt
-certs/scanningv2-custom-certs/certificate2.crt
+certs/scanningv2-custom-certs/certificate1.pem
+certs/scanningv2-custom-certs/certificate2.pem
 values.yaml
 ```
 
