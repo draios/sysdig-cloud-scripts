@@ -252,12 +252,9 @@ main() {
     kubectl ${KUBE_OPTS} get pvc | grep sysdig | tee -a ${LOG_DIR}/pvc_output.log
     kubectl ${KUBE_OPTS} get storageclass | tee -a ${LOG_DIR}/sc_output.log || echo "No permission to get StorageClasses"
 
-    #Collect Cronjobs
-    kubectl ${KUBE_OPTS} get cronjob | tee -a ${LOG_DIR}/cronjob_output.log || echo "No permission to get Cronjobs"
-
     # Get info on deployments, statefulsets, persistentVolumeClaims, daemonsets, and ingresses
     echo "Gathering Manifest Information"
-    for object in svc deployment sts pvc daemonset ingress replicaset networkpolicy
+    for object in svc deployment sts pvc daemonset ingress replicaset networkpolicy cronjob
     do
         items=$(kubectl ${KUBE_OPTS} get ${object} -o jsonpath="{.items[*]['metadata.name']}")
         mkdir -p ${LOG_DIR}/${object}
