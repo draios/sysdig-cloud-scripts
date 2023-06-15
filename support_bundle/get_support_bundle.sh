@@ -16,6 +16,7 @@ LOG_DIR=$(mktemp -d sysdigcloud-support-bundle-XXXX)
 SINCE_OPTS=""
 SINCE=""
 API_KEY=""
+SECURE_API_KEY=""
 SKIP_LOGS="false"
 ELASTIC_CURL=""
 
@@ -27,6 +28,7 @@ print_help() {
     printf "\t%s\n" "-l,--labels: Specify Sysdig pod role label to collect (e.g. api,collector,worker)"
     printf "\t%s\n" "-n,--namespace: Specify the Sysdig namespace. (default: ${NAMESPACE})"
     printf "\t%s\n" "-s,--since: Specify the timeframe of logs to collect (e.g. -s 1h)"
+    printf "\t%s\n" "-sa,--secure-api-key: Provide the Secure Superuser API key for advanced data collection"
     printf "\t%s\n" "--skip-logs: Skip all log collection. (default: ${SKIP_LOGS})"
     printf "\t%s\n" "-h,--help: Prints help"
 }
@@ -77,6 +79,11 @@ parse_commandline() {
             -h*)
                 print_help
                 exit 0
+                ;;
+            -sa|--secure-api-key)
+                test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
+                SECURE_API_KEY="$2"
+                shift
                 ;;
         esac
         shift
