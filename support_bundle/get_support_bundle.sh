@@ -231,7 +231,7 @@ main() {
     for pod in ${SYSDIGCLOUD_PODS}; do
         echo "Getting pod description for ${pod}"
         mkdir -p ${LOG_DIR}/${pod}
-        kubectl ${KUBE_OPTS} get pod ${pod} -o json > ${LOG_DIR}/${pod}/kubectl-describe.json
+        kubectl ${KUBE_OPTS} get pod ${pod} -o json > ${LOG_DIR}/${pod}/kubectl-describe.json || true
     done
 
     #Collect Describe Node Output
