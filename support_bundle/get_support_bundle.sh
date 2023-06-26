@@ -16,6 +16,7 @@ LOG_DIR=$(mktemp -d sysdigcloud-support-bundle-XXXX)
 SINCE_OPTS=""
 SINCE=""
 API_KEY=""
+SECURE_API_KEY=""
 SKIP_LOGS="false"
 ELASTIC_CURL=""
 
@@ -27,6 +28,7 @@ print_help() {
     printf "\t%s\n" "-l,--labels: Specify Sysdig pod role label to collect (e.g. api,collector,worker)"
     printf "\t%s\n" "-n,--namespace: Specify the Sysdig namespace. (default: ${NAMESPACE})"
     printf "\t%s\n" "-s,--since: Specify the timeframe of logs to collect (e.g. -s 1h)"
+    printf "\t%s\n" "-sa,--secure-api-key: Provide the Secure Superuser API key for advanced data collection"
     printf "\t%s\n" "--skip-logs: Skip all log collection. (default: ${SKIP_LOGS})"
     printf "\t%s\n" "-h,--help: Prints help"
 }
@@ -77,6 +79,11 @@ parse_commandline() {
             -h*)
                 print_help
                 exit 0
+                ;;
+            -sa|--secure-api-key)
+                test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
+                SECURE_API_KEY="$2"
+                shift
                 ;;
         esac
         shift
@@ -141,8 +148,15 @@ main() {
 
     # If API key is supplied, collect streamSnap, Index settings, and fastPath settings
     if [[ ! -z ${API_KEY} ]]; then
-        API_URL=$(kubectl ${KUBE_OPTS} get cm sysdigcloud-config -o yaml | grep -i api.url: | head -1 | awk '{print$2}')
-
+        VERSION_CHECK=$(kubectl ${KUBE_OPTS} get cm | grep -c 'sysdigcloud-api-config') || true
+        if [[ ${VERSION_CHECK} == 1 ]]; then
+            # This api endpoint is found in 6.x and above
+            API_URL=$(kubectl ${KUBE_OPTS} get cm sysdigcloud-collector-config -ojsonpath='{.data.collector-config\.conf}' | awk 'p&&$0~/"/{gsub("\"","");print} /{/{p=0} /sso/{p=1}' | grep serverName | awk '{print $3}')
+        else
+            # This api endpoint is found in 5.x and below
+            API_URL=$(kubectl ${KUBE_OPTS} get cm sysdigcloud-config -o yaml | grep -i api.url: | head -1 | awk '{print $2}')
+        fi
+       
         # Check that the API_KEY for the Super User is valid and exit 
         CURL_OUT=$(curl -fks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/license" >/dev/null 2>&1) && RETVAL=$? && error=0 || { RETVAL=$? && error=1; }
         if [[ ${error} -eq 1 ]]; then
@@ -151,16 +165,18 @@ main() {
         fi
 
         curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/license" >> ${LOG_DIR}/license.json
+        curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/agents/connected?checkStatus=true" >> ${LOG_DIR}/agents_connected.json
+        curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/storageSettings" >> ${LOG_DIR}/storage_settings.json
         curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/streamsnapSettings" >> ${LOG_DIR}/streamSnap_settings.json
         curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customers/1/snapshotSettings" >> ${LOG_DIR}/snapshot_settings.json
         curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/fastPathSettings" >> ${LOG_DIR}/fastPath_settings.json
         curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/indexSettings" >> ${LOG_DIR}/index_settings.json
         curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/planSettings" >> ${LOG_DIR}/plan_settings.json
         curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/dataRetentionSettings" >> ${LOG_DIR}/dataRetention_settings.json
-        curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/agents/connected" >> ${LOG_DIR}/agents-connected.json
         curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/v2/users/light" >> ${LOG_DIR}/users.json
         curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/v2/teams/light" >> ${LOG_DIR}/teams.json
         curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/auth/settings" >> ${LOG_DIR}/sso_settings.json
+        curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/alerts" >> ${LOG_DIR}/alerts.json
 
         if [[ $OSTYPE == 'darwin'* ]]; then
             TO_EPOCH_TIME=$(date -jf "%H:%M:%S" $(date +%H):00:00 +%s)
@@ -188,9 +204,9 @@ main() {
 
     # Configure kubectl command if labels are set
     if [[ -z ${LABELS} ]]; then
-        SYSDIGCLOUD_PODS=$(kubectl ${KUBE_OPTS} get pods | awk '{ print $1 }' | grep -v NAME)
+        SYSDIGCLOUD_PODS=$(kubectl ${KUBE_OPTS} get pods --no-headers | awk '{ print $1 }')
     else
-        SYSDIGCLOUD_PODS=$(kubectl ${KUBE_OPTS} -l "role in (${LABELS})" get pods | awk '{ print $1 }' | grep -v NAME)
+        SYSDIGCLOUD_PODS=$(kubectl ${KUBE_OPTS} -l "role in (${LABELS})" get pods --no-headers | awk '{ print $1 }')
     fi
 
     echo "Using namespace ${NAMESPACE}"
@@ -224,7 +240,7 @@ main() {
     for pod in ${SYSDIGCLOUD_PODS}; do
         echo "Getting pod description for ${pod}"
         mkdir -p ${LOG_DIR}/${pod}
-        kubectl ${KUBE_OPTS} get pod ${pod} -o json > ${LOG_DIR}/${pod}/kubectl-describe.json
+        kubectl ${KUBE_OPTS} get pod ${pod} -o json > ${LOG_DIR}/${pod}/kubectl-describe.json || true
     done
 
     #Collect Describe Node Output
@@ -247,8 +263,7 @@ main() {
 
     # Get info on deployments, statefulsets, persistentVolumeClaims, daemonsets, and ingresses
     echo "Gathering Manifest Information"
-    for object in svc deployment sts pvc daemonset ingress replicaset
-    do
+    for object in svc deployment sts pvc daemonset ingress replicaset networkpolicy cronjob configmap; do
         items=$(kubectl ${KUBE_OPTS} get ${object} -o jsonpath="{.items[*]['metadata.name']}")
         mkdir -p ${LOG_DIR}/${object}
         for item in ${items}; do
@@ -282,7 +297,7 @@ main() {
 
     # Fetch Cassandra Nodetool output
     echo "Fetching Cassandra statistics"
-    for pod in $(kubectl ${KUBE_OPTS} get pod -l role=cassandra | grep -v "NAME" | awk '{print $1}')
+    for pod in $(kubectl ${KUBE_OPTS} get pod -l role=cassandra --no-headers| awk '{print $1}')
     do
         mkdir -p ${LOG_DIR}/cassandra/${pod}
         kubectl ${KUBE_OPTS} exec -it ${pod} -c cassandra -- nodetool info | tee -a ${LOG_DIR}/cassandra/${pod}/nodetool_info.log
@@ -319,7 +334,7 @@ main() {
             ELASTIC_CURL='curl -s -k http://$(hostname):9200'
         fi
 
-        for pod in $(kubectl ${KUBE_OPTS} get pods -l role=elasticsearch | grep -v "NAME" | awk '{print $1}')
+        for pod in $(kubectl ${KUBE_OPTS} get pods -l role=elasticsearch --no-headers | awk '{print $1}')
         do
             mkdir -p ${LOG_DIR}/elasticsearch/${pod}
 
@@ -353,7 +368,7 @@ main() {
     fi
 
     # Fetch Cassandra storage info
-    for pod in $(kubectl ${KUBE_OPTS} get pods -l role=cassandra  | grep -v "NAME" | awk '{print $1}')
+    for pod in $(kubectl ${KUBE_OPTS} get pods -l role=cassandra --no-headers | awk '{print $1}')
     do
         echo "Checking Used Cassandra Storage - ${pod}"
         mkdir -p ${LOG_DIR}/cassandra/${pod}
@@ -367,7 +382,7 @@ main() {
     done
 
     # Fetch postgresql storage info
-    for pod in $(kubectl ${KUBE_OPTS} get pods -l role=postgresql  | grep -v "NAME" | awk '{print $1}')
+    for pod in $(kubectl ${KUBE_OPTS} get pods -l role=postgresql --no-headers  | awk '{print $1}')
     do
         echo "Checking Used PostgreSQL Storage - ${pod}"
         mkdir -p ${LOG_DIR}/postgresql/${pod}
@@ -376,12 +391,30 @@ main() {
     done
 
     # Fetch mysql storage info
-    for pod in $(kubectl ${KUBE_OPTS} get pods -l role=mysql  | grep -v "NAME" | awk '{print $1}')
+    for pod in $(kubectl ${KUBE_OPTS} get pods -l role=mysql --no-headers | awk '{print $1}')
     do
         echo "Checking Used MySQL Storage - ${pod}"
         mkdir -p ${LOG_DIR}/mysql/${pod}
         printf "${pod}\n" | tee -a ${LOG_DIR}/mysql/${pod}/mysql_storage.log
         kubectl ${KUBE_OPTS} exec -it ${pod} -c mysql -- du -ch /var/lib/mysql | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' | tee -a ${LOG_DIR}/mysql/${pod}/mysql_storage.log || true
+    done
+
+    # Fetch kafka storage info
+    for pod in $(kubectl ${KUBE_OPTS} get pods -l role=cp-kafka --no-headers | awk '{print $1}')
+    do
+        echo "Checking Used Kafka Storage - ${pod}"
+        mkdir -p ${LOG_DIR}/kafka/${pod}
+        printf "${pod}\n" | tee -a ${LOG_DIR}/kafka/${pod}/kafka_storage.log
+        kubectl ${KUBE_OPTS} exec -it ${pod} -c broker -- du -ch /opt/kafka/data | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' | tee -a ${LOG_DIR}/kafka/${pod}/kafka_storage.log || true
+    done
+
+    # Fetch zookeeper storage info
+    for pod in $(kubectl ${KUBE_OPTS} get pods -l role=zookeeper --no-headers | awk '{print $1}')
+    do
+        echo "Checking Used Zookeeper Storage - ${pod}"
+        mkdir -p ${LOG_DIR}/zookeeper/${pod}
+        printf "${pod}\n" | tee -a ${LOG_DIR}/zookeeper/${pod}/zookeeper_storage.log
+        kubectl ${KUBE_OPTS} exec -it ${pod} -c server -- du -ch /var/lib/zookeeper/data | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' | tee -a ${LOG_DIR}/zookeeper/${pod}/zookeeper_storage.log || true
     done
 
     # Collect the sysdigcloud-config configmap, and write to the log directory
