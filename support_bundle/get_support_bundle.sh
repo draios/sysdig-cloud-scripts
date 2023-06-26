@@ -175,6 +175,7 @@ main() {
         curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/dataRetentionSettings" >> ${LOG_DIR}/dataRetention_settings.json
         curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/v2/users/light" >> ${LOG_DIR}/users.json
         curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/v2/teams/light" >> ${LOG_DIR}/teams.json
+        curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/auth/settings" >> ${LOG_DIR}/sso_settings.json
         curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/alerts" >> ${LOG_DIR}/alerts.json
 
         if [[ $OSTYPE == 'darwin'* ]]; then
