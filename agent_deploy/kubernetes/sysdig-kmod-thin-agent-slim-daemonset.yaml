@@ -106,9 +106,8 @@ spec:
         resources:
           requests:
             cpu: 1000m
-            memory: 512Mi
+            memory: 384Mi
           limits:
-            cpu: 1000m
             memory: 512Mi
         env:
           - name: K8S_NODE
