@@ -254,7 +254,7 @@ main() {
 
     # Get info on deployments, statefulsets, persistentVolumeClaims, daemonsets, and ingresses
     echo "Gathering Manifest Information"
-    for object in svc deployment sts pvc daemonset ingress replicaset networkpolicy
+    for object in svc deployment sts pvc daemonset ingress replicaset networkpolicy configmap
     do
         items=$(kubectl ${KUBE_OPTS} get ${object} -o jsonpath="{.items[*]['metadata.name']}")
         mkdir -p ${LOG_DIR}/${object}
