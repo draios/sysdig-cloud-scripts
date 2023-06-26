@@ -934,6 +934,14 @@ if [ -f /etc/debian_version ]; then
             fi
             ;;
 
+        "Deepin")
+            if [ $VERSION -ge 10 ]; then
+                install_curl_deb
+            else
+                unsupported
+            fi
+            ;;
+
         "LinuxMint")
             if [ $VERSION -ge 9 ]; then
                 install_curl_deb
