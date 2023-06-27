@@ -9,6 +9,7 @@ rules:
   - pods
   - replicationcontrollers
   - services
+  - endpoints
   - events
   - limitranges
   - namespaces
@@ -49,12 +50,54 @@ rules:
   - list
   - watch
 - apiGroups:
+  - networking.k8s.io
+  resources:
+  - networkpolicies
+  - ingresses
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
   - extensions
   resources:
   - daemonsets
   - deployments
-  - ingresses
   - replicasets
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - get
+  - list
+  - create
+  - update
+  - watch
+- apiGroups:
+  - storage.k8s.io
+  resources:
+  - storageclasses
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - certificates.k8s.io
+  resources:
+  - certificatesigningrequests
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - policy
+  resources:
+  - poddisruptionbudgets
   verbs:
   - get
   - list

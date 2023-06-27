@@ -18,6 +18,14 @@ spec:
         app: sysdig-agent
     spec:
       volumes:
+      - name: modprobe-d
+        hostPath:
+          path: /etc/modprobe.d
+### uncomment for minikube
+#      - name: etc-version
+#        hostPath:
+#          path: /etc/VERSION
+#          type: FileOrCreate
       - name: dshm
         emptyDir:
           medium: Memory
@@ -42,7 +50,20 @@ spec:
       - name: varrun-vol
         hostPath:
           path: /var/run
+      - name: podinfo
+        downwardAPI:
+          defaultMode: 420
+          items:
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+            path: namespace
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+            path: name
       hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
       hostPID: true
       tolerations:
         - effect: NoSchedule
@@ -52,7 +73,7 @@ spec:
       terminationGracePeriodSeconds: 5
       initContainers:
       - name: sysdig-agent-kmodule
-        image: sysdig/agent-kmodule
+        image: quay.io/sysdig/agent-kmodule
         imagePullPolicy: Always
         securityContext:
           privileged: true
@@ -65,18 +86,25 @@ spec:
           limits:
             memory: 512Mi
         volumeMounts:
+### uncomment for minikube
+#        - mountPath: /host/etc/VERSION
+#          name: etc-version
+#          readOnly: true
         - mountPath: /host/boot
           name: boot-vol
           readOnly: true
         - mountPath: /host/lib/modules
           name: modules-vol
           readOnly: true
+        - mountPath: /etc/modprobe.d
+          name: modprobe-d
+          readOnly: true
         - mountPath: /host/usr
           name: usr-vol
           readOnly: true
       containers:
       - name: sysdig-agent
-        image: sysdig/agent-slim
+        image: quay.io/sysdig/agent-slim
         imagePullPolicy: Always
         securityContext:
           privileged: true
@@ -126,3 +154,5 @@ spec:
           name: varrun-vol
         - mountPath: /dev/shm
           name: dshm
+        - mountPath: /etc/podinfo
+          name: podinfo

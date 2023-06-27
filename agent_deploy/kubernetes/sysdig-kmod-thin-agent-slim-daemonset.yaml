@@ -1,5 +1,4 @@
-### WARNING: this file is supported from Sysdig Agent 0.80.0
-# apiVersion: extensions/v1beta1  # If you are in Kubernetes version 1.8 or less please use this line instead of the following one
+### WARNING: this file is supported from Sysdig Agent 11.0.0
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -21,11 +20,6 @@ spec:
       - name: modprobe-d
         hostPath:
           path: /etc/modprobe.d
-### uncomment for minikube
-#      - name: etc-version
-#        hostPath:
-#          path: /etc/VERSION
-#          type: FileOrCreate
       - name: dshm
         emptyDir:
           medium: Memory
@@ -104,7 +98,7 @@ spec:
       #- name: secret-name
       initContainers:
       - name: sysdig-agent-kmodule
-        image: quay.io/sysdig/agent-kmodule
+        image: quay.io/sysdig/agent-kmodule-thin
         imagePullPolicy: Always
         securityContext:
           privileged: true
@@ -131,10 +125,6 @@ spec:
         - mountPath: /etc/modprobe.d
           name: modprobe-d
           readOnly: true
-### uncomment for minikube
-#        - mountPath: /host/etc/VERSION
-#          name: etc-version
-#          readOnly: true
         - mountPath: /host/boot
           name: boot-vol
           readOnly: true

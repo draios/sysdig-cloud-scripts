@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sysdig-host-analyzer
+data:
+  debug: "false"
+
+  # Set the following to choose your scanning schedule
+  schedule: "@dailydefault"
+
+  # Set and customize the following to enable proxy support
+  # http_proxy: "http://proxy_server:8080"
+  # https_proxy: "https://proxy_server:8080"
+  # no_proxy: "127.0.0.1,localhost,192.168.0.0/16,172.16.0.0/12,10.0.0.0/8"
+
+  # analyze_at_startup: "false"
+
+  # The endpoint to the Scanning Analysis collector
+  # Required: yes
+  # collector_endpoint: "https://<ENDPOINT>/internal/scanning/scanning-analysis-collector"
+  
+  # uncomment the following line to use a self-signed cert for backend communication
+  # ssl_verify_certificate: "false"
+  dirs_to_scan: "/etc,/var/lib/dpkg,/usr/local,/usr/lib/sysimage/rpm,/var/lib/rpm,/lib/apk/db"

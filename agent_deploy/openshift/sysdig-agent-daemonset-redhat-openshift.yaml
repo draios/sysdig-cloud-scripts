@@ -18,12 +18,15 @@ spec:
         app: sysdig-agent
     spec:
       volumes:
+      - name: modprobe-d
+        hostPath:
+          path: /etc/modprobe.d
       - name: dshm
         emptyDir:
           medium: Memory
-      - name: docker-sock
+      - name: etc-vol
         hostPath:
-          path: /var/run/docker.sock
+          path: /etc
       - name: dev-vol
         hostPath:
           path: /dev
@@ -39,6 +42,18 @@ spec:
       - name: usr-vol
         hostPath:
           path: /usr
+      - name: run-vol
+        hostPath:
+          path: /run
+      - name: varrun-vol
+        hostPath:
+          path: /var/run
+### Uncomment these lines if you'd like to map /root/ from the
+#   host into the container. This can be useful to map
+#   /root/.sysdig to pick up custom kernel modules.
+#     - name: host-root-vol
+#       hostPath:
+#         path: /root
       - name: sysdig-agent-config
         configMap:
           name: sysdig-agent
@@ -46,34 +61,73 @@ spec:
       - name: sysdig-agent-secrets
         secret:
           secretName: sysdig-agent
+      - name: podinfo
+        downwardAPI:
+          defaultMode: 420
+          items:
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+            path: namespace
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+            path: name
+      # This section is for eBPF support. Please refer to Sysdig Support before
+      # uncommenting, as eBPF is recommended for only a few configurations.
+      #- name: sys-tracing
+      #  hostPath:
+      #    path: /sys/kernel/debug
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
       hostPID: true
+      tolerations:
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/master
+      # The following line is necessary for RBAC
       serviceAccount: sysdig-agent
       terminationGracePeriodSeconds: 5
+      ### Uncomment following 2 lines to pull images from a private registry,
+      ### replacing secret-name with your secret name (previously created)
+      #imagePullSecrets:
+      #- name: secret-name
       containers:
       - name: sysdig-agent
         image: registry.connect.redhat.com/sysdig/agent:latest
         imagePullPolicy: Always
         securityContext:
           privileged: true
+          runAsUser: 0
         resources:
           # Resources needed are subjective to the actual workload.
           # Please refer to Sysdig Support for more info.
+          # See also: https://docs.sysdig.com/en/tuning-sysdig-agent.html
           requests:
-            cpu: 600m
-            memory: 512Mi
+            cpu: 1000m
+            memory: 1024Mi
           limits:
-            cpu: 2000m
-            memory: 1536Mi
+            cpu: 1000m
+            memory: 1024Mi
         readinessProbe:
           exec:
             command: [ "test", "-e", "/opt/draios/logs/running" ]
           initialDelaySeconds: 10
+        env:
+          - name: K8S_NODE
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+        # This section is for eBPF support. Please refer to Sysdig Support before
+        # uncommenting, as eBPF is recommended for only a few configurations.
+        #  - name: SYSDIG_BPF_PROBE
+        #    value: ""
         volumeMounts:
-        - mountPath: /host/var/run/docker.sock
-          name: docker-sock
-          readOnly: false
+        - mountPath: /etc/modprobe.d
+          name: modprobe-d
+          readOnly: true
+        - mountPath: /host/etc
+          name: etc-vol
+          readOnly: true
         - mountPath: /host/dev
           name: dev-vol
           readOnly: false
@@ -89,9 +143,27 @@ spec:
         - mountPath: /host/usr
           name: usr-vol
           readOnly: true
+        - mountPath: /host/run
+          name: run-vol
+          readOnly: false
+        - mountPath: /host/var/run
+          name: varrun-vol
+          readOnly: false
         - mountPath: /dev/shm
           name: dshm
         - mountPath: /opt/draios/etc/kubernetes/config
           name: sysdig-agent-config
         - mountPath: /opt/draios/etc/kubernetes/secrets
           name: sysdig-agent-secrets
+        - mountPath: /etc/podinfo
+          name: podinfo
+### Uncomment these lines if you'd like to map /root/ from the
+#   host into the container. This can be useful to map
+#   /root/.sysdig to pick up custom kernel modules.
+#       - mountPath: /root
+#         name: host-root-vol
+        # This section is for eBPF support. Please refer to Sysdig Support before
+        # uncommenting, as eBPF is recommended for only a few configurations.
+        #- mountPath: /sys/kernel/debug
+        #  name: sys-tracing
+        #  readOnly: true
