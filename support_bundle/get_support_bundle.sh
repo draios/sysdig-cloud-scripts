@@ -312,7 +312,7 @@ main() {
 
     echo "Fetching Elasticsearch health info"
     # CHECK HERE IF THE TLS ENV VARIABLE IS SET IN ELASTICSEARCH, AND BUILD THE CURL COMMAND OUT
-    ELASTIC_POD=$(kubectl ${KUBE_OPTS} get pods -l role=elasticsearch --no-headers | head -1 | awk '{print $1}') || true
+    ELASTIC_POD=$(kubectl ${KUBE_OPTS} get pods -l role=elasticsearch --no-headers -o custom-columns=NAME:metadata.name | head -1) || true
 
     if [ ! -z ${ELASTIC_POD} ]; then
         ELASTIC_IMAGE=$(kubectl ${KUBE_OPTS} get pod ${ELASTIC_POD} -ojsonpath='{.spec.containers[?(@.name == "elasticsearch")].image}' | awk -F '/' '{print $NF}' | cut -f 1 -d ':') || true
@@ -400,7 +400,7 @@ main() {
     done
 
     # Fetch kafka storage info
-    for pod in $(kubectl ${KUBE_OPTS} get pods -l role=cp-kafka --no-headers | awk '{print $1}')
+    for pod in $(kubectl ${KUBE_OPTS} get pods -l role=cp-kafka --no-headers -o custom-columns=NAME:metadata.name)
     do
         echo "Checking Used Kafka Storage - ${pod}"
         mkdir -p ${LOG_DIR}/kafka/${pod}
@@ -409,7 +409,7 @@ main() {
     done
 
     # Fetch zookeeper storage info
-    for pod in $(kubectl ${KUBE_OPTS} get pods -l role=zookeeper --no-headers | awk '{print $1}')
+    for pod in $(kubectl ${KUBE_OPTS} get pods -l role=zookeeper --no-headers -o custom-columns=NAME:metadata.name)
     do
         echo "Checking Used Zookeeper Storage - ${pod}"
         mkdir -p ${LOG_DIR}/zookeeper/${pod}
