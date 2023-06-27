@@ -1,2 +1,2 @@
 slackclient==1.0.0
-sdcclient==0.4.0
+sdcclient==0.11.0
