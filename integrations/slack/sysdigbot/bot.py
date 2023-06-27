@@ -264,7 +264,7 @@ class SlackBuddy(SlackWrapper):
             if not silent:
                 self.say(channel, 'Event successfully posted to Sysdig Cloud.')
         else:
-            self.say(channel, 'Error posting event: ' + error)
+            self.say(channel, 'Error posting event to Sysdig Cloud: ' + error)
             logging.error('Error posting event: ' + error)
 
     def run(self):

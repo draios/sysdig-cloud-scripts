@@ -90,7 +90,7 @@ function help {
     echo " -ns : if provided, will be the namespace used to deploy the agent. Defaults to ibm-observe"
     echo " -np : if provided, do not enable the Prometheus collector.  Defaults to enabling Prometheus collector"
     echo " -sn : if provided, name of the sysdig instance (optional)"
-    echo " -op : if provided, perform the installation using the OpenShift command line"
+    echo " -op : if provided, perform the installation using the OpenShift command line. Otherwise, the script will attempt to auto-detect Openshift."
 
     echo " -as : if provided, use agent-slim (this is the default agent). Note: this option is not required"
     echo " -af : if provided, use agent-full instead of agent-slim"
@@ -603,6 +603,17 @@ function remove_agent {
     set -e
 }
 
+function detect_openshift() {
+    echo "* Checking for Openshift APIs"
+    DETECTED=0
+    oc api-versions | grep "security.openshift.io/v1" && DETECTED=1
+
+    if [[ $DETECTED -eq 1 ]]; then
+        echo "* Detected Openshift"
+        OPENSHIFT=1
+    fi
+}
+
 cleanup_workdir() {
     rm -rf "$WORKDIR"
 }
@@ -873,6 +884,8 @@ if [ $(id -u) != 0 ]; then
     fi
 fi
 
+detect_openshift
+
 if [ $REMOVE_AGENT -eq 1 ]; then
     remove_agent
     exit 0
@@ -914,6 +927,14 @@ if [ -f /etc/debian_version ]; then
     case "$DISTRO" in
 
         "Ubuntu")
+            if [ $VERSION -ge 10 ]; then
+                install_curl_deb
+            else
+                unsupported
+            fi
+            ;;
+
+        "Deepin")
             if [ $VERSION -ge 10 ]; then
                 install_curl_deb
             else

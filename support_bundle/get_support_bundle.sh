@@ -16,6 +16,7 @@ LOG_DIR=$(mktemp -d sysdigcloud-support-bundle-XXXX)
 SINCE_OPTS=""
 SINCE=""
 API_KEY=""
+SECURE_API_KEY=""
 SKIP_LOGS="false"
 ELASTIC_CURL=""
 
@@ -27,6 +28,7 @@ print_help() {
     printf "\t%s\n" "-l,--labels: Specify Sysdig pod role label to collect (e.g. api,collector,worker)"
     printf "\t%s\n" "-n,--namespace: Specify the Sysdig namespace. (default: ${NAMESPACE})"
     printf "\t%s\n" "-s,--since: Specify the timeframe of logs to collect (e.g. -s 1h)"
+    printf "\t%s\n" "-sa,--secure-api-key: Provide the Secure Superuser API key for advanced data collection"
     printf "\t%s\n" "--skip-logs: Skip all log collection. (default: ${SKIP_LOGS})"
     printf "\t%s\n" "-h,--help: Prints help"
 }
@@ -78,17 +80,14 @@ parse_commandline() {
                 print_help
                 exit 0
                 ;;
+            -sa|--secure-api-key)
+                test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
+                SECURE_API_KEY="$2"
+                shift
+                ;;
         esac
         shift
     done
-}
-
-gnudate() {
-    if hash gdate 2>/dev/null; then
-        gdate "$@"
-    else
-        date "$@"
-    fi
 }
 
 get_agent_version_metric_limits() {
@@ -149,19 +148,41 @@ main() {
 
     # If API key is supplied, collect streamSnap, Index settings, and fastPath settings
     if [[ ! -z ${API_KEY} ]]; then
-        API_URL=$(kubectl ${KUBE_OPTS} get cm sysdigcloud-config -o yaml | grep -i api.url: | head -1 | awk '{print$2}')
+        VERSION_CHECK=$(kubectl ${KUBE_OPTS} get cm | grep -c 'sysdigcloud-api-config') || true
+        if [[ ${VERSION_CHECK} == 1 ]]; then
+            # This api endpoint is found in 6.x and above
+            API_URL=$(kubectl ${KUBE_OPTS} get cm sysdigcloud-collector-config -ojsonpath='{.data.collector-config\.conf}' | awk 'p&&$0~/"/{gsub("\"","");print} /{/{p=0} /sso/{p=1}' | grep serverName | awk '{print $3}')
+        else
+            # This api endpoint is found in 5.x and below
+            API_URL=$(kubectl ${KUBE_OPTS} get cm sysdigcloud-config -o yaml | grep -i api.url: | head -1 | awk '{print $2}')
+        fi
+       
+        # Check that the API_KEY for the Super User is valid and exit 
+        CURL_OUT=$(curl -fks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/license" >/dev/null 2>&1) && RETVAL=$? && error=0 || { RETVAL=$? && error=1; }
+        if [[ ${error} -eq 1 ]]; then
+            echo "The API_KEY supplied is Unauthorized.  Please check and try again.  Return Code: ${RETVAL}"
+            exit 1
+        fi
+
         curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/license" >> ${LOG_DIR}/license.json
+        curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/agents/connected?checkStatus=true" >> ${LOG_DIR}/agents_connected.json
+        curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/storageSettings" >> ${LOG_DIR}/storage_settings.json
         curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/streamsnapSettings" >> ${LOG_DIR}/streamSnap_settings.json
         curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customers/1/snapshotSettings" >> ${LOG_DIR}/snapshot_settings.json
         curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/fastPathSettings" >> ${LOG_DIR}/fastPath_settings.json
         curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/indexSettings" >> ${LOG_DIR}/index_settings.json
         curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/planSettings" >> ${LOG_DIR}/plan_settings.json
         curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/dataRetentionSettings" >> ${LOG_DIR}/dataRetention_settings.json
-        curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/agents/connected" >> ${LOG_DIR}/agents-connected.json
         curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/v2/users/light" >> ${LOG_DIR}/users.json
         curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/v2/teams/light" >> ${LOG_DIR}/teams.json
+        curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/auth/settings" >> ${LOG_DIR}/sso_settings.json
+        curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/alerts" >> ${LOG_DIR}/alerts.json
 
-        TO_EPOCH_TIME=$(gnudate -d "$(gnudate +%H):00:00" +%s)
+        if [[ $OSTYPE == 'darwin'* ]]; then
+            TO_EPOCH_TIME=$(date -jf "%H:%M:%S" $(date +%H):00:00 +%s)
+        else
+            TO_EPOCH_TIME=$(date -d "$(date +%H):00:00" +%s)
+        fi
         FROM_EPOCH_TIME=$((TO_EPOCH_TIME-86400))
         METRICS=("syscall.count" "dragent.analyzer.sr" "container.count" "dragent.analyzer.n_drops_buffer" "dragent.analyzer.n_evts")
         DEFAULT_SEGMENT="host.hostName"
@@ -198,7 +219,7 @@ main() {
         for pod in ${SYSDIGCLOUD_PODS}; do
             echo "Getting support logs for ${pod}"
             mkdir -p ${LOG_DIR}/${pod}
-            containers=$(kubectl ${KUBE_OPTS} get pod ${pod} -o json | jq -r '.spec.containers[].name')
+            containers=$(kubectl ${KUBE_OPTS} get pod ${pod} -o json | jq -r '.spec.containers[].name' || echo "")
             for container in ${containers}; do
                 kubectl ${KUBE_OPTS} logs ${pod} -c ${container} ${SINCE_OPTS} > ${LOG_DIR}/${pod}/${container}-kubectl-logs.txt || true
                 echo "Execing into ${container}"
@@ -219,7 +240,7 @@ main() {
     for pod in ${SYSDIGCLOUD_PODS}; do
         echo "Getting pod description for ${pod}"
         mkdir -p ${LOG_DIR}/${pod}
-        kubectl ${KUBE_OPTS} get pod ${pod} -o json > ${LOG_DIR}/${pod}/kubectl-describe.json
+        kubectl ${KUBE_OPTS} get pod ${pod} -o json > ${LOG_DIR}/${pod}/kubectl-describe.json || true
     done
 
     #Collect Describe Node Output
@@ -242,8 +263,7 @@ main() {
 
     # Get info on deployments, statefulsets, persistentVolumeClaims, daemonsets, and ingresses
     echo "Gathering Manifest Information"
-    for object in svc deployment sts pvc daemonset ingress replicaset
-    do
+    for object in svc deployment sts pvc daemonset ingress replicaset networkpolicy cronjob configmap; do
         items=$(kubectl ${KUBE_OPTS} get ${object} -o jsonpath="{.items[*]['metadata.name']}")
         mkdir -p ${LOG_DIR}/${object}
         for item in ${items}; do
@@ -295,34 +315,50 @@ main() {
     ELASTIC_POD=$(kubectl ${KUBE_OPTS} get pods -l role=elasticsearch --no-headers | head -1 | awk '{print $1}') || true
 
     if [ ! -z ${ELASTIC_POD} ]; then
-        ELASTIC_TLS=$(kubectl ${KUBE_OPTS} exec -it ${ELASTIC_POD} -c elasticsearch -- env | grep -i ELASTICSEARCH_TLS_ENCRYPTION) || true
+        ELASTIC_IMAGE=$(kubectl ${KUBE_OPTS} get pod ${ELASTIC_POD} -ojsonpath='{.spec.containers[?(@.name == "elasticsearch")].image}' | awk -F '/' '{print $NF}' | cut -f 1 -d ':') || true
 
-        if [[ ${ELASTIC_TLS} == *"ELASTICSEARCH_TLS_ENCRYPTION=true"* ]]; then
-            ELASTIC_CURL='curl -s --cacert /usr/share/elasticsearch/config/root-ca.pem https://${ELASTICSEARCH_ADMINUSER}:${ELASTICSEARCH_ADMIN_PASSWORD}'
+        if [[ ${ELASTIC_IMAGE} == "opensearch"* ]]; then
+            CERTIFICATE_DIRECTORY="/usr/share/opensearch/config"
+            ELASTIC_TLS="true"
         else
-            ELASTIC_CURL='curl -s -k http://$(hostname)'
+            CERTIFICATE_DIRECTORY="/usr/share/elasticsearch/config"
+            ELASTIC_TLS=$(kubectl ${KUBE_OPTS} exec ${ELASTIC_POD} -c elasticsearch -- env | grep -i ELASTICSEARCH_TLS_ENCRYPTION) || true
+            if [[ ${ELASTIC_TLS} == *"ELASTICSEARCH_TLS_ENCRYPTION=true"* ]]; then
+                ELASTIC_TLS="true"
+            fi
+        fi
+
+        if [[ ${ELASTIC_TLS} == "true" ]]; then
+            ELASTIC_CURL="curl -s --cacert ${CERTIFICATE_DIRECTORY}/root-ca.pem https://\${ELASTICSEARCH_ADMINUSER}:\${ELASTICSEARCH_ADMIN_PASSWORD}@\$(hostname):9200"
+        else
+            ELASTIC_CURL='curl -s -k http://$(hostname):9200'
         fi
 
         for pod in $(kubectl ${KUBE_OPTS} get pods -l role=elasticsearch --no-headers -o custom-columns=NAME:metadata.name)
         do
             mkdir -p ${LOG_DIR}/elasticsearch/${pod}
-            kubectl ${KUBE_OPTS} exec -it ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}@sysdigcloud-elasticsearch:9200/_cat/health" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_health.log
 
-            kubectl ${KUBE_OPTS} exec -it ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}@sysdigcloud-elasticsearch:9200/_cat/indices" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_indices.log
+            kubectl ${KUBE_OPTS} exec ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}/_cat/health" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_health.log || true
 
-            kubectl ${KUBE_OPTS} exec -it ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}@sysdigcloud-elasticsearch:9200/_cat/nodes?v" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_nodes.log
+            kubectl ${KUBE_OPTS} exec ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}/_cat/indices" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_indices.log || true
 
-            kubectl ${KUBE_OPTS} exec -it ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}@sysdigcloud-elasticsearch:9200/_cluster/allocation/explain?pretty" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_index_allocation.log
+            kubectl ${KUBE_OPTS} exec ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}/_cat/nodes?v" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_nodes.log || true
+
+            kubectl ${KUBE_OPTS} exec ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}/_cluster/allocation/explain?pretty" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_index_allocation.log || true
 
             echo "Fetching ElasticSearch SSL Certificate Expiration Dates"
-            kubectl ${KUBE_OPTS} exec -it ${pod}  -c elasticsearch -- openssl x509 -in /usr/share/elasticsearch/config/node.pem -noout -enddate | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_node_pem_expiration.log
-            kubectl ${KUBE_OPTS} exec -it ${pod}  -c elasticsearch -- openssl x509 -in /usr/share/elasticsearch/config/admin.pem -noout -enddate | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_admin_pem_expiration.log
-            kubectl ${KUBE_OPTS} exec -it ${pod}  -c elasticsearch -- openssl x509 -in /usr/share/elasticsearch/config/root-ca.pem -noout -enddate | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_root_ca_pem_expiration.log
+            kubectl ${KUBE_OPTS} exec ${pod}  -c elasticsearch -- openssl x509 -in ${CERTIFICATE_DIRECTORY}/node.pem -noout -enddate | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_node_pem_expiration.log || true
+            kubectl ${KUBE_OPTS} exec ${pod}  -c elasticsearch -- openssl x509 -in ${CERTIFICATE_DIRECTORY}/admin.pem -noout -enddate | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_admin_pem_expiration.log || true
+            kubectl ${KUBE_OPTS} exec ${pod}  -c elasticsearch -- openssl x509 -in ${CERTIFICATE_DIRECTORY}/root-ca.pem -noout -enddate | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_root_ca_pem_expiration.log || true
+
+
+            echo "Fetching Elasticsearch Index Versions"
+            kubectl ${KUBE_OPTS} exec ${pod} -c elasticsearch -- bash -c "${ELASTIC_CURL}/_all/_settings/index.version\*?pretty" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_index_versions.log || true
 
             echo "Checking Used Elasticsearch Storage - ${pod}"
             mountpath=$(kubectl ${KUBE_OPTS} get sts sysdigcloud-elasticsearch -ojsonpath='{.spec.template.spec.containers[].volumeMounts[?(@.name == "data")].mountPath}')
             if [ ! -z $mountpath ]; then
-               kubectl ${KUBE_OPTS} exec -it ${pod} -c elasticsearch -- du -ch ${mountpath} | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_storage.log
+               kubectl ${KUBE_OPTS} exec ${pod} -c elasticsearch -- du -ch ${mountpath} | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_storage.log || true
            else
               printf "Error getting ElasticSearch ${pod} mount path\n" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_storage.log
            fi
@@ -361,6 +397,24 @@ main() {
         mkdir -p ${LOG_DIR}/mysql/${pod}
         printf "${pod}\n" | tee -a ${LOG_DIR}/mysql/${pod}/mysql_storage.log
         kubectl ${KUBE_OPTS} exec -it ${pod} -c mysql -- du -ch /var/lib/mysql | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' | tee -a ${LOG_DIR}/mysql/${pod}/mysql_storage.log || true
+    done
+
+    # Fetch kafka storage info
+    for pod in $(kubectl ${KUBE_OPTS} get pods -l role=cp-kafka --no-headers | awk '{print $1}')
+    do
+        echo "Checking Used Kafka Storage - ${pod}"
+        mkdir -p ${LOG_DIR}/kafka/${pod}
+        printf "${pod}\n" | tee -a ${LOG_DIR}/kafka/${pod}/kafka_storage.log
+        kubectl ${KUBE_OPTS} exec -it ${pod} -c broker -- du -ch /opt/kafka/data | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' | tee -a ${LOG_DIR}/kafka/${pod}/kafka_storage.log || true
+    done
+
+    # Fetch zookeeper storage info
+    for pod in $(kubectl ${KUBE_OPTS} get pods -l role=zookeeper --no-headers | awk '{print $1}')
+    do
+        echo "Checking Used Zookeeper Storage - ${pod}"
+        mkdir -p ${LOG_DIR}/zookeeper/${pod}
+        printf "${pod}\n" | tee -a ${LOG_DIR}/zookeeper/${pod}/zookeeper_storage.log
+        kubectl ${KUBE_OPTS} exec -it ${pod} -c server -- du -ch /var/lib/zookeeper/data | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' | tee -a ${LOG_DIR}/zookeeper/${pod}/zookeeper_storage.log || true
     done
 
     # Collect the sysdigcloud-config configmap, and write to the log directory

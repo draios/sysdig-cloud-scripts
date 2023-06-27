@@ -29,6 +29,9 @@ spec:
       - name: dshm
         emptyDir:
           medium: Memory
+      - name: etc-vol
+        hostPath:
+          path: /etc
       - name: dev-vol
         hostPath:
           path: /dev
@@ -73,10 +76,6 @@ spec:
       # uncommenting, as eBPF is recommended for only a few configurations.
       #- name: bpf-probes
       #  emptyDir: {}
-      #- name: osrel
-      #  hostPath:
-      #    path: /etc/os-release
-      #    type: FileOrCreate
       #- name: sys-tracing
       #  hostPath:
       #    path: /sys/kernel/debug
@@ -86,6 +85,16 @@ spec:
       tolerations:
         - effect: NoSchedule
           key: node-role.kubernetes.io/master
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/control-plane
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/controlplane
+          operator: Equal
+          value: "true"
+        - effect: NoExecute
+          key: node-role.kubernetes.io/etcd
+          operator: Equal
+          value: "true"
       # The following line is necessary for RBAC
       serviceAccount: sysdig-agent
       terminationGracePeriodSeconds: 5
@@ -99,6 +108,7 @@ spec:
         imagePullPolicy: Always
         securityContext:
           privileged: true
+          runAsUser: 0
         resources:
           requests:
             cpu: 1000m
@@ -115,6 +125,9 @@ spec:
         #  - name: SYSDIG_BPF_PROBE
         #    value: ""
         volumeMounts:
+        - mountPath: /host/etc
+          name: etc-vol
+          readOnly: true
         - mountPath: /etc/modprobe.d
           name: modprobe-d
           readOnly: true
@@ -135,20 +148,18 @@ spec:
         # uncommenting, as eBPF is recommended for only a few configurations.
         #- mountPath: /root/.sysdig
         #  name: bpf-probes
-        #- mountPath: /host/etc/os-release
-        #  name: osrel
-        #  readOnly: true
         #- mountPath: /sys/kernel/debug
         #  name: sys-tracing
         #  readOnly: true
       containers:
       - name: sysdig-agent
         # WARNING: the agent-slim release is currently dependent on the above
-        # initContainer and thus only functions correctly in a kubernetes cluster 
+        # initContainer and thus only functions correctly in a kubernetes cluster
         image: quay.io/sysdig/agent-slim
         imagePullPolicy: Always
         securityContext:
           privileged: true
+          runAsUser: 0
         resources:
           # Resources needed are subjective to the actual workload.
           # Please refer to Sysdig Support for more info.
@@ -169,6 +180,9 @@ spec:
         #  - name: SYSDIG_BPF_PROBE
         #    value: ""
         volumeMounts:
+        - mountPath: /host/etc
+          name: etc-vol
+          readOnly: true
         - mountPath: /host/dev
           name: dev-vol
           readOnly: false
