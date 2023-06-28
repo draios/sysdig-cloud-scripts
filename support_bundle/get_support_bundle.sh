@@ -197,7 +197,7 @@ main() {
 
     # Collect kubectl cluster dump
     CLUSTER_DUMP_DIR="${LOG_DIR}/kubectl-cluster-dump"
-    mkdir ${CLUSTER_DUMP_DIR}
+    mkdir -p ${CLUSTER_DUMP_DIR}
     kubectl ${KUBE_OPTS} cluster-info dump --output-directory=${CLUSTER_DUMP_DIR}
 
     # Collect container logs for each pod
