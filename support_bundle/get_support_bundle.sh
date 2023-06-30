@@ -202,6 +202,47 @@ main() {
         get_agent_version_metric_limits
     fi
 
+    # If Secure API key is supplied, collect settings
+    if [[ ! -z ${SECURE_API_KEY} ]]; then
+        VERSION_CHECK=$(kubectl ${KUBE_OPTS} get cm | grep -c 'sysdigcloud-api-config') || true
+        if [[ ${VERSION_CHECK} == 1 ]]; then
+            # This api endpoint is found in 6.x and above
+            API_URL=$(kubectl ${KUBE_OPTS} get cm sysdigcloud-collector-config -ojsonpath='{.data.collector-config\.conf}' | awk 'p&&$0~/"/{gsub("\"","");print} /{/{p=0} /sso/{p=1}' | grep serverName | awk '{print $3}')
+        else
+            # This api endpoint is found in 5.x and below
+            API_URL=$(kubectl ${KUBE_OPTS} get cm sysdigcloud-config -o yaml | grep -i api.url: | head -1 | awk '{print $2}')
+        fi
+
+        # Check that the SECURE_API_KEY for the Super User is valid and exit 
+        CURL_OUT=$(curl -fks -H "Authorization: Bearer ${SECURE_API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/license" >/dev/null 2>&1) && RETVAL=$? && error=0 || { RETVAL=$? && error=1; }
+        if [[ ${error} -eq 1 ]]; then
+            echo "The SECURE_API_KEY supplied is Unauthorized.  Please check and try again.  Return Code: ${RETVAL}"
+            exit 1
+        fi
+
+        # Check if ScanningV1 is enabled, and if so, do ...
+        SCANNING_V1_ENABLED=$(curl -ksX GET ${API_URL}/api/secure/customerSettings -H "Authorization: Bearer ${SECURE_API_KEY}" 2>&1 | grep -Eo "\"scanningV1Enabled\":true") || true
+        if [[ ${SCANNING_V1_ENABLED} == "\"scanningV1Enabled\":true" ]]; then
+            echo "Scanning v1 is enabled. Continuing..."
+            # CURL COMMANDS GO HERE
+            mkdir -p ${LOG_DIR}/scanning
+            curl -ksX GET ${API_URL}/api/scanning/v1/resultsDirect?limit=1 -H "Authorization: Bearer ${SECURE_API_KEY}" >> ${LOG_DIR}/scanning/scanningv1.txt
+        else
+            echo "Scanning V1 not detected. Continuing..."
+        fi
+
+        # Check if ScanningV2 is enabled, and if so, do ...
+        SCANNING_V2_ENABLED=$(curl -ksX GET ${API_URL}/api/secure/customerSettings -H "Authorization: Bearer ${SECURE_API_KEY}" 2>&1 | grep -Eo "\"scanningV2Enabled\":true") || true
+        if [[ ${SCANNING_V2_ENABLED} == "\"scanningV2Enabled\":true" ]]; then
+            echo "Scanning v2 is enabled. Continuing..."
+            curl -ksX GET ${API_URL}/api/scanning/scanresults/v2/results -H "Authorization: Bearer ${SECURE_API_KEY}" >> ${LOG_DIR}/scanning/scanningv2.txt
+            # CURL COMMANDS GO HERE
+        else
+            echo "Scanning V2 not detected. Continuing..."
+        fi
+
+    fi
+
     # Configure kubectl command if labels are set
     if [[ -z ${LABELS} ]]; then
         SYSDIGCLOUD_PODS=$(kubectl ${KUBE_OPTS} get pods --no-headers -o custom-columns=NAME:metadata.name)
