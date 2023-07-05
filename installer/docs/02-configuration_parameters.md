@@ -925,12 +925,12 @@ sysdig:
 **Required**: `false`<br />
 **Description**: The docker image tag of Cassandra.<br />
 **Options**: <br />
-**Default**: 2.1.22.4<br />
+**Default**: 2.1.22.5<br />
 **Example**:
 
 ```yaml
 sysdig:
-  cassandraVersion: 2.1.22.4
+  cassandraVersion: 2.1.22.5
 ```
 
 ## **sysdig.cassandraExporterVersion**
@@ -9109,10 +9109,10 @@ sysdig:
         memory: 200Mi
 ```
 
-## **sysdig.mdsDeploymentCount**
+## **sysdig.mdsDeploymentReplicaCount**
 
 **Required**: `false`<br />
-**Description**: Number of Sysdig metadataService deployment replicas, this is a noop for clusters
+**Description**: Number of Sysdig MetadataService Deployment replicas, this is a noop for clusters
 of `size` `small`.<br />
 **Options**:<br />
 **Default**:<br />
@@ -9151,10 +9151,10 @@ sysdig:
   mdsOperatorReplicaCount: 2
 ```
 
-## **sysdig.mdsPodCount**
+## **sysdig.mdsPodReplicaCount**
 
 **Required**: `false`<br />
-**Description**: Number of Sysdig metadataService pod count, this is a noop for clusters
+**Description**: Number of Sysdig MetadataService Pod count, this is a noop for clusters
 of `size` `small`.<br />
 **Options**:<br />
 **Default**:<br />
@@ -10513,18 +10513,32 @@ sysdig:
     jvmOptions: "-Xms1g -Xmx1g"
 ```
 
+## **sysdig.kafka.cruiseControl.enabled**
+
+**Required**: `false`<br />
+**Description**: Enables kafka Cruise Control, if it is required.<br />
+**Options**: `true|false`<br />
+**Default**: `false`<br />
+**Example**:
+
+```yaml
+sysdig:
+  kafka:
+    cruiseControl:
+      enabled: true
+```
 
 ## **sysdig.kafkaVersion**
 
 **Required**: `false`<br />
 **Description**: Docker image tag of Kafka, relevant when `sysdig.meerkat.enabled` is `true` or `sysdig.fastpathAggregator.enabled` is `true`.<br />
 **Options**:<br />
-**Default**: 5.3.1.1<br />
+**Default**: 1.0.0<br />
 **Example**:
 
 ```yaml
 sysdig:
-  kafkaVersion: 5.3.1.1
+  kafkaVersion: 1.0.0
 ```
 
 ## **sysdig.kafkaReplicaCount**
@@ -10543,7 +10557,7 @@ sysdig:
 ## **sysdig.kafka.enabled**
 
 **Required**: `false`<br />
-**Description**: Enables kafka and zookeeper, if they are required by the apps.<br />
+**Description**: Enables kafka, if it is required by the apps.<br />
 **Options**: `true|false`<br />
 **Default**: `true`<br />
 **Example**:
@@ -10552,6 +10566,21 @@ sysdig:
 sysdig:
   kafka:
     enabled: true
+```
+
+## **sysdig.kafka.enableMetrics**
+
+**Required**: `false`<br />
+**Description**: Enables JMX exporter as a sidecar container to export prometheus metrics. <br />
+
+**Options**: `true|false`<br />
+**Default**: `false`<br />
+**Example**:
+
+```yaml
+sysdig:
+  kafka:
+    enableMetrics: true
 ```
 
 ## **sysdig.kafka.jvmOptions**
@@ -10581,70 +10610,6 @@ sysdig:
   kafka:
     secure:
       enabled: true
-```
-
-## **sysdig.kafka.secure.zookeeper.user**
-
-**Required**: `false`<br />
-**Description**: Username for Zookeeper auth to secure Kafka cluster.<br />
-**Options**:<br />
-**Default**: `kafka`<br />
-**Example**:
-
-```yaml
-sysdig:
-  kafka:
-    secure:
-      zookeeper:
-        user: kafka
-```
-
-## **sysdig.kafka.secure.zookeeper.password**
-
-**Required**: `false`<br />
-**Description**: Password for Zookeeper auth to secure Kafka cluster.<br />
-**Options**:<br />
-**Default**: Auto-generated 16 random alphanumeric characters.<br />
-**Example**:
-
-```yaml
-sysdig:
-  kafka:
-    secure:
-      zookeeper:
-        password: GFDg4t3$tfe4
-```
-
-## **sysdig.kafka.secure.broker.user**
-
-**Required**: `false`<br />
-**Description**: Username for Kafka broker auth to secure Kafka cluster.<br />
-**Options**:<br />
-**Default**: `kafkabroker`<br />
-**Example**:
-
-```yaml
-sysdig:
-  kafka:
-    secure:
-      broker:
-        user: kafka
-```
-
-## **sysdig.kafka.secure.broker.password**
-
-**Required**: `false`<br />
-**Description**: Password for Kafka broker auth to secure Kafka cluster.<br />
-**Options**:<br />
-**Default**: Auto-generated 16 random alphanumeric characters.<br />
-**Example**:
-
-```yaml
-sysdig:
-  kafka:
-    secure:
-      broker:
-        password: eFSuhrt3$tfe4
 ```
 
 ## **sysdig.resources.kafka.requests.cpu**
@@ -10744,12 +10709,12 @@ sysdig:
 **Required**: `false`<br />
 **Description**: Docker image tag of Zookeeper, relevant when `sysdig.meerkat.enabled` is `true` or `sysdig.fastpathAggregator.enabled` is `true`.<br />
 **Options**:<br />
-**Default**: 5.3.1.1<br />
+**Default**: 1.0.0<br />
 **Example**:
 
 ```yaml
 sysdig:
-  zookeeperVersion: 5.3.1.1
+  zookeeperVersion: 1.0.0
 ```
 
 ## **sysdig.zookeeperReplicaCount**
@@ -10764,6 +10729,21 @@ sysdig:
 | small        | 3     |
 | medium       | 3     |
 | large        | 3     |
+
+## **sysdig.zookeeper.enableMetrics**
+
+**Required**: `false`<br />
+**Description**: Enables JMX exporter as a sidecar container to export prometheus metrics. <br />
+
+**Options**: `true|false`<br />
+**Default**: `false`<br />
+**Example**:
+
+```yaml
+sysdig:
+  zookeeper:
+    enableMetrics: true
+```
 
 ## **sysdig.zookeeper.nodeAffinityLabel**
 
@@ -10794,38 +10774,6 @@ sysdig:
 sysdig:
   zookeeper:
     nodeAffinityMode: preferred
-```
-
-## **sysdig.zookeeper.secure.super.user**
-
-**Required**: `false`<br />
-**Description**: Zookeeper's super user's username if Kafka cluster is TLS-enabled.<br />
-**Options**:<br />
-**Default**: `super`<br />
-**Example**:
-
-```yaml
-sysdig:
-  zookeeper:
-    secure:
-      super:
-        user: super
-```
-
-## **sysdig.zookeeper.secure.super.password**
-
-**Required**: `false`<br />
-**Description**: Zookeeper's super user's password if Kafka cluster is TLS-enabled.<br />
-**Options**:<br />
-**Default**: Auto-generated 16 random alphanumeric characters.<br />
-**Example**:
-
-```yaml
-sysdig:
-  zookeeper:
-    secure:
-      super:
-        password: F3a4raW#$Rw3e
 ```
 
 ## **sysdig.resources.zookeeper.requests.cpu**
