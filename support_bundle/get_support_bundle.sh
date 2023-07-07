@@ -152,9 +152,11 @@ main() {
         if [[ ${VERSION_CHECK} == 1 ]]; then
             # This api endpoint is found in 6.x and above
             API_URL=$(kubectl ${KUBE_OPTS} get cm sysdigcloud-collector-config -ojsonpath='{.data.collector-config\.conf}' | awk 'p&&$0~/"/{gsub("\"","");print} /{/{p=0} /sso/{p=1}' | grep serverName | awk '{print $3}')
+            BACKEND_VERSION=6
         else
             # This api endpoint is found in 5.x and below
             API_URL=$(kubectl ${KUBE_OPTS} get cm sysdigcloud-config -o yaml | grep -i api.url: | head -1 | awk '{print $2}')
+            BACKEND_VERSION=5
         fi
        
         # Check that the API_KEY for the Super User is valid and exit 
@@ -164,19 +166,28 @@ main() {
             exit 1
         fi
 
-        curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/license" >> ${LOG_DIR}/license.json
-        curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/agents/connected?checkStatus=true" >> ${LOG_DIR}/agents_connected.json
-        curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/storageSettings" >> ${LOG_DIR}/storage_settings.json
-        curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/streamsnapSettings" >> ${LOG_DIR}/streamSnap_settings.json
-        curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customers/1/snapshotSettings" >> ${LOG_DIR}/snapshot_settings.json
-        curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/fastPathSettings" >> ${LOG_DIR}/fastPath_settings.json
-        curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/indexSettings" >> ${LOG_DIR}/index_settings.json
-        curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/planSettings" >> ${LOG_DIR}/plan_settings.json
-        curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/dataRetentionSettings" >> ${LOG_DIR}/dataRetention_settings.json
-        curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/v2/users/light" >> ${LOG_DIR}/users.json
-        curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/v2/teams/light" >> ${LOG_DIR}/teams.json
-        curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/auth/settings" >> ${LOG_DIR}/sso_settings.json
-        curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/alerts" >> ${LOG_DIR}/alerts.json
+        if [[ ${BACKEND_VERSION} == 5 ]]; then
+            curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/fastPathSettings" >> ${LOG_DIR}/fastPath_settings.json
+            curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/indexSettings" >> ${LOG_DIR}/index_settings.json
+        fi
+
+        if [[ ${BACKEND_VERSION} == 5 ]] || [[ ${BACKEND_VERSION} == 6 ]]; then
+            curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/license" >> ${LOG_DIR}/license.json
+            curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/agents/connected?checkStatus=true" >> ${LOG_DIR}/agents_connected.json
+            curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/storageSettings" >> ${LOG_DIR}/storage_settings.json
+            curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/streamsnapSettings" >> ${LOG_DIR}/streamSnap_settings.json
+            curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customers/1/snapshotSettings" >> ${LOG_DIR}/snapshot_settings.json
+            curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/planSettings" >> ${LOG_DIR}/plan_settings.json
+            curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/dataRetentionSettings" >> ${LOG_DIR}/dataRetention_settings.json
+            curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/v2/users/light" >> ${LOG_DIR}/users.json
+            curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/v2/teams/light" >> ${LOG_DIR}/teams.json
+            curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/auth/settings" >> ${LOG_DIR}/sso_settings.json
+            curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/alerts" >> ${LOG_DIR}/alerts.json
+        fi
+
+        if [[ ${BACKEND_VERSION} == 6 ]]; then
+            curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/meerkatSettings" >> ${LOG_DIR}/meerkat_settings.json
+        fi
 
         if [[ $OSTYPE == 'darwin'* ]]; then
             TO_EPOCH_TIME=$(date -jf "%H:%M:%S" $(date +%H):00:00 +%s)
