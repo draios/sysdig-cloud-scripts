@@ -212,6 +212,9 @@ main() {
     echo "Using namespace ${NAMESPACE}"
     echo "Using context ${CONTEXT}"
 
+    # Collect kubectl version
+    kubectl ${CONTEXT} version > ${LOG_DIR}/kubectl_version.txt
+
     # Collect container logs for each pod
     if [[ "${SKIP_LOGS}" == "false" ]]; then
         echo "Gathering Logs from ${NAMESPACE} pods"
