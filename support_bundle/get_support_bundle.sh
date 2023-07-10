@@ -232,7 +232,7 @@ main() {
         fi
 
         # Check if ScanningV2 is enabled, and if so, do ...
-        SCANNING_V2_ENABLED=$(curl -ksX GET ${API_URL}/api/secure/customerSettings -H "Authorization: Bearer ${SECURE_API_KEY}" 2>&1 | grep -Eo "\"scanningV2Enabled\":true") || true
+        SCANNING_V2_ENABLED=$(curl -ks ${API_URL}/api/secure/customerSettings -H "Authorization: Bearer ${SECURE_API_KEY}" 2>&1 | grep -Eo "\"scanningV2Enabled\":true") || true
         if [[ ${SCANNING_V2_ENABLED} == "\"scanningV2Enabled\":true" ]]; then
             echo "Scanning v2 is enabled. Continuing..."
             curl -ks ${API_URL}/api/scanning/scanresults/v2/results -H "Authorization: Bearer ${SECURE_API_KEY}" >> ${LOG_DIR}/scanning/scanningv2.txt
