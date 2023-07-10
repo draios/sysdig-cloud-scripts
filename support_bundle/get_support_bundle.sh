@@ -221,12 +221,12 @@ main() {
         fi
 
         # Check if ScanningV1 is enabled, and if so, do ...
-        SCANNING_V1_ENABLED=$(curl -ksX GET ${API_URL}/api/secure/customerSettings -H "Authorization: Bearer ${SECURE_API_KEY}" 2>&1 | grep -Eo "\"scanningV1Enabled\":true") || true
+        SCANNING_V1_ENABLED=$(curl -ks ${API_URL}/api/secure/customerSettings -H "Authorization: Bearer ${SECURE_API_KEY}" 2>&1 | grep -Eo "\"scanningV1Enabled\":true") || true
         if [[ ${SCANNING_V1_ENABLED} == "\"scanningV1Enabled\":true" ]]; then
             echo "Scanning v1 is enabled. Continuing..."
             # CURL COMMANDS GO HERE
             mkdir -p ${LOG_DIR}/scanning
-            curl -ksX GET ${API_URL}/api/scanning/v1/resultsDirect?limit=1 -H "Authorization: Bearer ${SECURE_API_KEY}" >> ${LOG_DIR}/scanning/scanningv1.txt
+            curl -ks ${API_URL}/api/scanning/v1/resultsDirect?limit=1 -H "Authorization: Bearer ${SECURE_API_KEY}" >> ${LOG_DIR}/scanning/scanningv1.txt
         else
             echo "Scanning V1 not detected. Continuing..."
         fi
@@ -235,7 +235,7 @@ main() {
         SCANNING_V2_ENABLED=$(curl -ksX GET ${API_URL}/api/secure/customerSettings -H "Authorization: Bearer ${SECURE_API_KEY}" 2>&1 | grep -Eo "\"scanningV2Enabled\":true") || true
         if [[ ${SCANNING_V2_ENABLED} == "\"scanningV2Enabled\":true" ]]; then
             echo "Scanning v2 is enabled. Continuing..."
-            curl -ksX GET ${API_URL}/api/scanning/scanresults/v2/results -H "Authorization: Bearer ${SECURE_API_KEY}" >> ${LOG_DIR}/scanning/scanningv2.txt
+            curl -ks ${API_URL}/api/scanning/scanresults/v2/results -H "Authorization: Bearer ${SECURE_API_KEY}" >> ${LOG_DIR}/scanning/scanningv2.txt
             # CURL COMMANDS GO HERE
         else
             echo "Scanning V2 not detected. Continuing..."
