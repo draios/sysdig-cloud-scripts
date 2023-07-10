@@ -151,7 +151,7 @@ main() {
         VERSION_CHECK=$(kubectl ${KUBE_OPTS} get cm | grep -c 'sysdigcloud-api-config') || true
         if [[ ${VERSION_CHECK} == 1 ]]; then
             # This api endpoint is found in 6.x and above
-            API_URL=$(kubectl ${KUBE_OPTS} get cm sysdigcloud-collector-config -ojsonpath='{.data.collector-config\.conf}' | awk 'p&&$0~/"/{gsub("\"","");print} /{/{p=0} /sso/{p=1}' | grep serverName | awk '{print $3}')
+            API_URL=$(kubectl ${KUBE_OPTS} get cm sysdigcloud-api-config -ojsonpath='{.data.api-config\.conf}' | awk 'p&&$0~/"/{gsub("\"","");print} /{/{p=0} /sso/{p=1}' | grep serverName | awk '{print $3}')
         else
             # This api endpoint is found in 5.x and below
             API_URL=$(kubectl ${KUBE_OPTS} get cm sysdigcloud-config -o yaml | grep -i api.url: | head -1 | awk '{print $2}')
