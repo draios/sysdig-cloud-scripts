@@ -149,10 +149,8 @@ main() {
     # If API key is supplied, check the backend version, and send a GET to the relevant endpoints.
     if [[ ! -z ${API_KEY} ]]; then
         BACKEND_VERSION=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get deployment sysdigcloud-api -ojsonpath='{.spec.template.spec.containers[0].image}' | awk 'match($0, /[0-9]\.[0-9]\.[0-9](\.[0-9]+)?/) {print substr($0, RSTART, RLENGTH)}') || true
-        echo "The backend version is ${BACKEND_VERSION}"
         if [[ "$BACKEND_VERSION" =~ ^(6) ]]; then
             API_URL=$(kubectl ${KUBE_OPTS} get cm sysdigcloud-collector-config -ojsonpath='{.data.collector-config\.conf}' | awk 'p&&$0~/"/{gsub("\"","");print} /{/{p=0} /sso/{p=1}' | grep serverName | awk '{print $3}')
-            echo "The API URL is ${API_URL}"
             # Check that the API_KEY for the Super User is valid and exit 
             CURL_OUT=$(curl -fks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/license" >/dev/null 2>&1) && RETVAL=$? && error=0 || { RETVAL=$? && error=1; }
             if [[ ${error} -eq 1 ]]; then
@@ -162,7 +160,6 @@ main() {
             curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/meerkatSettings" >> ${LOG_DIR}/meerkat_settings.json
         elif [[ "$BACKEND_VERSION" =~ ^(5) ]] || [[ "$BACKEND_VERSION" =~ ^(4) ]] || [[ "$BACKEND_VERSION" =~ ^(3) ]]; then
             API_URL=$(kubectl ${KUBE_OPTS} get cm sysdigcloud-config -o yaml | grep -i api.url: | head -1 | awk '{print $2}')
-            echo "The API URL is ${API_URL}"
             # Check that the API_KEY for the Super User is valid and exit 
             CURL_OUT=$(curl -fks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/license" >/dev/null 2>&1) && RETVAL=$? && error=0 || { RETVAL=$? && error=1; }
             if [[ ${error} -eq 1 ]]; then
