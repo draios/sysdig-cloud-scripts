@@ -146,22 +146,28 @@ main() {
         exit 1
     fi
 
-    # If API key is supplied, collect streamSnap, Index settings, and fastPath settings
+    # If API key is supplied, check the backend version, and send a GET to the relevant endpoints.
     if [[ ! -z ${API_KEY} ]]; then
-        VERSION_CHECK=$(kubectl ${KUBE_OPTS} get cm | grep -c 'sysdigcloud-api-config') || true
-        if [[ ${VERSION_CHECK} == 1 ]]; then
-            # This api endpoint is found in 6.x and above
+        BACKEND_VERSION=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get deployment sysdigcloud-api -ojsonpath='{.spec.template.spec.containers[0].image}' | awk 'match($0, /[0-9]\.[0-9]\.[0-9](\.[0-9]+)?/) {print substr($0, RSTART, RLENGTH)}') || true
+        if [[ "$BACKEND_VERSION" =~ ^(6) ]]; then
             API_URL=$(kubectl ${KUBE_OPTS} get cm sysdigcloud-collector-config -ojsonpath='{.data.collector-config\.conf}' | awk 'p&&$0~/"/{gsub("\"","");print} /{/{p=0} /sso/{p=1}' | grep serverName | awk '{print $3}')
-        else
-            # This api endpoint is found in 5.x and below
+            # Check that the API_KEY for the Super User is valid and exit 
+            CURL_OUT=$(curl -fks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/license" >/dev/null 2>&1) && RETVAL=$? && error=0 || { RETVAL=$? && error=1; }
+            if [[ ${error} -eq 1 ]]; then
+                echo "The API_KEY supplied is Unauthorized.  Please check and try again.  Return Code: ${RETVAL}"
+                exit 1
+            fi
+            curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/meerkatSettings" >> ${LOG_DIR}/meerkat_settings.json
+        elif [[ "$BACKEND_VERSION" =~ ^(5) ]] || [[ "$BACKEND_VERSION" =~ ^(4) ]] || [[ "$BACKEND_VERSION" =~ ^(3) ]]; then
             API_URL=$(kubectl ${KUBE_OPTS} get cm sysdigcloud-config -o yaml | grep -i api.url: | head -1 | awk '{print $2}')
-        fi
-       
-        # Check that the API_KEY for the Super User is valid and exit 
-        CURL_OUT=$(curl -fks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/license" >/dev/null 2>&1) && RETVAL=$? && error=0 || { RETVAL=$? && error=1; }
-        if [[ ${error} -eq 1 ]]; then
-            echo "The API_KEY supplied is Unauthorized.  Please check and try again.  Return Code: ${RETVAL}"
-            exit 1
+            # Check that the API_KEY for the Super User is valid and exit 
+            CURL_OUT=$(curl -fks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/license" >/dev/null 2>&1) && RETVAL=$? && error=0 || { RETVAL=$? && error=1; }
+            if [[ ${error} -eq 1 ]]; then
+                echo "The API_KEY supplied is Unauthorized.  Please check and try again.  Return Code: ${RETVAL}"
+                exit 1
+            fi
+            curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/fastPathSettings" >> ${LOG_DIR}/fastPath_settings.json
+            curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/indexSettings" >> ${LOG_DIR}/index_settings.json
         fi
 
         curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/license" >> ${LOG_DIR}/license.json
@@ -169,8 +175,6 @@ main() {
         curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/storageSettings" >> ${LOG_DIR}/storage_settings.json
         curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/streamsnapSettings" >> ${LOG_DIR}/streamSnap_settings.json
         curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customers/1/snapshotSettings" >> ${LOG_DIR}/snapshot_settings.json
-        curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/fastPathSettings" >> ${LOG_DIR}/fastPath_settings.json
-        curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/indexSettings" >> ${LOG_DIR}/index_settings.json
         curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/planSettings" >> ${LOG_DIR}/plan_settings.json
         curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/dataRetentionSettings" >> ${LOG_DIR}/dataRetention_settings.json
         curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/v2/users/light" >> ${LOG_DIR}/users.json
