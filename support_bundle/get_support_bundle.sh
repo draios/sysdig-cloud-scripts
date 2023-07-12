@@ -182,6 +182,49 @@ main() {
         curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/auth/settings" >> ${LOG_DIR}/sso_settings.json
         curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/alerts" >> ${LOG_DIR}/alerts.json
 
+    # If Secure API key is supplied, collect settings
+    if [[ ! -z ${SECURE_API_KEY} ]]; then                                                                     
+        BACKEND_VERSION=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get deployment sysdigcloud-api -ojsonpath='{.spec.template.spec.containers[0].image}' | awk 'match($0, /[0-9]\.[0-9]\.[0-9](\.[0-9]+)?/) {print substr($0, RSTART, RLENGTH)}') || true
+        if [[ "$BACKEND_VERSION" =~ ^(6) ]]; then                                                             
+            API_URL=$(kubectl ${KUBE_OPTS} get cm sysdigcloud-collector-config -ojsonpath='{.data.collector-config\.conf}' | awk 'p&&$0~/"/{gsub("\"","");print} /{/{p=0} /sso/{p=1}' | grep serverName | awk '{print $3}')                                                           
+            # Check that the SECURE_API_KEY for the Super User is valid and exit                              
+            CURL_OUT=$(curl -fks -H "Authorization: Bearer ${SECURE_API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/license" >/dev/null 2>&1) && RETVAL=$? && error=0 || { RETVAL=$? && error=1; }                                                                      
+            if [[ ${error} -eq 1 ]]; then                                                                     
+                echo "The SECURE_API_KEY supplied is Unauthorized.  Please check and try again.  Return Code: ${RETVAL}"   
+                exit 1
+            fi
+        elif [[ "$BACKEND_VERSION" =~ ^(5) ]] || [[ "$BACKEND_VERSION" =~ ^(4) ]] || [[ "$BACKEND_VERSION" =~ ^(3) ]]; then    
+            API_URL=$(kubectl ${KUBE_OPTS} get cm sysdigcloud-config -o yaml | grep -i api.url: | head -1 | awk '{print $2}')  
+            # Check that the API_KEY for the Super User is valid and exit 
+            CURL_OUT=$(curl -fks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/license" >/dev/null 2>&1) && RETVAL=$? && error=0 || { RETVAL=$? && error=1; }
+            if [[ ${error} -eq 1 ]]; then
+                echo "The API_KEY supplied is Unauthorized.  Please check and try again.  Return Code: ${RETVAL}"          
+                exit 1
+            fi  
+        fi                                                                                                    
+                
+        # Check if ScanningV1 is enabled, and if so, do ...                                                   
+        SCANNING_V1_ENABLED=$(curl -ks ${API_URL}/api/secure/customerSettings -H "Authorization: Bearer ${SECURE_API_KEY}" 2>&1 | grep -Eo "\"scanningV1Enabled\":true") || true                                                                                                      
+        if [[ ${SCANNING_V1_ENABLED} == "\"scanningV1Enabled\":true" ]]; then                                 
+            echo "Scanning v1 is enabled. Continuing..."
+            # CURL COMMANDS GO HERE                                                                           
+            mkdir -p ${LOG_DIR}/scanning
+            curl -ks ${API_URL}/api/scanning/v1/resultsDirect?limit=1 -H "Authorization: Bearer ${SECURE_API_KEY}" >> ${LOG_DIR}/scanning/scanningv1.txt                                                                                                                              
+        else
+            echo "Scanning V1 not detected. Continuing..."
+        fi
+            
+        # Check if ScanningV2 is enabled, and if so, do ...
+        SCANNING_V2_ENABLED=$(curl -ks ${API_URL}/api/secure/customerSettings -H "Authorization: Bearer ${SECURE_API_KEY}" 2>&1 | grep -Eo "\"scanningV2Enabled\":true") || true                                                                                                      
+        if [[ ${SCANNING_V2_ENABLED} == "\"scanningV2Enabled\":true" ]]; then                                 
+            echo "Scanning v2 is enabled. Continuing..."                                                      
+            curl -ks ${API_URL}/api/scanning/scanresults/v2/results -H "Authorization: Bearer ${SECURE_API_KEY}" >> ${LOG_DIR}/scanning/scanningv2.txt                                                                                                                                
+            # CURL COMMANDS GO HERE 
+        else
+            echo "Scanning V2 not detected. Continuing..."
+        fi                        
+    fi
+
         if [[ $OSTYPE == 'darwin'* ]]; then
             TO_EPOCH_TIME=$(date -jf "%H:%M:%S" $(date +%H):00:00 +%s)
         else
