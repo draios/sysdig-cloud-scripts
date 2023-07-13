@@ -166,8 +166,12 @@ main() {
                 echo "The API_KEY supplied is Unauthorized.  Please check and try again.  Return Code: ${RETVAL}"
                 exit 1
             fi
+        
             curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/fastPathSettings" >> ${LOG_DIR}/fastPath_settings.json
             curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/indexSettings" >> ${LOG_DIR}/index_settings.json
+        else
+            echo "We could not determine the backend version. Exiting."
+            exit 1
         fi
 
         curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/license" >> ${LOG_DIR}/license.json
@@ -201,6 +205,9 @@ main() {
                 echo "The API_KEY supplied is Unauthorized.  Please check and try again.  Return Code: ${RETVAL}"          
                 exit 1
             fi  
+        else 
+            echo "We cannot determine the backend version. Exiting."
+            exit 1
         fi                                                                                                    
                 
         # Check if ScanningV1 is enabled, and if so, do ...                                                   
