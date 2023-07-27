@@ -10016,6 +10016,19 @@ sysdig:
 | medium       | 3     |
 | large        | 5     |
 
+## **sysdig.meerkatAggregatorWorkerReplicaCount**
+
+**Required**: `false`<br />
+**Description**: Number of Meerkat aggregator worker replicas.<br />
+**Options**:<br />
+**Default**:<br />
+
+| cluster-size | count |
+| ------------ | ----- |
+| small        | 1     |
+| medium       | 3     |
+| large        | 5     |
+
 ## **sysdig.meerkatApiReplicaCount**
 
 **Required**: `false`<br />
@@ -10268,6 +10281,113 @@ sysdig:
 sysdig:
   meerkatAggregator:
     jvmOptions: "-Dio.netty.leakDetection.level=advanced"
+```
+
+## **sysdig.resources.meerkatAggregatorWorker.requests.cpu**
+
+**Required**: `false`<br />
+**Description**: The amount of cpu required to schedule each Meerkat Aggregator Worker pod<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 1        |
+| medium       | 2        |
+| large        | 4        |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    meerkatAggregatorWorker:
+      requests:
+        cpu: 2
+```
+
+## **sysdig.resources.meerkatAggregatorWorker.requests.memory**
+
+**Required**: `false`<br />
+**Description**: The amount of memory required to schedule each Meerkat Aggregator Worker pod<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 1Gi      |
+| medium       | 2Gi      |
+| large        | 4Gi      |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    meerkatAggregatorWorker:
+      requests:
+        memory: 2Gi
+```
+
+## **sysdig.resources.meerkatAggregatorWorker.limits.cpu**
+
+**Required**: `false`<br />
+**Description**: The max amount of cpu assigned to each Meerkat Aggregator Worker pod<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 4      |
+| medium       | 8      |
+| large        | 16     |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    meerkatAggregatorWorker:
+      limits:
+        cpu: 2
+```
+
+## **sysdig.resources.meerkatAggregatorWorker.limits.memory**
+
+**Required**: `false`<br />
+**Description**: The max amount of memory assigned to each Meerkat Aggregator Worker pod<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 4Gi    |
+| medium       | 8Gi    |
+| large        | 16Gi   |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    meerkatAggregatorWorker:
+      requests:
+        memory: 2Gi
+```
+
+## **sysdig.meerkatAggregatorWorker.jvmOptions**
+
+**Required**: `false`<br />
+**Description**: Custom configuration for Meerkat Aggregator Worker JVM.<br />
+**Options**:<br />
+**Default**: ` `
+
+**Example**:
+
+```yaml
+sysdig:
+  meerkatAggregatorWorker:
+    jvmOptions: "-Xmx2Gi"
 ```
 
 ## **sysdig.resources.meerkatCollector.requests.cpu**
@@ -13540,7 +13660,7 @@ override the `privateEndpointCommunicationEnforcement`.
 sysdig:
   prwsInternalIngestion:
     privateEndpointCommunicationEnforcement: false
-    privateEndpointCommunicationEnforcementExclusions: my-awesome.domain.com, 192.168.0.0/16 
+    privateEndpointCommunicationEnforcementExclusions: my-awesome.domain.com, 192.168.0.0/16
 ```
 
 ## **sysdig.secure.netsec.rateLimit**
