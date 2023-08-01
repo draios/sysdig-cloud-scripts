@@ -10722,7 +10722,7 @@ sysdig:
 **Required**: `false`<br />
 **Description**: WARNING: If this is `true`, `sysdig.monitorVersion` must be `2.4.1.5032`. Enables TLS for Kafka cluster.<br />
 **Options**: `true|false`<br />
-**Default**: `false`<br />
+**Default**: `true`<br />
 **Example**:
 
 ```yaml
