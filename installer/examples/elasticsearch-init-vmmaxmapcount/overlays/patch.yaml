@@ -1,4 +1,11 @@
 #This patchfile adds an initcontainer to ElasticSearch and sets vmmaxmap count in ES hosts
+#
+# WARNING: this patch is not necessary anymore, you can just add this option to the installer values:
+#
+# elasticsearch:
+#   ...
+#   setVmMaxMapCount: true
+#
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -11,7 +18,12 @@ spec:
         - name: elasticsearch-init-vmmaxmapcount
           image: quay.io/sysdig/opensearch-1:<CURRENT_ES_VERSION>
           securityContext:
+            capabilities:
+              drop:
+              - ALL
             privileged: true
+            readOnlyRootFilesystem: true
+            runAsNonRoot: false
             runAsUser: 0
           command:
             - sysctl
