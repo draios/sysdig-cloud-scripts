@@ -1672,12 +1672,12 @@ sysdig:
 **Required**: `false`<br />
 **Description**: Docker image tag of the Prometheus exporter for NATS.<br />
 **Options**:<br />
-**Default**: 0.9.0.1<br />
+**Default**: 0.1.5<br />
 **Example**:
 
 ```yaml
 sysdig:
-  natsExporterVersion: 0.9.0.1
+  natsExporterVersion: 0.1.5
 ```
 
 ## **sysdig.natsStreamingVersion**
@@ -1704,6 +1704,45 @@ sysdig:
 ```yaml
 sysdig:
   natsStreamingInitVersion: 0.22.0.7
+```
+
+## **sysdig.natsServerVersion**
+
+**Required**: `false`<br />
+**Description**: Docker image tag of NATS.<br />
+**Options**:<br />
+**Default**: 0.1.11<br />
+**Example**:
+
+```yaml
+sysdig:
+  natsExporterVersion: 0.1.11
+```
+
+## **sysdig.natsReloaderVersion**
+
+**Required**: `false`<br />
+**Description**: Docker image tag of NATS Reloader.<br />
+**Options**:<br />
+**Default**: 0.1.4<br />
+**Example**:
+
+```yaml
+sysdig:
+  natsExporterVersion: 0.1.4
+```
+
+## **sysdig.natsBoxVersion**
+
+**Required**: `false`<br />
+**Description**: Docker image tag of NATS Box.<br />
+**Options**:<br />
+**Default**: 0.0.13<br />
+**Example**:
+
+```yaml
+sysdig:
+  natsExporterVersion: 0.0.13
 ```
 
 ## **sysdig.nats.enabled**
@@ -6716,6 +6755,245 @@ sysdig:
         memory: 1Gi
 ```
 
+## **sysdig.natsJs.enabled**
+
+**Required**: `false`<br />
+**Description**: Enable nats js deploy<br />
+**Options**: true|false<br />
+**Default**: true<br />
+**Example**:
+
+```yaml
+sysdig:
+  natsJs:
+    enabled: true
+```
+
+## **sysdig.natsJs.nats.fullnameOverride**
+
+**Required**: `false`<br />
+**Description**: the name of the nats js deployment<br />
+**Options**:<br />
+**Default**: nats
+
+**Example**:
+
+```yaml
+sysdig:
+  natsJs:
+    nats:
+      fullnameOverride: nats
+```
+
+## **sysdig.natsJs.nats.natsbox.enabled**
+
+**Required**: `false`<br />
+**Description**: Enable nats js box deploy<br />
+**Options**: true|false<br />
+**Default**: false<br />
+**Example**:
+
+```yaml
+sysdig:
+  natsJs:
+    nats:
+      natsbox:
+        enabled: true
+```
+
+## **sysdig.natsJs.natsTLSGenerator.enabled**
+
+**Required**: `false`<br />
+**Description**: Enable the use of cert manager. Creates Issuer and Certficate resources<br />
+**Options**:<br />
+**Options**: true|false<br />
+**Default**: false
+
+**Example**:
+
+```yaml
+sysdig:
+  natsJs:
+    natsTLSGenerator: true
+```
+
+## **sysdig.natsJs.ha.enabled**
+
+**Required**: `false`<br />
+**Description**: This feature ensures that there are multiple replicas of your NATS JetStream server running at any given time, providing data redundancy and mitigating the risk of server failure. It accomplishes this by utilizing cluster mode, where data is distributed across multiple nodes.
+
+If you disable High Availability, the number of JetStream replicas will be set to 1. In this scenario, there is no data redundancy since there is only a single instance of the server. Therefore, any issues with this single instance could lead to data loss or service disruption. Also, the cluster mode of NATS will be disabled, meaning that your data will no be distributed across multiple nodes, potentially leading to increased risk of data loss and less efficient use of resources.
+
+It is recommended to keep High Availability enabled for production use of NATS JetStream
+<br />
+**Options**:<br />
+**Default**: true<br />
+**Example**:
+
+```yaml
+sysdig:
+  natsJs:
+    ha:
+      enabled: false
+```
+
+## **sysdig.natsJs.nats.tolerations**
+
+**Required**: `false`<br />
+**Description**: If set add tolerations to NatsJs statefulset<br />
+**Options**: <br />
+**Default**: `[]`<br />
+**Example**:
+
+```yaml
+sysdig:
+  natsJs:
+    nats:
+      tolerations:
+        key: dedicated
+        operator: Equal
+        value: cassandra
+        effect: NoSchedule
+```
+
+## **sysdig.natsJs.nats.affinity**
+
+**Required**: `false`<br />
+**Description**: If set add affinity to NatsJs statefulset<br />
+**Options**: <br />
+**Default**: ``<br />
+**Example**:
+
+```yaml
+sysdig:
+  natsJs:
+    nats:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: name
+                operator: In
+                values:
+                - blue
+```
+
+## **sysdig.resources.natsJs.limits.cpu**
+
+**Required**: `false`<br />
+**Description**: The amount of cpu assigned to nats pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 1      |
+| medium       | 2      |
+| large        | 3      |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    natsJs:
+      limits:
+        cpu: 2
+```
+
+## **sysdig.resources.natsJs.limits.memory**
+
+**Required**: `false`<br />
+**Description**: The amount of memory assigned to nats pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 1Gi    |
+| medium       | 2Gi    |
+| large        | 3Gi    |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    natsJs:
+      limits:
+        memory: 2Gi
+```
+
+## **sysdig.resources.natsJs.requests.cpu**
+
+**Required**: `false`<br />
+**Description**: The amount of cpu required to schedule nats pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 250m     |
+| medium       | 1        |
+| large        | 2        |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    natsJs:
+      requests:
+        cpu: 250m
+```
+
+## **sysdig.resources.natsJs.requests.memory**
+
+**Required**: `false`<br />
+**Description**: The amount of memory required to schedule nats pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 1Gi      |
+| medium       | 2Gi      |
+| large        | 3Gi      |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    natsJs:
+      requests:
+        memory: 1Gi
+```
+
+## **sysdig.natsJs.nats.nats.gomemlimit**
+
+**Required**: `false`<br />
+**Description**: The amount of memory dedicated to go. Configure it to the 90% of memory limit<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 900MiB   |
+| medium       | 1800MiB  |
+| large        | 2600MiB  |
+
+**Example**:
+
+```yaml
+sysdig:
+  natsJs:
+    nats:
+      nats:
+        gomemlimit: 900MiB
+```
+
 ## **sysdig.resources.nats-streaming.limits.cpu**
 
 **Required**: `false`<br />
@@ -8987,11 +9265,8 @@ sysdig:
 
 **Required**: `false`<br />
 **Description**: Whether to enable metadata-service or not
-**Do not modify this unless you
-know what you are doing as modifying it could have unintended
-consequences**<br />
 **Options**:`true|false`<br />
-**Default**: `false`<br />
+**Default**: `true`<br />
 **Example**:
 
 ```yaml
@@ -9003,10 +9278,7 @@ sysdig:
 ## **sysdig.metadataService.operatorEnabled**
 
 **Required**: `false`<br />
-**Description**: Whether to enable metadata-service-operator or not
-**Do not modify this unless you
-know what you are doing as modifying it could have unintended
-consequences**<br />
+**Description**: Whether to enable metadata-service-operator or not, this controls the HA capabilities of the Metadata Service but it requires several k8s permissions in the cluster.
 **Options**:`true|false`<br />
 **Default**: `true`<br />
 **Example**:
@@ -9202,11 +9474,8 @@ sysdig:
 
 **Required**: `false`<br />
 **Description**: Whether to enable helm-renderer or not
-**Do not modify this unless you
-know what you are doing as modifying it could have unintended
-consequences**<br />
 **Options**:`true|false`<br />
-**Default**: `false`<br />
+**Default**: `true`<br />
 **Example**:
 
 ```yaml
@@ -13921,4 +14190,20 @@ sysdig:
   secure:
     scanningv2:
       customCerts: true
+```
+
+## **sysdig.secure.scanningv2.airgappedFeeds**
+
+**Required**: `false`<br />
+**Description**: Deploys a local object storage for scanningv2 vuln feeds artifacts for airgapped installs. It does not reach out to one of Sysdig SaaS products<br />
+**Options**: `true|false`<br />
+**Default**: `false`<br />
+
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanningv2:
+      airgappedFeeds: true
 ```

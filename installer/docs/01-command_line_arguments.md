@@ -190,3 +190,60 @@ quay.io/sysdig/sysdig-alert-manager:6.0.0.12431
 quay.io/sysdig/redis-exporter-1:1.0.9
 quay.io/sysdig/ui-inspect-nginx:6.0.0.12431
 ```
+
+## Command: `diff`
+
+Will perform a diff between the platform objects in a running k8s cluster, and the generated manifests based on some values.
+
+`--write-diff`
+
+- Will write the diff on the filesystem organized in subfolders, rather than printing it to the stdout. 
+
+`--out-diff-dir`
+
+- Allows you to specify a custom path for the diff files being written on the filesystem. Will be used only if also `--write-diff` is provided. If not set will use a temporary directory.
+
+`--cleanup`
+
+- If set, will attempt to automatically delete any generated diff files on the filesystem if the directory used to store the diff files already exists. Requires both `--write-diff` and `--out-diff-dir` to be set.
+
+`--secure`
+
+- applies some filters to the produced diff in order to avoid printing sensitive informations. This is useful if you need to share diffs to user who shouldn't have access to credentials.
+
+`--summary`
+
+- Only prints a summary of the diff errors.
+
+Diff command also has options inherited from the generate command options. See **generate** command section.
+
+## Command: `generate`
+
+`--manifest-directory`
+
+- Set the location where the installer will write the genearted manifests.
+
+`--skip-generate`
+
+- Skips generating Kubernetes manifests and attempts to diff whatever is in the manifests directory. Manifest directory can be specified using `--manifest-directory <dir>` flag.
+
+`--skip-import`
+
+- Skips the import phase, which would try to import values from a running cluster.
+
+`--skip-validation`
+
+- Skips validation checks.
+
+`--ignore-kubeconfig-errors`
+
+- This will ignore all errors from trying to parse kubeconfig file.
+
+`--preserve-templates`
+
+- Preserve directory installer templates are extracted to, this should only be used for debugging purposes
+
+`--k8s-server-version`
+
+- Sets the `kubernetesServerVersion` within values.
+
