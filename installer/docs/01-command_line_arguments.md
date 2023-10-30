@@ -217,6 +217,11 @@ Will perform a diff between the platform objects in a running k8s cluster, and t
 
 Diff command also has options inherited from the generate command options. See **generate** command section.
 
+### Sub-Command: secure-diff [DEPRECATED]
+
+Performs a diff not showing sensitive information.
+This subcommand is DEPRECATED and will be removed starting from version 6.7.0, you can have the same effect with the diff command and the flag `--secure`.
+
 ## Command: `generate`
 
 `--manifest-directory`
