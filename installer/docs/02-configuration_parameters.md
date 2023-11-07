@@ -13949,7 +13949,6 @@ sysdig:
 
 **Required**: `false`<br />
 **Description**: Enable Vulnerability Engine V2 for Sysdig Secure.<br />
-NOTE: Vulnerability Engine V2 is not yet supported for airgapped installation.<br />
 **Options**:<br />
 **Default**: true<br />
 **Example**:

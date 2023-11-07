@@ -70,9 +70,15 @@ actual name of the STS in the cluster differs
 
 - Same as above for `cassandra`
 
+`--use-import-v2`
+
+- This flag will use the new import logic, which will import the values from the cluster and then generate the manifests based on the imported values. Defaults to `false`, which means the old import logic will be used, unless the `--use-import-v2` flag is provided. Import V2 is supported starting from version 6.6.0, and is expected to become the default in the future.
+
 ## Command: `update-license`
 
 Added November 2022, this is a new command.
+
+** WARNING: THIS FEATURE requires `kubectl` to be at least version `1.20.0` **
 
 This command performs the minimal changes and restarts to apply a new license.
 Based on [this page](https://docs.sysdig.com/en/docs/administration/on-premises-deployments/upgrade-an-on-premises-license/)
@@ -197,7 +203,7 @@ Will perform a diff between the platform objects in a running k8s cluster, and t
 
 `--write-diff`
 
-- Will write the diff on the filesystem organized in subfolders, rather than printing it to the stdout. 
+- Will write the diff on the filesystem organized in subfolders, rather than printing it to the stdout.
 
 `--out-diff-dir`
 
@@ -251,4 +257,3 @@ This subcommand is DEPRECATED and will be removed starting from version 6.7.0, y
 `--k8s-server-version`
 
 - Sets the `kubernetesServerVersion` within values.
-
