@@ -278,17 +278,17 @@ main() {
         command='tar czf - /logs/ /opt/draios/ /var/log/sysdigcloud/ /var/log/cassandra/ /tmp/redis.log /var/log/redis-server/redis.log /var/log/mysql/error.log /opt/prod.conf 2>/dev/null || true'
         for pod in ${SYSDIGCLOUD_PODS}; do
             echo "Getting support logs for ${pod}"
-            mkdir -p ${LOG_DIR}/${pod}
+            mkdir -p ${LOG_DIR}/pod_logs/${pod}
             containers=$(kubectl ${KUBE_OPTS} get pod ${pod} -o json | jq -r '.spec.containers[].name' || echo "")
             for container in ${containers}; do
-                kubectl ${KUBE_OPTS} logs ${pod} -c ${container} ${SINCE_OPTS} > ${LOG_DIR}/${pod}/${container}-kubectl-logs.txt || true
+                kubectl ${KUBE_OPTS} logs ${pod} -c ${container} ${SINCE_OPTS} > ${LOG_DIR}/pod_logs/${pod}/${container}-kubectl-logs.txt || true
                 echo "Execing into ${container}"
                 kubectl ${KUBE_OPTS} exec ${pod} -c ${container} -- bash -c "echo" >/dev/null 2>&1 && RETVAL=$? || RETVAL=$? && true
                 kubectl ${KUBE_OPTS} exec ${pod} -c ${container} -- sh -c "echo" >/dev/null 2>&1 && RETVAL1=$? || RETVAL1=$? && true
                 if [ $RETVAL -eq 0 ]; then
-                    kubectl ${KUBE_OPTS} exec ${pod} -c ${container} -- bash -c "${command}" > ${LOG_DIR}/${pod}/${container}-support-files.tgz || true
+                    kubectl ${KUBE_OPTS} exec ${pod} -c ${container} -- bash -c "${command}" > ${LOG_DIR}/pod_logs/${pod}/${container}-support-files.tgz || true
                 elif [ $RETVAL1 -eq 0 ]; then
-                    kubectl ${KUBE_OPTS} exec ${pod} -c ${container} -- sh -c "${command}" > ${LOG_DIR}/${pod}/${container}-support-files.tgz || true
+                    kubectl ${KUBE_OPTS} exec ${pod} -c ${container} -- sh -c "${command}" > ${LOG_DIR}/pod_logs/${pod}/${container}-support-files.tgz || true
                 else
                     echo "Skipping log gathering for ${pod}"
                 fi
