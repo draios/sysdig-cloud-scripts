@@ -5,7 +5,7 @@
 
 # Command line arguments explained
 
-<br />
+<br/>
 
 ## Command: `deploy`
 
@@ -28,7 +28,7 @@
 
 - The user must provide SAs with the exact same name expected:
 
-```
+```text
 sysdig-serviceaccount.yaml:  name: sysdig
 sysdig-serviceaccount.yaml:  name: node-labels-to-files
 sysdig-serviceaccount.yaml:  name: sysdig-with-root
@@ -41,7 +41,7 @@ sysdig-serviceaccount.yaml:  name: sysdig-cassandra
   Another implication is that if SA(s) are missing, the user will have to `describe`
   the STS because Pods will not start at all:
 
-```
+```text
 Events:
   Type     Reason            Age                   From                    Message
   ----     ------            ----                  ----                    -------
@@ -111,7 +111,7 @@ It does not require a live cluster, and it does not fetches any value from a liv
 
 ### Example
 
-```
+```log
 ./installer/out/installer-darwin-amd64 image-list
 I1118 18:48:44.643520   97065 main.go:64] Installer version
 I1118 18:48:44.646391   97065 values.go:122] using namespace sysdig from values.yaml
@@ -257,3 +257,16 @@ This subcommand is DEPRECATED and will be removed starting from version 6.7.0, y
 `--k8s-server-version`
 
 - Sets the `kubernetesServerVersion` within values.
+
+## Command: `list-resources`
+
+Will list all the required resources and limits for a planned deployment, based on the the defaults, provided values, and overlays.
+This command expects to have a `generated` folder. If one doesn't exist, it can be created within the scope of this command, using the `--generate-manifests` flag.
+
+`--generate-manifests`
+
+- Generate Kubernetes manifests before generating the list of resources. Defaults to `false`.
+
+`--node-count`
+
+- Number of nodes in the target cluster. This impacts the resource calculation, because DaemonSets get deployed on every (tolerated) node in the cluster. Defaults to `1`.

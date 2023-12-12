@@ -580,7 +580,23 @@ only when `storageClassProvisioner` is `hostPath`.<br />
 
 ```yaml
 hostPathCustomPaths:
-  postgresql: `/sysdig/stan`
+  nats: `/sysdig/stan`
+```
+
+## **hostPathCustomPaths.natsJs**
+
+**Required**: `false`<br />
+**Description**: The directory to bind mount nats js pod's
+`/var/lib/natsjs` to on the host. This parameter is relevant
+only when `storageClassProvisioner` is `hostPath`.<br />
+**Options**: <br />
+**Default**: `/var/lib/natsjs`<br />
+**Example**:
+
+```yaml
+hostPathCustomPaths:
+  natsJs: `/sysdig/natsjs`
+```
 
 ## **nodeaffinityLabel.key**
 
@@ -669,7 +685,7 @@ pvStorageSize:
 cluster of [`size`](#size) medium. This option is ignored if
 [`storageClassProvisioner`](#storageclassprovisioner) is `hostPath`.<br />
 **Options**:<br />
-**Default**: 100Gi<br />
+**Default**: 150Gi<br />
 **Example**:
 
 ```yaml
@@ -774,11 +790,43 @@ pvStorageSize:
     nats: 10Gi
 ```
 
+## **pvStorageSize.large.natsJs**
+
+**Required**: `false`<br />
+**Description**: The size of the persistent volume assigned to NATS JS HA in a
+cluster of [`size`](#size) small. This option is ignored if
+[`storageClassProvisioner`](#storageclassprovisioner) is `hostPath`.<br />
+**Options**:<br />
+**Default**: 50Gi<br />
+**Example**:
+
+```yaml
+pvStorageSize:
+  large:
+    natsJs: 50Gi
+```
+
 ## **pvStorageSize.medium.nats**
 
 **Required**: `false`<br />
 **Description**: The size of the persistent volume assigned to NATS HA in a
 cluster of [`size`](#size) medium. This option is ignored if
+[`storageClassProvisioner`](#storageclassprovisioner) is `hostPath`.<br />
+**Options**:<br />
+**Default**: 50Gi<br />
+**Example**:
+
+```yaml
+pvStorageSize:
+  medium:
+    nats: 50Gi
+```
+
+## **pvStorageSize.medium.natsJs**
+
+**Required**: `false`<br />
+**Description**: The size of the persistent volume assigned to NATS JS HA in a
+cluster of [`size`](#size) small. This option is ignored if
 [`storageClassProvisioner`](#storageclassprovisioner) is `hostPath`.<br />
 **Options**:<br />
 **Default**: 10Gi<br />
@@ -787,7 +835,7 @@ cluster of [`size`](#size) medium. This option is ignored if
 ```yaml
 pvStorageSize:
   medium:
-    nats: 10Gi
+    natsJs: 10Gi
 ```
 
 ## **pvStorageSize.small.nats**
@@ -804,6 +852,22 @@ cluster of [`size`](#size) small. This option is ignored if
 pvStorageSize:
   small:
     nats: 10Gi
+```
+
+## **pvStorageSize.small.natsJs**
+
+**Required**: `false`<br />
+**Description**: The size of the persistent volume assigned to NATS JS HA in a
+cluster of [`size`](#size) small. This option is ignored if
+[`storageClassProvisioner`](#storageclassprovisioner) is `hostPath`.<br />
+**Options**:<br />
+**Default**: 50Gi<br />
+**Example**:
+
+```yaml
+pvStorageSize:
+  small:
+    natsJs: 50Gi
 ```
 
 ## **sysdig.anchoreVersion**
@@ -945,6 +1009,7 @@ sysdig:
 sysdig:
   cassandraExporterVersion: latest
 ```
+
 ## **sysdig.cassandra.snitch.extractCMD**
 
 **Required**: `false`<br />
@@ -1356,6 +1421,22 @@ sysdig:
   haproxyVersion: v0.7-beta.7.1
 ```
 
+---
+
+## **sysdig.skipIngressGeneration**
+
+**NOTE** - this is a recently added variable that bypasses the previous logic of skipping Ingress resource generation when networking was set to `external`. The goal is to generate the Ingress manifests either way, because even if a customer uses their own Ingress controller, they would still need the Ingress resources. The only reason to have this parameter is if we _explicitly_ need to avoid the generation of Ingress resources</br>
+**Required**: `false`</br>
+**Description**: Boolean parameter which can be used to skip the generation of the ingress resources if desired.</br>
+**Options**: `true|false` </br>
+**Default**: `false`</br>
+**Example**:
+
+```yaml
+sysdig:
+  skipIngressGeneration: true
+```
+
 ## **sysdig.ingressNetworking**
 
 **Required**: `false`<br />
@@ -1380,7 +1461,6 @@ sysdig:
   ingressNetworking: loadbalancer
 ```
 
-
 ## **sysdig.ingressClassName**
 
 **Required**: `false`<br />
@@ -1395,7 +1475,6 @@ sysdig:
 sysdig:
   ingressClassName: haproxy
 ```
-
 
 ## **sysdig.ingressNetworkingInsecureApiNodePort**
 
@@ -1455,6 +1534,19 @@ from Kubernetes for the Sysdig collector endpoint.<br />
 ```yaml
 sysdig:
   ingressNetworkingCollectorNodePort: 30002
+```
+
+## **haproxyIngress.watchAllNamespaces**
+
+**Required**: `false`<br />
+**Description**: When the 'watchAllNamespaces' setting is enabled, the HaProxy Ingress controller oversees Ingress resources throughout all namespaces within the cluster. By default, this setting is disabled, restricting monitoring to the namespace specifically configured for sysdig deployment. <br />
+**Options**: `true|false`<br />
+**Default**: `false` <br />
+**Example**:
+
+```yaml
+haproxyIngress:
+  watchAllNamespaces: true
 ```
 
 ## **sysdig.license**
@@ -3130,8 +3222,8 @@ sysdig:
   redis6ExporterVersion: 1.0.9
 ```
 
-
 ## **sysdig.redis6ImageName**
+
 **Required**: `false`<br />
 **Description**: Docker image name of Redis 6, relevant when configured
 `sysdig.useRedis6` is `true`.<br />
@@ -3145,6 +3237,7 @@ sysdig:
 ```
 
 ## **sysdig.redis6SentinelImageName**
+
 **Required**: `false`<br />
 **Description**: Docker image name of Redis Sentinel, relevant when configured
 `sysdig.useRedis6` is `true`.<br />
@@ -3158,6 +3251,7 @@ sysdig:
 ```
 
 ## **sysdig.redis6ExporterImageName**
+
 **Required**: `false`<br />
 **Description**: Docker image name of Redis Metrics Exporter, relevant when configured
 `sysdig.useRedis6` is `true`.<br />
@@ -3195,7 +3289,9 @@ sysdig:
 redisTls:
   enabled: true
 ```
+
 ## **redisTls.deploy**
+
 **Required**: `false`<br />
 **Description**: When also `redisTls.enabled` is `true`, installs a _Redis with TLS_ and _Sentinel_ support<br />
 **Options**: true|false<br />
@@ -3232,7 +3328,9 @@ redisTls:
 redisTls:
   ha: true
 ```
+
 ## **redisTls.imageName**
+
 **Required**: `false`<br />
 **Description**: Docker image name of Redis, relevant when configured
 `redisTls.enabled` and `redisTls.deploy` are  `true`.<br />
@@ -3244,6 +3342,7 @@ redisTls:
 redisTls:
   imageName: redis-6
 ```
+
 ## **redisTls.version**
 
 **Required**: `false`<br />
@@ -3259,6 +3358,7 @@ redisTls:
 ```
 
 ## **redisTls.sentinel.imageName**
+
 **Required**: `false`<br />
 **Description**: Docker image name of Redis Sentinel, relevant when configured
 `redisTls.enabled` and `redisTls.deploy` are  `true`.<br />
@@ -3271,6 +3371,7 @@ redisTls:
   sentinel:
     imageName: redis-sentinel-6
 ```
+
 ## **redisTls.sentinel.version**
 
 **Required**: `false`<br />
@@ -3287,6 +3388,7 @@ redisTls:
 ```
 
 ## **redisTls.exporter.imageName**
+
 **Required**: `false`<br />
 **Description**: Docker image name of Redis exporter, relevant when configured
 `redisTls.enabled` and `redisTls.deploy` are  `true`.<br />
@@ -3299,7 +3401,9 @@ redisTls:
   exporter:
     imageName: redis-exporter-1
 ```
+
 ## **redisTls.exporter.version**
+
 **Required**: `false`<br />
 **Description**: Docker image tag of Redis exporter, relevant when configured
 `redisTls.enabled` and `redisTls.deploy` are  `true`.<br />
@@ -3312,6 +3416,7 @@ redisTls:
   exporter:
     version: 1.0.9
 ```
+
 ## **redisClientsMonitor**
 
 **Required**: `false`<br />
@@ -3341,7 +3446,6 @@ A Monitor service can have multiple [component connection](https://docs.google.c
 **Options**: _Redis standalone/Redis HA_ | _Redis with TLS_ | _external Redis_<br />
 **Default**: _Redis standalone/Redis HA_<br />
 **Example**:
-
 
 If `tls` is `true` the component `ibmCache` will use the TLS solution (`redisTls.enabled` to `true` is required)
 
@@ -6342,6 +6446,7 @@ sysdig:
 ```
 
 ## **sysdig.secure.scanning.reporting.onDemandGenerationEnabled**
+
 **Required**: `true`<br />
 **Description**: The flag to enable on-demand generation of reports globally<br />
 **Options**: false, true<br />
@@ -6357,6 +6462,7 @@ sysdig:
 ```
 
 ## **sysdig.secure.scanning.reporting.onDemandGenerationCustomers**
+
 **Required**: `false`<br />
 **Description**: The list of customers where on-demand generation of reports has to be enabled, if on-demand generation wasn't enabled globally<br />
 **Options**: <br />
@@ -6835,6 +6941,24 @@ sysdig:
   natsJs:
     ha:
       enabled: false
+```
+
+## **sysdig.natsJs.hostPathNodes**
+
+**Required**: `false`<br />
+**Description**: An array of node hostnames has shown in `kubectl get node -o name` that nats js hostPath persistent volumes should be created on. The number of nodes must be 3. This is
+required if configured [`storageClassProvisioner`](#storageclassprovisioner)
+is `hostPath`.<br />
+**Options**:<br />
+**Default**: [] <br />
+
+**Example**:
+
+```yaml
+sysdig:
+  natsJs:
+    hostPathNodes:
+      - my-cool-host1.com
 ```
 
 ## **sysdig.natsJs.nats.tolerations**
@@ -8316,8 +8440,8 @@ sysdig:
 **Description**:
 [Toleration](https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/)
 that will be created on Sysdig platform pods, this can be combined with
-[nodeaffinityLabel.key](#nodeaffinityLabelkey) and
-[nodeaffinityLabel.value](#nodeaffinityLabelvalue) to ensure only Sysdig
+[nodeaffinityLabel.key](#nodeaffinitylabelkey) and
+[nodeaffinityLabel.value](#nodeaffinitylabelvalue) to ensure only Sysdig
 Platform pods run on particular nodes<br />
 **Options**:<br />
 **Default**:<br />
@@ -9234,7 +9358,7 @@ sysdig:
 ## **sysdig.secure.scanning.veJanitor.anchoreDBsslmode**
 
 **Required**: `false`<br />
-**Description**: Anchore db ssl mode. More info: https://www.postgresql.org/docs/9.1/libpq-ssl.html<br />
+**Description**: Anchore db ssl mode. More info: <https://www.postgresql.org/docs/9.1/libpq-ssl.html><br />
 **Options**:<br />
 **Default**: "disable"<br />
 **Example**:
@@ -10135,6 +10259,7 @@ sysdig:
 ```
 
 ## **networkPolicies**
+
 Please check the [dedicated page](05-networkPolicies.md)
 
 ## **pvStorageSize.small.kafka**
@@ -10144,7 +10269,7 @@ Please check the [dedicated page](05-networkPolicies.md)
 cluster of [`size`](#size) small. This option is ignored if
 [`storageClassProvisioner`](#storageclassprovisioner) is `hostPath`.<br />
 **Options**:<br />
-**Default**: 20Gi<br />
+**Default**: 50Gi<br />
 **Example**:
 
 ```yaml
@@ -10234,6 +10359,7 @@ pvStorageSize:
 ```
 
 ## **sysdig.meerkat.enabled**
+
 **Required**: `false`<br />
 **Description**: Enables Meerkat. Meerkat represents collections of components that make up Sysdig's new, more computationally efficient, metrics store.<br />
 **Options**: `true|false`<br />
@@ -10649,7 +10775,7 @@ sysdig:
 **Required**: `false`<br />
 **Description**: Custom configuration for Meerkat Aggregator Worker JVM.<br />
 **Options**:<br />
-**Default**: ` `
+**Default**: ``
 
 **Example**:
 
@@ -11704,6 +11830,7 @@ sysdig:
 ```
 
 ## **sysdig.prometheus.enabled**
+
 **Required**: `false`<br />
 **Description**: Enables Prometheus services.<br />
 **Options**: `true|false`<br />
@@ -13963,7 +14090,7 @@ sysdig:
 ## **sysdig.secure.scanningv2.vulnsApi.remoteSaaSEndpoint**
 
 **Required**: `true`<br />
-**Description**: Remote endpoint that will be used to retrieve vulnerability feed metadata. Select the optimal Sysdig secure endpoint from https://docs.sysdig.com/en/docs/administration/saas-regions-and-ip-ranges/.<br />
+**Description**: Remote endpoint that will be used to retrieve vulnerability feed metadata. Select the optimal Sysdig secure endpoint from <https://docs.sysdig.com/en/docs/administration/saas-regions-and-ip-ranges/>.<br />
 
 **Example**:
 
@@ -13995,7 +14122,7 @@ sysdig:
 ## **sysdig.secure.scanningv2.pkgMetaApi.remoteSaaSEndpoint**
 
 **Required**: `true`<br />
-**Description**: Remote endpoint that will be used to retrieve vulnerability feed metadata. Select the optimal Sysdig secure endpoint from https://docs.sysdig.com/en/docs/administration/saas-regions-and-ip-ranges/.<br />
+**Description**: Remote endpoint that will be used to retrieve vulnerability feed metadata. Select the optimal Sysdig secure endpoint from <https://docs.sysdig.com/en/docs/administration/saas-regions-and-ip-ranges/>.<br />
 
 **Example**:
 
