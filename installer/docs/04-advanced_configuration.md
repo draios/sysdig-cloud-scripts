@@ -129,43 +129,7 @@ Make sure that subnets have internet gateway configured and has enough ips.
 
 ## Airgapped installations
 
-### Updating the feeds database in airgapped environments [ScanningV2]
-
-This is a script that can be used to automatically update the vulnerability feeds used by the ScanningV2 engine.
-
-```bash
-#!/bin/bash
-QUAY_USERNAME="<change_me>"
-QUAY_PASSWORD="<change_me>"
-
-# Calculate the tag of the last version.
-epoch=`date +%s`
-IMAGE_TAG=$(( $epoch - 86400 - $epoch % 86400))
-
-# Download image
-docker login quay.io/sysdig -u ${QUAY_USERNAME} -p ${QUAY_PASSWORD}
-docker image pull quay.io/sysdig/airgap-vuln-feeds:${IMAGE_TAG}
-# Save image
-docker image save quay.io/sysdig/airgap-vuln-feeds:${IMAGE_TAG} -o airgap-vuln-feeds-latest.tar
-# Optionally move image
-mv airgap-vuln-feeds-latest.tar /var/shared-folder
-# Load image remotely
-ssh -t user@airgapped-host "docker image load -i /var/shared-folder/airgap-vuln-feeds-latest.tar"
-# Push image remotely
-ssh -t user@airgapped-host "docker tag airgap-vuln-feeds:${IMAGE_TAG} airgapped-registry/airgap-vuln-feeds:${IMAGE_TAG}"
-ssh -t user@airgapped-host "docker image push airgapped-registry/airgap-vuln-feeds:${IMAGE_TAG}"
-
-# Update the image
-ssh -t user@airgapped-host "kubectl -n sysdigcloud set image deploy/sysdigcloud-scanningv2-airgap-vuln-feeds airgap-vuln-feeds=airgapped-registry/airgap-vuln-feeds:${IMAGE_TAG}"
-```
-
-The above script could be scheduled using a cron job that run every day like
-
-```bash
-0 8 * * * airgap-vuln-feeds-image-update.sh >/dev/null 2>&1
-```
-
-### Updating the feeds database in airgapped environments [Legacy Scanning]
+### Updating the feeds database in airgapped environments
 
 This is a procedure that can be used to automatically update the feeds database:
 
