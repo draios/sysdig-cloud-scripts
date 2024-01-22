@@ -5,7 +5,7 @@
 
 # Command line arguments explained
 
-<br />
+<br/>
 
 ## Command: `deploy`
 
@@ -28,7 +28,7 @@
 
 - The user must provide SAs with the exact same name expected:
 
-```
+```text
 sysdig-serviceaccount.yaml:  name: sysdig
 sysdig-serviceaccount.yaml:  name: node-labels-to-files
 sysdig-serviceaccount.yaml:  name: sysdig-with-root
@@ -41,7 +41,7 @@ sysdig-serviceaccount.yaml:  name: sysdig-cassandra
   Another implication is that if SA(s) are missing, the user will have to `describe`
   the STS because Pods will not start at all:
 
-```
+```text
 Events:
   Type     Reason            Age                   From                    Message
   ----     ------            ----                  ----                    -------
@@ -70,9 +70,15 @@ actual name of the STS in the cluster differs
 
 - Same as above for `cassandra`
 
+`--use-import-v2`
+
+- This flag will use the new import logic, which will import the values from the cluster and then generate the manifests based on the imported values. Defaults to `false`, which means the old import logic will be used, unless the `--use-import-v2` flag is provided. Import V2 is supported starting from version 6.6.0, and is expected to become the default in the future.
+
 ## Command: `update-license`
 
 Added November 2022, this is a new command.
+
+** WARNING: THIS FEATURE requires `kubectl` to be at least version `1.20.0` **
 
 This command performs the minimal changes and restarts to apply a new license.
 Based on [this page](https://docs.sysdig.com/en/docs/administration/on-premises-deployments/upgrade-an-on-premises-license/)
@@ -105,7 +111,7 @@ It does not require a live cluster, and it does not fetches any value from a liv
 
 ### Example
 
-```
+```log
 ./installer/out/installer-darwin-amd64 image-list
 I1118 18:48:44.643520   97065 main.go:64] Installer version
 I1118 18:48:44.646391   97065 values.go:122] using namespace sysdig from values.yaml
@@ -190,3 +196,77 @@ quay.io/sysdig/sysdig-alert-manager:6.0.0.12431
 quay.io/sysdig/redis-exporter-1:1.0.9
 quay.io/sysdig/ui-inspect-nginx:6.0.0.12431
 ```
+
+## Command: `diff`
+
+Will perform a diff between the platform objects in a running k8s cluster, and the generated manifests based on some values.
+
+`--write-diff`
+
+- Will write the diff on the filesystem organized in subfolders, rather than printing it to the stdout.
+
+`--out-diff-dir`
+
+- Allows you to specify a custom path for the diff files being written on the filesystem. Will be used only if also `--write-diff` is provided. If not set will use a temporary directory.
+
+`--cleanup`
+
+- If set, will attempt to automatically delete any generated diff files on the filesystem if the directory used to store the diff files already exists. Requires both `--write-diff` and `--out-diff-dir` to be set.
+
+`--secure`
+
+- applies some filters to the produced diff in order to avoid printing sensitive informations. This is useful if you need to share diffs to user who shouldn't have access to credentials.
+
+`--summary`
+
+- Only prints a summary of the diff errors.
+
+Diff command also has options inherited from the generate command options. See **generate** command section.
+
+### Sub-Command: secure-diff [DEPRECATED]
+
+Performs a diff not showing sensitive information.
+This subcommand is DEPRECATED and will be removed starting from version 6.7.0, you can have the same effect with the diff command and the flag `--secure`.
+
+## Command: `generate`
+
+`--manifest-directory`
+
+- Set the location where the installer will write the genearted manifests.
+
+`--skip-generate`
+
+- Skips generating Kubernetes manifests and attempts to diff whatever is in the manifests directory. Manifest directory can be specified using `--manifest-directory <dir>` flag.
+
+`--skip-import`
+
+- Skips the import phase, which would try to import values from a running cluster.
+
+`--skip-validation`
+
+- Skips validation checks.
+
+`--ignore-kubeconfig-errors`
+
+- This will ignore all errors from trying to parse kubeconfig file.
+
+`--preserve-templates`
+
+- Preserve directory installer templates are extracted to, this should only be used for debugging purposes
+
+`--k8s-server-version`
+
+- Sets the `kubernetesServerVersion` within values.
+
+## Command: `list-resources`
+
+Will list all the required resources and limits for a planned deployment, based on the the defaults, provided values, and overlays.
+This command expects to have a `generated` folder. If one doesn't exist, it can be created within the scope of this command, using the `--generate-manifests` flag.
+
+`--generate-manifests`
+
+- Generate Kubernetes manifests before generating the list of resources. Defaults to `false`.
+
+`--node-count`
+
+- Number of nodes in the target cluster. This impacts the resource calculation, because DaemonSets get deployed on every (tolerated) node in the cluster. Defaults to `1`.
