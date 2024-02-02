@@ -1,3 +1,5 @@
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=draios_installer&metric=alert_status&token=ecba04faaa549f19a05480f249fcb0113cc43ef0)](https://sonarcloud.io/summary/new_code?id=draios_installer)
+
 # Installer
 
 The Sysdig Installer tool is a collection of scripts that help automate the
