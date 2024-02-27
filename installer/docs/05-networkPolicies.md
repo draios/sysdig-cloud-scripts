@@ -27,7 +27,7 @@ A validation checks that the minimal requirements for each type of environment (
 
 - if `.deployment=kubernetes`, then the `.networkPolicies.ingress.haproxy.allowedNetworks` is required
 
-- if `.deployment=iks`, then the `.networkPolicies.ingress.alb
+- if `.deployment=iks`, then the `.networkPolicies.ingress.alb.selector` is required
 
 ## Parameters
 
@@ -49,7 +49,7 @@ networkPolicies:
 
 **Required**: `false` <br />
 **Description**: to render the NetworkPolicies this flag must be set to `deny`. It works together with flag `networkPolicies.enabled`.<br />
-**Options**: `deny`/`allow`<br />
+**Options**: `deny|allow`<br />
 **Default**: `false`<br />
 
 **Example**:

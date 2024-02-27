@@ -22,3 +22,6 @@ sysdig:
   #supports hostnetwork | loadbalancer | nodeport
   ingressNetworking: hostnetwork
   ingressClassName: haproxy
+  # Uncomment the following two lines to enable Sysdig Platform Audit
+  #platformAuditTrail:
+  #  enabled: true
