@@ -1,0 +1,96 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: sysdigcloud
+  name: installer
+rules:
+  - apiGroups: 
+      - networking.k8s.io
+    resources: 
+      - ingresses
+    verbs:
+      - get
+      - create
+      - list
+      - patch
+      - update
+      - delete
+  - apiGroups:
+      - 'policy'
+    resources:
+      - poddisruptionbudgets
+    verbs:
+      - create
+      - update
+      - get
+      - list
+      - patch
+  - apiGroups:
+      - '*'
+    resources:
+      - networkpolicies
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+  - apiGroups:
+      - '*'
+    resources:
+      - cronjobs
+      - configmaps
+      - deployments
+      - deployments/scale
+      - daemonsets
+      - endpoints
+      - events
+      - jobs
+      - namespaces
+      - podtemplates
+      - podsecuritypolicies
+      - pods
+      - pods/log
+      - pods/exec
+      - pod/delete
+      - pod/status
+      - podpreset
+      - persistentvolumeclaims
+      - replicationcontrollers
+      - replicasets
+      - secrets
+      - services
+      - serviceaccounts
+      - statefulsets
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+  - apiGroups:
+      - '*'
+    resources:
+      - namespace
+    verbs:
+      - create
+      - get
+      - list
+      - update
+  - apiGroups:
+      - rbac.authorization.k8s.io
+    resources:
+      - roles
+      - rolebindings
+    verbs:
+      - create
+      - update
+      - delete
+      - get
+      - list
+...
