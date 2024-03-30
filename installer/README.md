@@ -1,3 +1,5 @@
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=draios_installer&metric=alert_status&token=ecba04faaa549f19a05480f249fcb0113cc43ef0)](https://sonarcloud.io/summary/new_code?id=draios_installer)
+
 # Installer
 
 The Sysdig Installer tool is a collection of scripts that help automate the
@@ -56,8 +58,6 @@ This install assumes the Kubernetes cluster has network access to pull images fr
     Valid options: aws, gke, hostPath
   - [`sysdig.license`](docs/02-configuration_parameters.md#sysdiglicense): Sysdig license key
     provided with your Sysdig purchase confirmation mail
-  - [`sysdig.platformAuditTrail.enabled`](docs/02-configuration_parameters.md#sysdigplatformAuditTrailenabled):
-    Set this parameter to `true` if you would like to use Sysdig Platform Audit.
   - [`sysdig.dnsName`](docs/02-configuration_parameters.md#sysdigdnsName): The domain name
     the Sysdig APIs will be served on.
   - [`sysdig.collector.dnsName`](docs/02-configuration_parameters.md#sysdigcollectordnsName):

@@ -385,7 +385,7 @@ elasticsearch:
 ## **elasticsearch.jobs.rollNodes**
 
 **Required**: `false`<br />
-**Description**: safely roll the elasticsearch nodes, if needed, after a change in the manifests. This can potentially take several minutes per node to restart. In case of an upgrade from elasticsearch to opensearch and this is false then a cluster restart will be performed, i.e. all elasticsearch nodes will be restarted at the same time. WARNING: do not set this to true in a 5.x to 6.x upgrade scenario.<br />
+**Description**: safely roll the elasticsearch nodes, if needed, after a change in the manifests. This can potentially take several minutes per node to restart. In case of an upgrade from elasticsearch to opensearch and this is false then a cluster restart will be performed, i.e. all elasticsearch nodes will be restarted at the same time.<br />
 **Options**: `true|false`<br />
 **Default**: `false`<br />
 **Example**:
@@ -401,13 +401,13 @@ elasticsearch:
 **Required**: `false`<br />
 **Description**: The docker image tag of the elasticsearch jobs<br />
 **Options**:<br />
-**Default**: 0.0.46<br />
+**Default**: 0.0.35<br />
 **Example**:
 
 ```yaml
 elasticsearch:
   jobs:
-    toolsImageVersion: 0.0.46
+    toolsImageVersion: 0.0.35
 ```
 
 ## **elasticsearch.enableMetrics**
@@ -568,20 +568,19 @@ hostPathCustomPaths:
   postgresql: `/sysdig/pgdata`
 ```
 
-## **hostPathCustomPaths.natsJs**
+## **hostPathCustomPaths.nats**
 
 **Required**: `false`<br />
-**Description**: The directory to bind mount nats js pod's
-`/var/lib/natsjs` to on the host. This parameter is relevant
+**Description**: The directory to bind mount nats streaming (in HA mode) pod's
+`/var/lib/stan` to on the host. This parameter is relevant
 only when `storageClassProvisioner` is `hostPath`.<br />
 **Options**: <br />
-**Default**: `/var/lib/natsjs`<br />
+**Default**: `/var/lib/stan`<br />
 **Example**:
 
 ```yaml
 hostPathCustomPaths:
-  natsJs: `/sysdig/natsjs`
-```
+  postgresql: `/sysdig/stan`
 
 ## **nodeaffinityLabel.key**
 
@@ -670,7 +669,7 @@ pvStorageSize:
 cluster of [`size`](#size) medium. This option is ignored if
 [`storageClassProvisioner`](#storageclassprovisioner) is `hostPath`.<br />
 **Options**:<br />
-**Default**: 150Gi<br />
+**Default**: 100Gi<br />
 **Example**:
 
 ```yaml
@@ -759,27 +758,27 @@ pvStorageSize:
     postgresql: 100Gi
 ```
 
-## **pvStorageSize.large.natsJs**
+## **pvStorageSize.large.nats**
 
 **Required**: `false`<br />
-**Description**: The size of the persistent volume assigned to NATS JS HA in a
-cluster of [`size`](#size) small. This option is ignored if
+**Description**: The size of the persistent volume assigned to NATS HA in a
+cluster of [`size`](#size) large. This option is ignored if
 [`storageClassProvisioner`](#storageclassprovisioner) is `hostPath`.<br />
 **Options**:<br />
-**Default**: 50Gi<br />
+**Default**: 10Gi<br />
 **Example**:
 
 ```yaml
 pvStorageSize:
   large:
-    natsJs: 50Gi
+    nats: 10Gi
 ```
 
-## **pvStorageSize.medium.natsJs**
+## **pvStorageSize.medium.nats**
 
 **Required**: `false`<br />
-**Description**: The size of the persistent volume assigned to NATS JS HA in a
-cluster of [`size`](#size) small. This option is ignored if
+**Description**: The size of the persistent volume assigned to NATS HA in a
+cluster of [`size`](#size) medium. This option is ignored if
 [`storageClassProvisioner`](#storageclassprovisioner) is `hostPath`.<br />
 **Options**:<br />
 **Default**: 10Gi<br />
@@ -788,23 +787,23 @@ cluster of [`size`](#size) small. This option is ignored if
 ```yaml
 pvStorageSize:
   medium:
-    natsJs: 10Gi
+    nats: 10Gi
 ```
 
-## **pvStorageSize.small.natsJs**
+## **pvStorageSize.small.nats**
 
 **Required**: `false`<br />
-**Description**: The size of the persistent volume assigned to NATS JS HA in a
+**Description**: The size of the persistent volume assigned to NATS HA in a
 cluster of [`size`](#size) small. This option is ignored if
 [`storageClassProvisioner`](#storageclassprovisioner) is `hostPath`.<br />
 **Options**:<br />
-**Default**: 50Gi<br />
+**Default**: 10Gi<br />
 **Example**:
 
 ```yaml
 pvStorageSize:
   small:
-    natsJs: 50Gi
+    nats: 10Gi
 ```
 
 ## **sysdig.anchoreVersion**
@@ -926,12 +925,12 @@ sysdig:
 **Required**: `false`<br />
 **Description**: The docker image tag of Cassandra.<br />
 **Options**: <br />
-**Default**: 4.1.3-0.0.14<br />
+**Default**: 2.1.22.5<br />
 **Example**:
 
 ```yaml
 sysdig:
-  cassandraVersion: 4.1.3-0.0.14
+  cassandraVersion: 2.1.22.5
 ```
 
 ## **sysdig.cassandraExporterVersion**
@@ -939,14 +938,13 @@ sysdig:
 **Required**: `false`<br />
 **Description**: The docker `image tag` of Cassandra's Prometheus JMX exporter. Default image: `<registry>/<repository>/promcat-jmx-exporter:v0.17.0-ubi` <br />
 **Options**: <br />
-**Default**: v0.20.0-ubi<br />
+**Default**: v0.17.0-ubi<br />
 **Example**:
 
 ```yaml
 sysdig:
   cassandraExporterVersion: latest
 ```
-
 ## **sysdig.cassandra.snitch.extractCMD**
 
 **Required**: `false`<br />
@@ -962,10 +960,10 @@ sysdig:
       extractCMD: "cat /node-labels/failure-domain.beta.kubernetes.io/zone || cat /node-labels/topology.kubernetes.io/zone"
 ```
 
-## **sysdig.cassandra.useCassandra3** (**Deprecated**)
+## **sysdig.cassandra.useCassandra3**
 
 **Required**: `false`<br />
-**Description**: Deprecated: Use Cassandra 3 instead of Cassandra 2. Only available for fresh installs from 4.0.<br />
+**Description**: Use Cassandra 3 instead of Cassandra 2. Only available for fresh installs from 4.0.<br />
 **Options**: `true|false`<br />
 **Default**: `true`<br />
 **Example**:
@@ -976,10 +974,10 @@ sysdig:
     useCassandra3: false
 ```
 
-## **sysdig.Cassandra3Version** (**Deprecated**)
+## **sysdig.Cassandra3Version**
 
 **Required**: `false`<br />
-**Description**: Deprecated: Specify the image version of Cassandra 3.x. Ignored if `sysdig.useCassandra3` is not set to `true`. Only supported in fresh installs from 4.0<br />
+**Description**: Specify the image version of Cassandra 3.x. Ignored if `sysdig.useCassandra3` is not set to `true`. Only supported in fresh installs from 4.0<br />
 **Options**: <br />
 **Default**: `3.11.11.1`<br />
 **Example**:
@@ -1171,10 +1169,10 @@ documentation](https://docs.datastax.com/en/archived/cassandra/2.1/cassandra/con
 sysdig:
   cassandra:
     customOverrides: |
-      concurrent_compactors: 6
-      read_request_timeout: 10000ms
-      write_request_timeout: 10000ms
-      request_timeout: 11000ms
+      hinted_handoff_enabled: false
+      concurrent_compactors: 8
+      read_request_timeout_in_ms: 10000
+      write_request_timeout_in_ms: 10000
 ```
 
 ## **sysdig.cassandra.datacenterName**
@@ -1318,21 +1316,6 @@ sysdig:
   elasticsearchVersion: 5.6.16.18
 ```
 
-## **sysdig.platformAuditTrail.enabled**
-
-**Required**: `false`<br />
-**Description**: Global flag to enable Sysdig Platform Audit in all services.
-**Required**: `false`</br>
-**Options**: `true|false` </br>
-**Default**: `false`</br>
-**Example**:
-
-```yaml
-sysdig:
-  platformAuditTrail:
-    enabled: true
-```
-
 ## **sysdig.elasticsearch6Version**
 
 **Required**: `false`<br />
@@ -1373,22 +1356,6 @@ sysdig:
   haproxyVersion: v0.7-beta.7.1
 ```
 
----
-
-## **sysdig.skipIngressGeneration**
-
-**NOTE** - this is a recently added variable that bypasses the previous logic of skipping Ingress resource generation when networking was set to `external`. The goal is to generate the Ingress manifests either way, because even if a customer uses their own Ingress controller, they would still need the Ingress resources. The only reason to have this parameter is if we _explicitly_ need to avoid the generation of Ingress resources</br>
-**Required**: `false`</br>
-**Description**: Boolean parameter which can be used to skip the generation of the ingress resources if desired.</br>
-**Options**: `true|false` </br>
-**Default**: `false`</br>
-**Example**:
-
-```yaml
-sysdig:
-  skipIngressGeneration: true
-```
-
 ## **sysdig.ingressNetworking**
 
 **Required**: `false`<br />
@@ -1413,6 +1380,7 @@ sysdig:
   ingressNetworking: loadbalancer
 ```
 
+
 ## **sysdig.ingressClassName**
 
 **Required**: `false`<br />
@@ -1427,6 +1395,7 @@ sysdig:
 sysdig:
   ingressClassName: haproxy
 ```
+
 
 ## **sysdig.ingressNetworkingInsecureApiNodePort**
 
@@ -1486,19 +1455,6 @@ from Kubernetes for the Sysdig collector endpoint.<br />
 ```yaml
 sysdig:
   ingressNetworkingCollectorNodePort: 30002
-```
-
-## **haproxyIngress.watchAllNamespaces**
-
-**Required**: `false`<br />
-**Description**: When the 'watchAllNamespaces' setting is enabled, the HaProxy Ingress controller oversees Ingress resources throughout all namespaces within the cluster. By default, this setting is disabled, restricting monitoring to the namespace specifically configured for sysdig deployment. <br />
-**Options**: `true|false`<br />
-**Default**: `false` <br />
-**Example**:
-
-```yaml
-haproxyIngress:
-  watchAllNamespaces: true
 ```
 
 ## **sysdig.license**
@@ -1591,6 +1547,22 @@ consequences**<br />
 ```yaml
 sysdig:
   sysdigWorkerVersion: 3.5.1.7018
+```
+
+## **sysdig.enableAlerter**
+
+**Required**: `false`<br />
+**Description**: This creates a separate deployment for Alerters while
+disabling this functionality in workers. **Do not modify this unless you
+know what you are doing as modifying it could have unintended
+consequences**<br />
+**Options**:`true|false`<br />
+**Default**: `false`<br />
+**Example**:
+
+```yaml
+sysdig:
+  enableAlerter: true
 ```
 
 ## **sysdig.alertingSystem.enabled**
@@ -1700,12 +1672,12 @@ sysdig:
 **Required**: `false`<br />
 **Description**: Docker image tag of the Prometheus exporter for NATS.<br />
 **Options**:<br />
-**Default**: 0.1.5<br />
+**Default**: 0.9.0.1<br />
 **Example**:
 
 ```yaml
 sysdig:
-  natsExporterVersion: 0.1.5
+  natsExporterVersion: 0.9.0.1
 ```
 
 ## **sysdig.natsStreamingVersion**
@@ -1734,43 +1706,154 @@ sysdig:
   natsStreamingInitVersion: 0.22.0.7
 ```
 
-## **sysdig.natsServerVersion**
+## **sysdig.nats.enabled**
 
 **Required**: `false`<br />
-**Description**: Docker image tag of NATS.<br />
+**Description**: Enable NATS deployment for Sysdig Secure.<br />
 **Options**:<br />
-**Default**: 0.1.11<br />
+**Default**: true<br />
 **Example**:
 
 ```yaml
 sysdig:
-  natsExporterVersion: 0.1.11
+  nats:
+    enabled: true
 ```
 
-## **sysdig.natsReloaderVersion**
+## **sysdig.nats.secure.enabled**
 
 **Required**: `false`<br />
-**Description**: Docker image tag of NATS Reloader.<br />
+**Description**: NATS Streaming TLS enabled.<br />
 **Options**:<br />
-**Default**: 0.1.4<br />
+**Default**: true<br />
 **Example**:
 
 ```yaml
 sysdig:
-  natsExporterVersion: 0.1.4
+  nats:
+    secure:
+      enabled: true
 ```
 
-## **sysdig.natsBoxVersion**
+## **sysdig.nats.secure.username**
 
-**Required**: `false`<br />
-**Description**: Docker image tag of NATS Box.<br />
+**Required**: `true` when `sysdig.nats.secure.enabled` is set to true<br />
+**Description**: NATS username<br />
 **Options**:<br />
-**Default**: 0.0.13<br />
+**Default**:<br />
 **Example**:
 
 ```yaml
 sysdig:
-  natsExporterVersion: 0.0.13
+  nats:
+    secure:
+      enabled: true
+      username: somevalue
+```
+
+## **sysdig.nats.secure.password**
+
+**Required**: `true` when `sysdig.nats.secure.enabled` is set to true<br />
+**Description**: NATS password<br />
+**Options**:<br />
+**Default**:<br />
+**Example**:
+
+```yaml
+sysdig:
+  nats:
+    secure:
+      enabled: true
+      password: somevalue
+```
+
+## **sysdig.nats.ca**
+
+**Required**: `false`<br />
+**Description**: NATS CA<br />
+**Options**:<br />
+**Default**:<br />
+**Example**:
+
+```yaml
+sysdig:
+  nats:
+    ca: <base64(ca.pem)>
+```
+
+## **sysdig.nats.cakey**
+
+**Required**: `false`<br />
+**Description**: NATS CA KEY<br />
+**Options**:<br />
+**Default**:<br />
+**Example**:
+
+```yaml
+sysdig:
+  nats:
+    cakey: <base64(ca.pem)>
+```
+
+## **sysdig.nats.ha.enabled**
+
+**Required**: `false`<br />
+**Description**: NATS Streaming HA (High Availability) enabled.<br />
+**Options**:<br />
+**Default**: false<br />
+**Example**:
+
+```yaml
+sysdig:
+  nats:
+    ha:
+      enabled: false
+```
+
+## **sysdig.nats.urlha**
+
+**Required**: `false`<br />
+**Description**: NATS Streaming URL for HA deployment.<br />
+**Options**:<br />
+**Default**: nats://sysdigcloud-nats-streaming-cluster-0.sysdigcloud-nats-streaming-cluster:4222,nats://sysdigcloud-nats-streaming-cluster-1.sysdigcloud-nats-streaming-cluster:4222,nats://sysdigcloud-nats-streaming-cluster-2.sysdigcloud-nats-streaming-cluster:4222<br />
+**Example**:
+
+```yaml
+sysdig:
+  nats:
+    urlha: nats://sysdigcloud-nats-streaming-cluster-0.sysdigcloud-nats-streaming-cluster:4222,nats://sysdigcloud-nats-streaming-cluster-1.sysdigcloud-nats-streaming-cluster:4222,nats://sysdigcloud-nats-streaming-cluster-2.sysdigcloud-nats-streaming-cluster:4222
+```
+
+## **sysdig.nats.urltls**
+
+**Required**: `false`<br />
+**Description**: NATS Streaming URL for TLS enabled.<br />
+**Options**:<br />
+**Default**: nats://sysdigcloud-nats-streaming-tls:4222<br />
+**Example**:
+
+```yaml
+sysdig:
+  nats:
+    urltls: nats://sysdigcloud-nats-streaming-tls:4222
+```
+
+## **sysdig.nats.hostPathNodes**
+
+**Required**: `false`<br />
+**Description**: An array of node hostnames has shown in `kubectl get node -o name` that nats streaming (in HA mode) hostPath persistent volumes should be created on. The number of nodes must be 3. This is
+required if configured [`storageClassProvisioner`](#storageclassprovisioner)
+is `hostPath`.<br />
+**Options**:<br />
+**Default**: [] <br />
+
+**Example**:
+
+```yaml
+sysdig:
+  nats:
+    hostPathNodes:
+      - my-cool-host1.com
 ```
 
 ## **sysdig.openshiftUrl**
@@ -1830,6 +1913,19 @@ sysdig:
   postgresVersion: 10.6.11
 ```
 
+## **sysdig.mysqlToPostgresMigrationVersion**
+
+**Required**: `false`<br />
+**Description**: The docker image tag for MySQL to PostgreSQL migration.<br />
+**Options**:<br />
+**Default**: 1.2.5-mysql-to-postgres<br />
+**Example**:
+
+```yaml
+sysdig:
+  mysqlToPostgresMigrationVersion: 1.2.5-mysql-to-postgres
+```
+
 ## **sysdig.postgresql.rootUser**
 
 **Required**: `false`<br />
@@ -1875,7 +1971,7 @@ sysdig:
 ## **sysdig.postgresql.primary**
 
 **Required**: `false`<br />
-**Description**: Services will start in postgresql mode.<br />
+**Description**: If set, the installer starts the mysql to postgresql migration (if not already performed), services will start in postgresql mode.<br />
 **Options**: `true|false`<br />
 **Default**: `true`<br />
 **Example**:
@@ -2995,8 +3091,8 @@ sysdig:
   redis6ExporterVersion: 1.0.9
 ```
 
-## **sysdig.redis6ImageName**
 
+## **sysdig.redis6ImageName**
 **Required**: `false`<br />
 **Description**: Docker image name of Redis 6, relevant when configured
 `sysdig.useRedis6` is `true`.<br />
@@ -3010,7 +3106,6 @@ sysdig:
 ```
 
 ## **sysdig.redis6SentinelImageName**
-
 **Required**: `false`<br />
 **Description**: Docker image name of Redis Sentinel, relevant when configured
 `sysdig.useRedis6` is `true`.<br />
@@ -3024,7 +3119,6 @@ sysdig:
 ```
 
 ## **sysdig.redis6ExporterImageName**
-
 **Required**: `false`<br />
 **Description**: Docker image name of Redis Metrics Exporter, relevant when configured
 `sysdig.useRedis6` is `true`.<br />
@@ -3062,9 +3156,7 @@ sysdig:
 redisTls:
   enabled: true
 ```
-
 ## **redisTls.deploy**
-
 **Required**: `false`<br />
 **Description**: When also `redisTls.enabled` is `true`, installs a _Redis with TLS_ and _Sentinel_ support<br />
 **Options**: true|false<br />
@@ -3101,9 +3193,7 @@ redisTls:
 redisTls:
   ha: true
 ```
-
 ## **redisTls.imageName**
-
 **Required**: `false`<br />
 **Description**: Docker image name of Redis, relevant when configured
 `redisTls.enabled` and `redisTls.deploy` are  `true`.<br />
@@ -3115,7 +3205,6 @@ redisTls:
 redisTls:
   imageName: redis-6
 ```
-
 ## **redisTls.version**
 
 **Required**: `false`<br />
@@ -3131,7 +3220,6 @@ redisTls:
 ```
 
 ## **redisTls.sentinel.imageName**
-
 **Required**: `false`<br />
 **Description**: Docker image name of Redis Sentinel, relevant when configured
 `redisTls.enabled` and `redisTls.deploy` are  `true`.<br />
@@ -3144,7 +3232,6 @@ redisTls:
   sentinel:
     imageName: redis-sentinel-6
 ```
-
 ## **redisTls.sentinel.version**
 
 **Required**: `false`<br />
@@ -3161,7 +3248,6 @@ redisTls:
 ```
 
 ## **redisTls.exporter.imageName**
-
 **Required**: `false`<br />
 **Description**: Docker image name of Redis exporter, relevant when configured
 `redisTls.enabled` and `redisTls.deploy` are  `true`.<br />
@@ -3174,9 +3260,7 @@ redisTls:
   exporter:
     imageName: redis-exporter-1
 ```
-
 ## **redisTls.exporter.version**
-
 **Required**: `false`<br />
 **Description**: Docker image tag of Redis exporter, relevant when configured
 `redisTls.enabled` and `redisTls.deploy` are  `true`.<br />
@@ -3189,7 +3273,6 @@ redisTls:
   exporter:
     version: 1.0.9
 ```
-
 ## **redisClientsMonitor**
 
 **Required**: `false`<br />
@@ -3219,6 +3302,7 @@ A Monitor service can have multiple [component connection](https://docs.google.c
 **Options**: _Redis standalone/Redis HA_ | _Redis with TLS_ | _external Redis_<br />
 **Default**: _Redis standalone/Redis HA_<br />
 **Example**:
+
 
 If `tls` is `true` the component `ibmCache` will use the TLS solution (`redisTls.enabled` to `true` is required)
 
@@ -4370,6 +4454,98 @@ sysdig:
         memory: 200Mi
 ```
 
+## **sysdig.resources.alerter.limits.cpu**
+
+**Required**: `false`<br />
+**Description**: The amount of cpu assigned to alerter pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 4      |
+| medium       | 8      |
+| large        | 16     |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    alerter:
+      limits:
+        cpu: 2
+```
+
+## **sysdig.resources.alerter.limits.memory**
+
+**Required**: `false`<br />
+**Description**: The amount of memory assigned to alerter pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 4Gi    |
+| medium       | 8Gi    |
+| large        | 16Gi   |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    alerter:
+      limits:
+        memory: 10Mi
+```
+
+## **sysdig.resources.alerter.requests.cpu**
+
+**Required**: `false`<br />
+**Description**: The amount of cpu required to schedule alerter pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 1        |
+| medium       | 2        |
+| large        | 4        |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    alerter:
+      requests:
+        cpu: 2
+```
+
+## **sysdig.resources.alerter.requests.memory**
+
+**Required**: `false`<br />
+**Description**: The amount of memory required to schedule alerter pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 1Gi      |
+| medium       | 2Gi      |
+| large        | 4Gi      |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    alerter:
+      requests:
+        memory: 200Mi
+```
+
 ## **sysdig.resources.collector.limits.cpu**
 
 **Required**: `false`<br />
@@ -5282,8 +5458,8 @@ sysdig:
 
 **Required**: `false`<br />
 **Description**: Scanning DB engine<br />
-**Options**: postgres|inmem<br />
-**Default**: postgres<br />
+**Options**:<br />
+**Default**: mysql<br />
 **Example**:
 
 ```yaml
@@ -5291,7 +5467,7 @@ sysdig:
   secure:
     scanning:
       retentionMgr:
-        scanningDBEngine: postgres
+        scanningDBEngine: mysql
 ```
 
 ## **sysdig.secure.scanning.retentionMgr.defaultValues.datePolicy**
@@ -6127,7 +6303,6 @@ sysdig:
 ```
 
 ## **sysdig.secure.scanning.reporting.onDemandGenerationEnabled**
-
 **Required**: `true`<br />
 **Description**: The flag to enable on-demand generation of reports globally<br />
 **Options**: false, true<br />
@@ -6143,7 +6318,6 @@ sysdig:
 ```
 
 ## **sysdig.secure.scanning.reporting.onDemandGenerationCustomers**
-
 **Required**: `false`<br />
 **Description**: The list of customers where on-demand generation of reports has to be enabled, if on-demand generation wasn't enabled globally<br />
 **Options**: <br />
@@ -6542,261 +6716,96 @@ sysdig:
         memory: 1Gi
 ```
 
-## **sysdig.natsJs.enabled**
+## **sysdig.resources.nats-streaming.limits.cpu**
 
 **Required**: `false`<br />
-**Description**: Enable nats js deploy<br />
-**Options**: true|false<br />
-**Default**: true<br />
-**Example**:
-
-```yaml
-sysdig:
-  natsJs:
-    enabled: true
-```
-
-## **sysdig.natsJs.nats.fullnameOverride**
-
-**Required**: `false`<br />
-**Description**: the name of the nats js deployment<br />
-**Options**:<br />
-**Default**: nats
-
-**Example**:
-
-```yaml
-sysdig:
-  natsJs:
-    nats:
-      fullnameOverride: nats
-```
-
-## **sysdig.natsJs.nats.natsbox.enabled**
-
-**Required**: `false`<br />
-**Description**: Enable nats js box deploy<br />
-**Options**: true|false<br />
-**Default**: false<br />
-**Example**:
-
-```yaml
-sysdig:
-  natsJs:
-    nats:
-      natsbox:
-        enabled: true
-```
-
-## **sysdig.natsJs.natsTLSGenerator.enabled**
-
-**Required**: `false`<br />
-**Description**: Enable the use of cert manager. Creates Issuer and Certficate resources<br />
-**Options**:<br />
-**Options**: true|false<br />
-**Default**: false
-
-**Example**:
-
-```yaml
-sysdig:
-  natsJs:
-    natsTLSGenerator: true
-```
-
-## **sysdig.natsJs.ha.enabled**
-
-**Required**: `false`<br />
-**Description**: This feature ensures that there are multiple replicas of your NATS JetStream server running at any given time, providing data redundancy and mitigating the risk of server failure. It accomplishes this by utilizing cluster mode, where data is distributed across multiple nodes.
-
-If you disable High Availability, the number of JetStream replicas will be set to 1. In this scenario, there is no data redundancy since there is only a single instance of the server. Therefore, any issues with this single instance could lead to data loss or service disruption. Also, the cluster mode of NATS will be disabled, meaning that your data will no be distributed across multiple nodes, potentially leading to increased risk of data loss and less efficient use of resources.
-
-It is recommended to keep High Availability enabled for production use of NATS JetStream
-<br />
-**Options**:<br />
-**Default**: true<br />
-**Example**:
-
-```yaml
-sysdig:
-  natsJs:
-    ha:
-      enabled: false
-```
-
-## **sysdig.natsJs.hostPathNodes**
-
-**Required**: `false`<br />
-**Description**: An array of node hostnames has shown in `kubectl get node -o name` that nats js hostPath persistent volumes should be created on. The number of nodes must be 3. This is
-required if configured [`storageClassProvisioner`](#storageclassprovisioner)
-is `hostPath`.<br />
-**Options**:<br />
-**Default**: [] <br />
-
-**Example**:
-
-```yaml
-sysdig:
-  natsJs:
-    hostPathNodes:
-      - my-cool-host1.com
-```
-
-## **sysdig.natsJs.nats.tolerations**
-
-**Required**: `false`<br />
-**Description**: If set add tolerations to NatsJs statefulset<br />
-**Options**: <br />
-**Default**: `[]`<br />
-**Example**:
-
-```yaml
-sysdig:
-  natsJs:
-    nats:
-      tolerations:
-        key: dedicated
-        operator: Equal
-        value: cassandra
-        effect: NoSchedule
-```
-
-## **sysdig.natsJs.nats.affinity**
-
-**Required**: `false`<br />
-**Description**: If set add affinity to NatsJs statefulset<br />
-**Options**: <br />
-**Default**: ``<br />
-**Example**:
-
-```yaml
-sysdig:
-  natsJs:
-    nats:
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-            - matchExpressions:
-              - key: name
-                operator: In
-                values:
-                - blue
-```
-
-## **sysdig.resources.natsJs.limits.cpu**
-
-**Required**: `false`<br />
-**Description**: The amount of cpu assigned to nats pods<br />
+**Description**: The amount of cpu assigned to nats-streaming pods<br />
 **Options**:<br />
 **Default**:
 
 | cluster-size | limits |
 | ------------ | ------ |
-| small        | 1      |
+| small        | 2      |
 | medium       | 2      |
-| large        | 3      |
+| large        | 2      |
 
 **Example**:
 
 ```yaml
 sysdig:
   resources:
-    natsJs:
+    nats-streaming:
       limits:
         cpu: 2
 ```
 
-## **sysdig.resources.natsJs.limits.memory**
+## **sysdig.resources.nats-streaming.limits.memory**
 
 **Required**: `false`<br />
-**Description**: The amount of memory assigned to nats pods<br />
+**Description**: The amount of memory assigned to nats-streaming pods<br />
 **Options**:<br />
 **Default**:
 
 | cluster-size | limits |
 | ------------ | ------ |
-| small        | 1Gi    |
+| small        | 2Gi    |
 | medium       | 2Gi    |
-| large        | 3Gi    |
+| large        | 2Gi    |
 
 **Example**:
 
 ```yaml
 sysdig:
   resources:
-    natsJs:
+    nats-streaming:
       limits:
         memory: 2Gi
 ```
 
-## **sysdig.resources.natsJs.requests.cpu**
+## **sysdig.resources.nats-streaming.requests.cpu**
 
 **Required**: `false`<br />
-**Description**: The amount of cpu required to schedule nats pods<br />
+**Description**: The amount of cpu required to schedule nats-streaming pods<br />
 **Options**:<br />
 **Default**:
 
 | cluster-size | requests |
 | ------------ | -------- |
 | small        | 250m     |
-| medium       | 1        |
-| large        | 2        |
+| medium       | 250m     |
+| large        | 250m     |
 
 **Example**:
 
 ```yaml
 sysdig:
   resources:
-    natsJs:
+    nats-streaming:
       requests:
         cpu: 250m
 ```
 
-## **sysdig.resources.natsJs.requests.memory**
+## **sysdig.resources.nats-streaming.requests.memory**
 
 **Required**: `false`<br />
-**Description**: The amount of memory required to schedule nats pods<br />
+**Description**: The amount of memory required to schedule nats-streaming pods<br />
 **Options**:<br />
 **Default**:
 
 | cluster-size | requests |
 | ------------ | -------- |
 | small        | 1Gi      |
-| medium       | 2Gi      |
-| large        | 3Gi      |
+| medium       | 1Gi      |
+| large        | 1Gi      |
 
 **Example**:
 
 ```yaml
 sysdig:
   resources:
-    natsJs:
+    nats-streaming:
       requests:
         memory: 1Gi
-```
-
-## **sysdig.natsJs.nats.nats.gomemlimit**
-
-**Required**: `false`<br />
-**Description**: The amount of memory dedicated to go. Configure it to the 90% of memory limit<br />
-**Options**:<br />
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 900MiB   |
-| medium       | 1800MiB  |
-| large        | 2600MiB  |
-
-**Example**:
-
-```yaml
-sysdig:
-  natsJs:
-    nats:
-      nats:
-        gomemlimit: 900MiB
 ```
 
 ## **sysdig.resources.activity-audit-api.limits.cpu**
@@ -8029,8 +8038,8 @@ sysdig:
 **Description**:
 [Toleration](https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/)
 that will be created on Sysdig platform pods, this can be combined with
-[nodeaffinityLabel.key](#nodeaffinitylabelkey) and
-[nodeaffinityLabel.value](#nodeaffinitylabelvalue) to ensure only Sysdig
+[nodeaffinityLabel.key](#nodeaffinityLabelkey) and
+[nodeaffinityLabel.value](#nodeaffinityLabelvalue) to ensure only Sysdig
 Platform pods run on particular nodes<br />
 **Options**:<br />
 **Default**:<br />
@@ -8173,13 +8182,14 @@ sysdig:
 ## **sysdig.cassandraReplicaCount**
 
 **Required**: `false`<br />
-**Description**: Number of Cassandra replicas<br />
+**Description**: Number of Cassandra replicas, this is a noop for clusters of
+`size` `small`.<br />
 **Options**:<br />
 **Default**:<br />
 
 | cluster-size | count |
 | ------------ | ----- |
-| small        | 3     |
+| small        | 1     |
 | medium       | 3     |
 | large        | 6     |
 
@@ -8375,13 +8385,14 @@ sysdig:
 ## **sysdig.elasticsearchReplicaCount**
 
 **Required**: `false`<br />
-**Description**: Number of ElasticSearch replicas<br />
+**Description**: Number of ElasticSearch replicas, this is a noop for clusters of
+`size` `small`.<br />
 **Options**:<br />
 **Default**:<br />
 
 | cluster-size | count |
 | ------------ | ----- |
-| small        | 3     |
+| small        | 1     |
 | medium       | 3     |
 | large        | 6     |
 
@@ -8432,6 +8443,27 @@ of `size` `small`.<br />
 ```yaml
 sysdig:
   workerReplicaCount: 7
+```
+
+## **sysdig.alerterReplicaCount**
+
+**Required**: `false`<br />
+**Description**: Number of Sysdig alerter replicas, this is a noop for clusters
+of `size` `small`.<br />
+**Options**:<br />
+**Default**:<br />
+
+| cluster-size | count |
+| ------------ | ----- |
+| small        | 1     |
+| medium       | 3     |
+| large        | 5     |
+
+**Example**:
+
+```yaml
+sysdig:
+  alerterReplicaCount: 7
 ```
 
 ## **sysdig.eventsGathererReplicaCount**
@@ -8692,6 +8724,7 @@ sysdig:
 sysdig:
   collector:
     jvmOptions: -Xms4G -Xmx4G -Ddraios.jvm-monitoring.ticker.enabled=true
+      -XX:-UseContainerSupport
 ```
 
 ## **sysdig.collector.certificate.generate**
@@ -8775,6 +8808,22 @@ sysdig:
 sysdig:
   worker:
     jvmOptions: -Xms4G -Xmx4G -Ddraios.jvm-monitoring.ticker.enabled=true
+      -XX:-UseContainerSupport
+```
+
+## **sysdig.alerter.jvmOptions**
+
+**Required**: `false`<br />
+**Description**: Custom configuration for Sysdig Alerter jvm.<br />
+**Options**:<br />
+**Default**:<br />
+**Example**:
+
+```yaml
+sysdig:
+  alerter:
+    jvmOptions: -Xms4G -Xmx4G -Ddraios.jvm-monitoring.ticker.enabled=true
+      -XX:-UseContainerSupport
 ```
 
 ## **sysdig.eventsForwarderEnabledIntegrations**
@@ -8907,7 +8956,7 @@ sysdig:
 ## **sysdig.secure.scanning.veJanitor.anchoreDBsslmode**
 
 **Required**: `false`<br />
-**Description**: Anchore db ssl mode. More info: <https://www.postgresql.org/docs/9.1/libpq-ssl.html><br />
+**Description**: Anchore db ssl mode. More info: https://www.postgresql.org/docs/9.1/libpq-ssl.html<br />
 **Options**:<br />
 **Default**: "disable"<br />
 **Example**:
@@ -8923,23 +8972,26 @@ sysdig:
 
 **Required**: `false`<br />
 **Description**: which scanning database engine to use. <br />
-**Options**: postgres<br />
-**Default**: postgres<br />
+**Options**: mysql<br />
+**Default**: "mysql"<br />
 **Example**:
 
 ```yaml
 sysdig:
   secure:
     veJanitor:
-      scanningDbEngine: postgres
+      scanningDbEngine: "mysql"
 ```
 
 ## **sysdig.metadataService.enabled**
 
 **Required**: `false`<br />
 **Description**: Whether to enable metadata-service or not
+**Do not modify this unless you
+know what you are doing as modifying it could have unintended
+consequences**<br />
 **Options**:`true|false`<br />
-**Default**: `true`<br />
+**Default**: `false`<br />
 **Example**:
 
 ```yaml
@@ -8951,7 +9003,10 @@ sysdig:
 ## **sysdig.metadataService.operatorEnabled**
 
 **Required**: `false`<br />
-**Description**: Whether to enable metadata-service-operator or not, this controls the HA capabilities of the Metadata Service but it requires several k8s permissions in the cluster.
+**Description**: Whether to enable metadata-service-operator or not
+**Do not modify this unless you
+know what you are doing as modifying it could have unintended
+consequences**<br />
 **Options**:`true|false`<br />
 **Default**: `true`<br />
 **Example**:
@@ -9147,8 +9202,11 @@ sysdig:
 
 **Required**: `false`<br />
 **Description**: Whether to enable helm-renderer or not
+**Do not modify this unless you
+know what you are doing as modifying it could have unintended
+consequences**<br />
 **Options**:`true|false`<br />
-**Default**: `true`<br />
+**Default**: `false`<br />
 **Example**:
 
 ```yaml
@@ -9808,7 +9866,6 @@ sysdig:
 ```
 
 ## **networkPolicies**
-
 Please check the [dedicated page](05-networkPolicies.md)
 
 ## **pvStorageSize.small.kafka**
@@ -9818,7 +9875,7 @@ Please check the [dedicated page](05-networkPolicies.md)
 cluster of [`size`](#size) small. This option is ignored if
 [`storageClassProvisioner`](#storageclassprovisioner) is `hostPath`.<br />
 **Options**:<br />
-**Default**: 50Gi<br />
+**Default**: 20Gi<br />
 **Example**:
 
 ```yaml
@@ -9908,7 +9965,6 @@ pvStorageSize:
 ```
 
 ## **sysdig.meerkat.enabled**
-
 **Required**: `false`<br />
 **Description**: Enables Meerkat. Meerkat represents collections of components that make up Sysdig's new, more computationally efficient, metrics store.<br />
 **Options**: `true|false`<br />
@@ -10324,7 +10380,7 @@ sysdig:
 **Required**: `false`<br />
 **Description**: Custom configuration for Meerkat Aggregator Worker JVM.<br />
 **Options**:<br />
-**Default**: ``
+**Default**: ` `
 
 **Example**:
 
@@ -11379,7 +11435,6 @@ sysdig:
 ```
 
 ## **sysdig.prometheus.enabled**
-
 **Required**: `false`<br />
 **Description**: Enables Prometheus services.<br />
 **Options**: `true|false`<br />
@@ -13625,6 +13680,7 @@ sysdig:
 
 **Required**: `false`<br />
 **Description**: Enable Vulnerability Engine V2 for Sysdig Secure.<br />
+NOTE: Vulnerability Engine V2 is not yet supported for airgapped installation.<br />
 **Options**:<br />
 **Default**: true<br />
 **Example**:
@@ -13639,7 +13695,7 @@ sysdig:
 ## **sysdig.secure.scanningv2.vulnsApi.remoteSaaSEndpoint**
 
 **Required**: `true`<br />
-**Description**: Remote endpoint that will be used to retrieve vulnerability feed metadata. Select the optimal Sysdig secure endpoint from <https://docs.sysdig.com/en/docs/administration/saas-regions-and-ip-ranges/>.<br />
+**Description**: Remote endpoint that will be used to retrieve vulnerability feed metadata. Select the optimal Sysdig secure endpoint from https://docs.sysdig.com/en/docs/administration/saas-regions-and-ip-ranges/.<br />
 
 **Example**:
 
@@ -13671,7 +13727,7 @@ sysdig:
 ## **sysdig.secure.scanningv2.pkgMetaApi.remoteSaaSEndpoint**
 
 **Required**: `true`<br />
-**Description**: Remote endpoint that will be used to retrieve vulnerability feed metadata. Select the optimal Sysdig secure endpoint from <https://docs.sysdig.com/en/docs/administration/saas-regions-and-ip-ranges/>.<br />
+**Description**: Remote endpoint that will be used to retrieve vulnerability feed metadata. Select the optimal Sysdig secure endpoint from https://docs.sysdig.com/en/docs/administration/saas-regions-and-ip-ranges/.<br />
 
 **Example**:
 
@@ -13865,20 +13921,4 @@ sysdig:
   secure:
     scanningv2:
       customCerts: true
-```
-
-## **sysdig.secure.scanningv2.airgappedFeeds**
-
-**Required**: `false`<br />
-**Description**: Deploys a local object storage for scanningv2 vuln feeds artifacts for airgapped installs. It does not reach out to one of Sysdig SaaS products<br />
-**Options**: `true|false`<br />
-**Default**: `false`<br />
-
-**Example**:
-
-```yaml
-sysdig:
-  secure:
-    scanningv2:
-      airgappedFeeds: true
 ```
