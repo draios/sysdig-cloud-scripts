@@ -19,6 +19,7 @@ API_KEY=""
 SECURE_API_KEY=""
 SKIP_LOGS="false"
 ELASTIC_CURL=""
+declare -r BUILD="20240403"
 
 print_help() {
     printf 'Usage: %s [-a|--api-key <API_KEY>] [c|--context <CONTEXT>] [-d|--debug] [-l|--labels <LABELS>] [-n|--namespace <NAMESPACE>] [-s|--since <TIMEFRAME>] [--skip-logs] [-h|--help]\n' "$0"
@@ -125,6 +126,10 @@ segment_by="${2}"
 main() {
     local error
     local RETVAL
+
+    if [[ ! -z ${BUILD} ]]; then
+        echo ${BUILD} >> ${LOG_DIR}/support_bundle_version.txt
+    fi
 
     if [[ ! -z ${CONTEXT} ]]; then
         CONTEXT_OPTS="--context=${CONTEXT}"
