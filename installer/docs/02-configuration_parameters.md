@@ -1333,6 +1333,26 @@ sysdig:
     enabled: true
 ```
 
+## **sysdig.secure.events.audit.config.store.ip.enabled**
+
+**Required**: `false`<br />
+**Description**: Global flag to enable storing of origin IP in Sysdig Platform Audit in all services.
+**Required**: `false`</br>
+**Options**: `true|false` </br>
+**Default**: `false`</br>
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    events:
+      audit:
+        config:
+          store:
+            ip:
+              enabled: true
+```
+
 ## **sysdig.elasticsearch6Version**
 
 **Required**: `false`<br />
@@ -8777,7 +8797,7 @@ sysdig:
     jvmOptions: -Xms4G -Xmx4G -Ddraios.jvm-monitoring.ticker.enabled=true
 ```
 
-## **sysdig.eventsForwarderEnabledIntegrations**
+## **sysdig.secure.eventsForwarder.enabledIntegrations**
 
 **Required**: `false`<br />
 **Description**: List of enabled integrations, e.g. "MCM,QRADAR"<br />
@@ -8787,7 +8807,9 @@ sysdig:
 
 ```yaml
 sysdig:
-  eventsForwarderEnabledIntegrations: "MCM,QRADAR"
+  secure:
+    eventsForwarder:
+      enabledIntegrations: "MCM,QRADAR"
 ```
 
 ## **sysdig.secure.scanning.admissionControllerAPI.maxDurationBeforeDisconnection**
@@ -12866,10 +12888,10 @@ sysdig:
         memory: 100Mi
 ```
 
-## **sysdig.resources.scanningv2-reporting-worker-host.limits.cpu**
+## **sysdig.resources.scanningv2-reporting-worker.limits.cpu**
 
 **Required**: `false`<br />
-**Description**: The amount of cpu assigned to scanningv2-reporting-worker-host pods<br />
+**Description**: The amount of cpu assigned to scanningv2-reporting-worker pods<br />
 **Options**:<br />
 **Default**:
 
@@ -12884,15 +12906,15 @@ sysdig:
 ```yaml
 sysdig:
   resources:
-    scanningv2-reporting-worker-host:
+    scanningv2-reporting-worker:
       limits:
         cpu: 1
 ```
 
-## **sysdig.resources.scanningv2-reporting-worker-host.limits.memory**
+## **sysdig.resources.scanningv2-reporting-worker.limits.memory**
 
 **Required**: `false`<br />
-**Description**: The amount of memory assigned to scanningv2-reporting-worker-host pods<br />
+**Description**: The amount of memory assigned to scanningv2-reporting-worker pods<br />
 **Options**:<br />
 **Default**:
 
@@ -12907,15 +12929,15 @@ sysdig:
 ```yaml
 sysdig:
   resources:
-    scanningv2-reporting-worker-host:
+    scanningv2-reporting-worker:
       limits:
         memory: 1Gi
 ```
 
-## **sysdig.resources.scanningv2-reporting-worker-host.requests.cpu**
+## **sysdig.resources.scanningv2-reporting-worker.requests.cpu**
 
 **Required**: `false`<br />
-**Description**: The amount of cpu required to schedule scanningv2-reporting-worker-host pods<br />
+**Description**: The amount of cpu required to schedule scanningv2-reporting-worker pods<br />
 **Options**:<br />
 **Default**:
 
@@ -12930,15 +12952,15 @@ sysdig:
 ```yaml
 sysdig:
   resources:
-    scanningv2-reporting-worker-host:
+    scanningv2-reporting-worker:
       requests:
         cpu: 250m
 ```
 
-## **sysdig.resources.scanningv2-reporting-worker-host.requests.memory**
+## **sysdig.resources.scanningv2-reporting-worker.requests.memory**
 
 **Required**: `false`<br />
-**Description**: The amount of memory required to schedule scanningv2-reporting-worker-host pods<br />
+**Description**: The amount of memory required to schedule scanningv2-reporting-worker pods<br />
 **Options**:<br />
 **Default**:
 
@@ -12953,99 +12975,7 @@ sysdig:
 ```yaml
 sysdig:
   resources:
-    scanningv2-reporting-worker-host:
-      requests:
-        memory: 250Mi
-```
-
-## **sysdig.resources.scanningv2-reporting-worker-k8s.limits.cpu**
-
-**Required**: `false`<br />
-**Description**: The amount of cpu assigned to scanningv2-reporting-worker-k8s pods<br />
-**Options**:<br />
-**Default**:
-
-| cluster-size | limits |
-| ------------ | ------ |
-| small        | 1      |
-| medium       | 1      |
-| large        | 1      |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    scanningv2-reporting-worker-k8s:
-      limits:
-        cpu: 1
-```
-
-## **sysdig.resources.scanningv2-reporting-worker-k8s.limits.memory**
-
-**Required**: `false`<br />
-**Description**: The amount of memory assigned to scanningv2-reporting-worker-k8s pods<br />
-**Options**:<br />
-**Default**:
-
-| cluster-size | limits |
-| ------------ | ------ |
-| small        | 1Gi    |
-| medium       | 1Gi    |
-| large        | 2Gi    |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    scanningv2-reporting-worker-k8s:
-      limits:
-        memory: 1Gi
-```
-
-## **sysdig.resources.scanningv2-reporting-worker-k8s.requests.cpu**
-
-**Required**: `false`<br />
-**Description**: The amount of cpu required to schedule scanningv2-reporting-worker-k8s pods<br />
-**Options**:<br />
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 250m     |
-| medium       | 500m     |
-| large        | 1        |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    scanningv2-reporting-worker-k8s:
-      requests:
-        cpu: 250m
-```
-
-## **sysdig.resources.scanningv2-reporting-worker-k8s.requests.memory**
-
-**Required**: `false`<br />
-**Description**: The amount of memory required to schedule scanningv2-reporting-worker-k8s pods<br />
-**Options**:<br />
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 250Mi    |
-| medium       | 500Mi    |
-| large        | 1Gi      |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    scanningv2-reporting-worker-k8s:
+    scanningv2-reporting-worker:
       requests:
         memory: 250Mi
 ```

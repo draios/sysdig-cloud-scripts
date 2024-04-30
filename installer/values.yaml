@@ -25,3 +25,11 @@ sysdig:
   # Uncomment the following two lines to enable Sysdig Platform Audit
   #platformAuditTrail:
   #  enabled: true
+  # Uncomment the following lines to enable origin IP in Sysdig Platform Audit
+  #secure:
+  #  events:
+  #    audit:
+  #      config:
+  #        store:
+  #          ip:
+  #            enabled: true
