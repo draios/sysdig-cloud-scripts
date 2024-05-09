@@ -26,6 +26,7 @@ print_help() {
     printf "\t%s\n" "-c,--context: Specify the kubectl context. If not set, the current context will be used."
     printf "\t%s\n" "-d,--debug: Enables Debug"
     printf "\t%s\n" "-l,--labels: Specify Sysdig pod role label to collect (e.g. api,collector,worker)"
+    printf "\t%s\n" "-la,--local-api: Uses kubectl port-forward feature for being able to access APIs for advanced data collection (for env that cannot reach APIs via domain/FQDN)"
     printf "\t%s\n" "-n,--namespace: Specify the Sysdig namespace. (default: ${NAMESPACE})"
     printf "\t%s\n" "-s,--since: Specify the timeframe of logs to collect (e.g. -s 1h)"
     printf "\t%s\n" "-sa,--secure-api-key: Provide the Secure Superuser API key for advanced data collection"
@@ -58,6 +59,9 @@ parse_commandline() {
                 test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
                 LABELS="$2"
                 shift
+                ;;
+            -la|--local-api)
+                API_LOCAL="true"
                 ;;
             -n|--namespace)
                 test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
@@ -148,11 +152,19 @@ main() {
 
     # If API key is supplied, check the backend version, and send a GET to the relevant endpoints.
     if [[ ! -z ${API_KEY} ]]; then
-        BACKEND_VERSION=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get deployment sysdigcloud-api -ojsonpath='{.spec.template.spec.containers[0].image}' | awk 'match($0, /[0-9]\.[0-9]\.[0-9](\.[0-9]+)?/) {print substr($0, RSTART, RLENGTH)}') || true
+        BACKEND_VERSION=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get deployment sysdigcloud-api -ojsonpath='{.spec.template.spec.containers[0].image}' | awk 'match($0, /[0-9]\.[0-9]+\.[0-9](\.[0-9]+)?/) {print substr($0, RSTART, RLENGTH)}') || true
         echo ${BACKEND_VERSION} > ${LOG_DIR}/backend_version.txt
         if [[ "$BACKEND_VERSION" =~ ^(7|6)$ ]]; then
-            #API_URL=$(kubectl ${KUBE_OPTS} get cm sysdigcloud-collector-config -ojsonpath='{.data.collector-config\.conf}' | awk 'p&&$0~/"/{gsub("\"","");print} /{/{p=0} /sso/{p=1}' | grep serverName | awk '{print $3}')
-            API_URL=$(kubectl ${KUBE_OPTS} get cm sysdigcloud-collector-config '-ojsonpath={.data.collector-config\.conf}' | grep serverName | head -1 | awk '{print $3}' | sed 's/"//g')
+            if [[ "$API_LOCAL" == "true" ]]; then
+                kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} port-forward service/sysdigcloud-api 8080 > /dev/null 2>&1 &
+                # wait for port-forward to become available
+                while ! curl -s localhost:8080 > /dev/null 2>&1 ; do
+                    sleep 0.2
+                done
+                API_URL="http://127.0.0.1:8080"
+            else
+                API_URL=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get cm sysdigcloud-collector-config '-ojsonpath={.data.collector-config\.conf}' | grep serverName | head -1 | awk '{print $3}' | sed 's/"//g')
+            fi
             # Check that the API_KEY for the Super User is valid and exit 
             CURL_OUT=$(curl -fks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/license" >/dev/null 2>&1) && RETVAL=$? && error=0 || { RETVAL=$? && error=1; }
             if [[ ${error} -eq 1 ]]; then
@@ -161,7 +173,16 @@ main() {
             fi
             curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/meerkatSettings" >> ${LOG_DIR}/meerkat_settings.json
         elif [[ "$BACKEND_VERSION" =~ ^(5) ]] || [[ "$BACKEND_VERSION" =~ ^(4) ]] || [[ "$BACKEND_VERSION" =~ ^(3) ]]; then
-            API_URL=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get cm sysdigcloud-config -o yaml | grep -i api.url: | head -1 | awk '{print $2}')
+            if [[ "$API_LOCAL" == "true" ]]; then
+                kubectl ${KUBE_OPTS} port-forward service/sysdigcloud-api 8080 > /dev/null 2>&1 &
+                # wait for port-forward to become available
+                while ! curl -s localhost:8080 > /dev/null 2>&1 ; do
+                    sleep 0.2
+                done
+                API_URL="http://127.0.0.1:8080"
+            else
+                API_URL=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get cm sysdigcloud-config -o yaml | grep -i api.url: | head -1 | awk '{print $2}')
+            fi
             # Check that the API_KEY for the Super User is valid and exit 
             CURL_OUT=$(curl -fks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/license" >/dev/null 2>&1) && RETVAL=$? && error=0 || { RETVAL=$? && error=1; }
             if [[ ${error} -eq 1 ]]; then
@@ -190,17 +211,35 @@ main() {
 
     # If Secure API key is supplied, collect settings
     if [[ ! -z ${SECURE_API_KEY} ]]; then                                                                     
-        BACKEND_VERSION=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get deployment sysdigcloud-api -ojsonpath='{.spec.template.spec.containers[0].image}' | awk 'match($0, /[0-9]\.[0-9]\.[0-9](\.[0-9]+)?/) {print substr($0, RSTART, RLENGTH)}') || true
-        if [[ "$BACKEND_VERSION" =~ ^(7|6)$ ]]; then                                                                                                                       
-            API_URL=$(kubectl ${KUBE_OPTS} get cm sysdigcloud-collector-config '-ojsonpath={.data.collector-config\.conf}' | grep serverName | head -1 | awk '{print $3}' | sed 's/"//g')
+        BACKEND_VERSION=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get deployment sysdigcloud-api -ojsonpath='{.spec.template.spec.containers[0].image}' | awk 'match($0, /[0-9]\.[0-9]+\.[0-9](\.[0-9]+)?/) {print substr($0, RSTART, RLENGTH)}') || true
+        if [[ "$BACKEND_VERSION" =~ ^(7|6)$ ]]; then
+            if [[ "$API_LOCAL" == "true" ]]; then
+                kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} port-forward service/sysdigcloud-api 8080 > /dev/null 2>&1 &
+                # wait for port-forward to become available
+                while ! curl -s localhost:8080 > /dev/null 2>&1 ; do
+                    sleep 0.2
+                done
+                API_URL="http://127.0.0.1:8080"
+            else
+                API_URL=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get cm sysdigcloud-collector-config '-ojsonpath={.data.collector-config\.conf}' | grep serverName | head -1 | awk '{print $3}' | sed 's/"//g')
+            fi
             # Check that the SECURE_API_KEY for the Super User is valid and exit                              
             CURL_OUT=$(curl -fks -H "Authorization: Bearer ${SECURE_API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/license" >/dev/null 2>&1) && RETVAL=$? && error=0 || { RETVAL=$? && error=1; }                                                                      
             if [[ ${error} -eq 1 ]]; then                                                                     
                 echo "The SECURE_API_KEY supplied is Unauthorized.  Please check and try again.  Return Code: ${RETVAL}"   
                 exit 1
             fi
-        elif [[ "$BACKEND_VERSION" =~ ^(5) ]] || [[ "$BACKEND_VERSION" =~ ^(4) ]] || [[ "$BACKEND_VERSION" =~ ^(3) ]]; then    
-            API_URL=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get cm sysdigcloud-config -o yaml | grep -i api.url: | head -1 | awk '{print $2}')  
+        elif [[ "$BACKEND_VERSION" =~ ^(5) ]] || [[ "$BACKEND_VERSION" =~ ^(4) ]] || [[ "$BACKEND_VERSION" =~ ^(3) ]]; then
+            if [[ "$API_LOCAL" == "true" ]]; then
+                kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} port-forward service/sysdigcloud-api 8080 > /dev/null 2>&1 &
+                # wait for port-forward to become available
+                while ! curl -s localhost:8080 > /dev/null 2>&1 ; do
+                    sleep 0.2
+                done
+                API_URL="http://127.0.0.1:8080"
+            else
+                API_URL=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get cm sysdigcloud-config -o yaml | grep -i api.url: | head -1 | awk '{print $2}')
+            fi
             # Check that the API_KEY for the Super User is valid and exit 
             CURL_OUT=$(curl -fks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/license" >/dev/null 2>&1) && RETVAL=$? && error=0 || { RETVAL=$? && error=1; }
             if [[ ${error} -eq 1 ]]; then
