@@ -157,6 +157,16 @@ main() {
         if [[ "$BACKEND_VERSION" =~ ^(7|6)$ ]]; then
             if [[ "$API_LOCAL" == "true" ]]; then
                 kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} port-forward service/sysdigcloud-api 8080 > /dev/null 2>&1 &
+
+                # Store the port-forward pid in order to kill the process once we finish
+                pid=$!
+
+                # kill the port-forward regardless of how this script exits
+                trap '{
+                    # echo killing $pid
+                    kill $pid
+                }' EXIT
+
                 # wait for port-forward to become available
                 while ! curl -s localhost:8080 > /dev/null 2>&1 ; do
                     sleep 0.2
@@ -175,6 +185,16 @@ main() {
         elif [[ "$BACKEND_VERSION" =~ ^(5) ]] || [[ "$BACKEND_VERSION" =~ ^(4) ]] || [[ "$BACKEND_VERSION" =~ ^(3) ]]; then
             if [[ "$API_LOCAL" == "true" ]]; then
                 kubectl ${KUBE_OPTS} port-forward service/sysdigcloud-api 8080 > /dev/null 2>&1 &
+
+                # Store the port-forward pid in order to kill the process once we finish
+                pid=$!
+
+                # kill the port-forward regardless of how this script exits
+                trap '{
+                    # echo killing $pid
+                    kill $pid
+                }' EXIT
+
                 # wait for port-forward to become available
                 while ! curl -s localhost:8080 > /dev/null 2>&1 ; do
                     sleep 0.2
@@ -215,6 +235,16 @@ main() {
         if [[ "$BACKEND_VERSION" =~ ^(7|6)$ ]]; then
             if [[ "$API_LOCAL" == "true" ]]; then
                 kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} port-forward service/sysdigcloud-api 8080 > /dev/null 2>&1 &
+
+                # Store the port-forward pid in order to kill the process once we finish
+                pid=$!
+
+                # kill the port-forward regardless of how this script exits
+                trap '{
+                    # echo killing $pid
+                    kill $pid
+                }' EXIT
+
                 # wait for port-forward to become available
                 while ! curl -s localhost:8080 > /dev/null 2>&1 ; do
                     sleep 0.2
@@ -232,6 +262,16 @@ main() {
         elif [[ "$BACKEND_VERSION" =~ ^(5) ]] || [[ "$BACKEND_VERSION" =~ ^(4) ]] || [[ "$BACKEND_VERSION" =~ ^(3) ]]; then
             if [[ "$API_LOCAL" == "true" ]]; then
                 kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} port-forward service/sysdigcloud-api 8080 > /dev/null 2>&1 &
+
+                # Store the port-forward pid in order to kill the process once we finish
+                pid=$!
+
+                # kill the port-forward regardless of how this script exits
+                trap '{
+                    # echo killing $pid
+                    kill $pid
+                }' EXIT
+
                 # wait for port-forward to become available
                 while ! curl -s localhost:8080 > /dev/null 2>&1 ; do
                     sleep 0.2
