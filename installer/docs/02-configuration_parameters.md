@@ -385,7 +385,7 @@ elasticsearch:
 ## **elasticsearch.jobs.rollNodes**
 
 **Required**: `false`<br />
-**Description**: safely roll the elasticsearch nodes, if needed, after a change in the manifests. This can potentially take several minutes per node to restart. In case of an upgrade from elasticsearch to opensearch and this is false then a cluster restart will be performed, i.e. all elasticsearch nodes will be restarted at the same time. WARNING: do not set this to true in a 5.x to 6.x upgrade scenario.<br />
+**Description**: safely roll the elasticsearch nodes, if needed, after a change in the manifests. This can potentially take several minutes per node to restart. In case of an upgrade from elasticsearch to opensearch and this is false then a cluster restart will be performed, i.e. all elasticsearch nodes will be restarted at the same time.<br />
 **Options**: `true|false`<br />
 **Default**: `false`<br />
 **Example**:
@@ -401,13 +401,13 @@ elasticsearch:
 **Required**: `false`<br />
 **Description**: The docker image tag of the elasticsearch jobs<br />
 **Options**:<br />
-**Default**: 0.0.46<br />
+**Default**: 0.0.35<br />
 **Example**:
 
 ```yaml
 elasticsearch:
   jobs:
-    toolsImageVersion: 0.0.46
+    toolsImageVersion: 0.0.35
 ```
 
 ## **elasticsearch.enableMetrics**
@@ -566,6 +566,21 @@ only when `storageClassProvisioner` is `hostPath`.<br />
 ```yaml
 hostPathCustomPaths:
   postgresql: `/sysdig/pgdata`
+```
+
+## **hostPathCustomPaths.nats**
+
+**Required**: `false`<br />
+**Description**: The directory to bind mount nats streaming (in HA mode) pod's
+`/var/lib/stan` to on the host. This parameter is relevant
+only when `storageClassProvisioner` is `hostPath`.<br />
+**Options**: <br />
+**Default**: `/var/lib/stan`<br />
+**Example**:
+
+```yaml
+hostPathCustomPaths:
+  nats: `/sysdig/stan`
 ```
 
 ## **hostPathCustomPaths.natsJs**
@@ -759,6 +774,22 @@ pvStorageSize:
     postgresql: 100Gi
 ```
 
+## **pvStorageSize.large.nats**
+
+**Required**: `false`<br />
+**Description**: The size of the persistent volume assigned to NATS HA in a
+cluster of [`size`](#size) large. This option is ignored if
+[`storageClassProvisioner`](#storageclassprovisioner) is `hostPath`.<br />
+**Options**:<br />
+**Default**: 10Gi<br />
+**Example**:
+
+```yaml
+pvStorageSize:
+  large:
+    nats: 10Gi
+```
+
 ## **pvStorageSize.large.natsJs**
 
 **Required**: `false`<br />
@@ -775,6 +806,22 @@ pvStorageSize:
     natsJs: 50Gi
 ```
 
+## **pvStorageSize.medium.nats**
+
+**Required**: `false`<br />
+**Description**: The size of the persistent volume assigned to NATS HA in a
+cluster of [`size`](#size) medium. This option is ignored if
+[`storageClassProvisioner`](#storageclassprovisioner) is `hostPath`.<br />
+**Options**:<br />
+**Default**: 50Gi<br />
+**Example**:
+
+```yaml
+pvStorageSize:
+  medium:
+    nats: 50Gi
+```
+
 ## **pvStorageSize.medium.natsJs**
 
 **Required**: `false`<br />
@@ -789,6 +836,22 @@ cluster of [`size`](#size) small. This option is ignored if
 pvStorageSize:
   medium:
     natsJs: 10Gi
+```
+
+## **pvStorageSize.small.nats**
+
+**Required**: `false`<br />
+**Description**: The size of the persistent volume assigned to NATS HA in a
+cluster of [`size`](#size) small. This option is ignored if
+[`storageClassProvisioner`](#storageclassprovisioner) is `hostPath`.<br />
+**Options**:<br />
+**Default**: 10Gi<br />
+**Example**:
+
+```yaml
+pvStorageSize:
+  small:
+    nats: 10Gi
 ```
 
 ## **pvStorageSize.small.natsJs**
@@ -926,12 +989,12 @@ sysdig:
 **Required**: `false`<br />
 **Description**: The docker image tag of Cassandra.<br />
 **Options**: <br />
-**Default**: 4.1.3-0.0.14<br />
+**Default**: 2.1.22.5<br />
 **Example**:
 
 ```yaml
 sysdig:
-  cassandraVersion: 4.1.3-0.0.14
+  cassandraVersion: 2.1.22.5
 ```
 
 ## **sysdig.cassandraExporterVersion**
@@ -939,7 +1002,7 @@ sysdig:
 **Required**: `false`<br />
 **Description**: The docker `image tag` of Cassandra's Prometheus JMX exporter. Default image: `<registry>/<repository>/promcat-jmx-exporter:v0.17.0-ubi` <br />
 **Options**: <br />
-**Default**: v0.20.0-ubi<br />
+**Default**: v0.17.0-ubi<br />
 **Example**:
 
 ```yaml
@@ -962,10 +1025,10 @@ sysdig:
       extractCMD: "cat /node-labels/failure-domain.beta.kubernetes.io/zone || cat /node-labels/topology.kubernetes.io/zone"
 ```
 
-## **sysdig.cassandra.useCassandra3** (**Deprecated**)
+## **sysdig.cassandra.useCassandra3**
 
 **Required**: `false`<br />
-**Description**: Deprecated: Use Cassandra 3 instead of Cassandra 2. Only available for fresh installs from 4.0.<br />
+**Description**: Use Cassandra 3 instead of Cassandra 2. Only available for fresh installs from 4.0.<br />
 **Options**: `true|false`<br />
 **Default**: `true`<br />
 **Example**:
@@ -976,10 +1039,10 @@ sysdig:
     useCassandra3: false
 ```
 
-## **sysdig.Cassandra3Version** (**Deprecated**)
+## **sysdig.Cassandra3Version**
 
 **Required**: `false`<br />
-**Description**: Deprecated: Specify the image version of Cassandra 3.x. Ignored if `sysdig.useCassandra3` is not set to `true`. Only supported in fresh installs from 4.0<br />
+**Description**: Specify the image version of Cassandra 3.x. Ignored if `sysdig.useCassandra3` is not set to `true`. Only supported in fresh installs from 4.0<br />
 **Options**: <br />
 **Default**: `3.11.11.1`<br />
 **Example**:
@@ -1171,10 +1234,10 @@ documentation](https://docs.datastax.com/en/archived/cassandra/2.1/cassandra/con
 sysdig:
   cassandra:
     customOverrides: |
-      concurrent_compactors: 6
-      read_request_timeout: 10000ms
-      write_request_timeout: 10000ms
-      request_timeout: 11000ms
+      hinted_handoff_enabled: false
+      concurrent_compactors: 8
+      read_request_timeout_in_ms: 10000
+      write_request_timeout_in_ms: 10000
 ```
 
 ## **sysdig.cassandra.datacenterName**
@@ -1316,41 +1379,6 @@ sysdig:
 ```yaml
 sysdig:
   elasticsearchVersion: 5.6.16.18
-```
-
-## **sysdig.platformAuditTrail.enabled**
-
-**Required**: `false`<br />
-**Description**: Global flag to enable Sysdig Platform Audit in all services.
-**Required**: `false`</br>
-**Options**: `true|false` </br>
-**Default**: `false`</br>
-**Example**:
-
-```yaml
-sysdig:
-  platformAuditTrail:
-    enabled: true
-```
-
-## **sysdig.secure.events.audit.config.store.ip.enabled**
-
-**Required**: `false`<br />
-**Description**: Global flag to enable storing of origin IP in Sysdig Platform Audit in all services.
-**Required**: `false`</br>
-**Options**: `true|false` </br>
-**Default**: `false`</br>
-**Example**:
-
-```yaml
-sysdig:
-  secure:
-    events:
-      audit:
-        config:
-          store:
-            ip:
-              enabled: true
 ```
 
 ## **sysdig.elasticsearch6Version**
@@ -1613,6 +1641,22 @@ sysdig:
   sysdigWorkerVersion: 3.5.1.7018
 ```
 
+## **sysdig.enableAlerter**
+
+**Required**: `false`<br />
+**Description**: This creates a separate deployment for Alerters while
+disabling this functionality in workers. **Do not modify this unless you
+know what you are doing as modifying it could have unintended
+consequences**<br />
+**Options**:`true|false`<br />
+**Default**: `false`<br />
+**Example**:
+
+```yaml
+sysdig:
+  enableAlerter: true
+```
+
 ## **sysdig.alertingSystem.enabled**
 
 **Required**: `false`<br />
@@ -1793,6 +1837,156 @@ sysdig:
   natsExporterVersion: 0.0.13
 ```
 
+## **sysdig.nats.enabled**
+
+**Required**: `false`<br />
+**Description**: Enable NATS deployment for Sysdig Secure.<br />
+**Options**:<br />
+**Default**: true<br />
+**Example**:
+
+```yaml
+sysdig:
+  nats:
+    enabled: true
+```
+
+## **sysdig.nats.secure.enabled**
+
+**Required**: `false`<br />
+**Description**: NATS Streaming TLS enabled.<br />
+**Options**:<br />
+**Default**: true<br />
+**Example**:
+
+```yaml
+sysdig:
+  nats:
+    secure:
+      enabled: true
+```
+
+## **sysdig.nats.secure.username**
+
+**Required**: `true` when `sysdig.nats.secure.enabled` is set to true<br />
+**Description**: NATS username<br />
+**Options**:<br />
+**Default**:<br />
+**Example**:
+
+```yaml
+sysdig:
+  nats:
+    secure:
+      enabled: true
+      username: somevalue
+```
+
+## **sysdig.nats.secure.password**
+
+**Required**: `true` when `sysdig.nats.secure.enabled` is set to true<br />
+**Description**: NATS password<br />
+**Options**:<br />
+**Default**:<br />
+**Example**:
+
+```yaml
+sysdig:
+  nats:
+    secure:
+      enabled: true
+      password: somevalue
+```
+
+## **sysdig.nats.ca**
+
+**Required**: `false`<br />
+**Description**: NATS CA<br />
+**Options**:<br />
+**Default**:<br />
+**Example**:
+
+```yaml
+sysdig:
+  nats:
+    ca: <base64(ca.pem)>
+```
+
+## **sysdig.nats.cakey**
+
+**Required**: `false`<br />
+**Description**: NATS CA KEY<br />
+**Options**:<br />
+**Default**:<br />
+**Example**:
+
+```yaml
+sysdig:
+  nats:
+    cakey: <base64(ca.pem)>
+```
+
+## **sysdig.nats.ha.enabled**
+
+**Required**: `false`<br />
+**Description**: NATS Streaming HA (High Availability) enabled.<br />
+**Options**:<br />
+**Default**: false<br />
+**Example**:
+
+```yaml
+sysdig:
+  nats:
+    ha:
+      enabled: false
+```
+
+## **sysdig.nats.urlha**
+
+**Required**: `false`<br />
+**Description**: NATS Streaming URL for HA deployment.<br />
+**Options**:<br />
+**Default**: nats://sysdigcloud-nats-streaming-cluster-0.sysdigcloud-nats-streaming-cluster:4222,nats://sysdigcloud-nats-streaming-cluster-1.sysdigcloud-nats-streaming-cluster:4222,nats://sysdigcloud-nats-streaming-cluster-2.sysdigcloud-nats-streaming-cluster:4222<br />
+**Example**:
+
+```yaml
+sysdig:
+  nats:
+    urlha: nats://sysdigcloud-nats-streaming-cluster-0.sysdigcloud-nats-streaming-cluster:4222,nats://sysdigcloud-nats-streaming-cluster-1.sysdigcloud-nats-streaming-cluster:4222,nats://sysdigcloud-nats-streaming-cluster-2.sysdigcloud-nats-streaming-cluster:4222
+```
+
+## **sysdig.nats.urltls**
+
+**Required**: `false`<br />
+**Description**: NATS Streaming URL for TLS enabled.<br />
+**Options**:<br />
+**Default**: nats://sysdigcloud-nats-streaming-tls:4222<br />
+**Example**:
+
+```yaml
+sysdig:
+  nats:
+    urltls: nats://sysdigcloud-nats-streaming-tls:4222
+```
+
+## **sysdig.nats.hostPathNodes**
+
+**Required**: `false`<br />
+**Description**: An array of node hostnames has shown in `kubectl get node -o name` that nats streaming (in HA mode) hostPath persistent volumes should be created on. The number of nodes must be 3. This is
+required if configured [`storageClassProvisioner`](#storageclassprovisioner)
+is `hostPath`.<br />
+**Options**:<br />
+**Default**: [] <br />
+
+**Example**:
+
+```yaml
+sysdig:
+  nats:
+    hostPathNodes:
+      - my-cool-host1.com
+```
+
 ## **sysdig.openshiftUrl**
 
 **Required**: `false`<br />
@@ -1850,6 +2044,19 @@ sysdig:
   postgresVersion: 10.6.11
 ```
 
+## **sysdig.mysqlToPostgresMigrationVersion**
+
+**Required**: `false`<br />
+**Description**: The docker image tag for MySQL to PostgreSQL migration.<br />
+**Options**:<br />
+**Default**: 1.2.5-mysql-to-postgres<br />
+**Example**:
+
+```yaml
+sysdig:
+  mysqlToPostgresMigrationVersion: 1.2.5-mysql-to-postgres
+```
+
 ## **sysdig.postgresql.rootUser**
 
 **Required**: `false`<br />
@@ -1895,7 +2102,7 @@ sysdig:
 ## **sysdig.postgresql.primary**
 
 **Required**: `false`<br />
-**Description**: Services will start in postgresql mode.<br />
+**Description**: If set, the installer starts the mysql to postgresql migration (if not already performed), services will start in postgresql mode.<br />
 **Options**: `true|false`<br />
 **Default**: `true`<br />
 **Example**:
@@ -4390,6 +4597,98 @@ sysdig:
         memory: 200Mi
 ```
 
+## **sysdig.resources.alerter.limits.cpu**
+
+**Required**: `false`<br />
+**Description**: The amount of cpu assigned to alerter pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 4      |
+| medium       | 8      |
+| large        | 16     |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    alerter:
+      limits:
+        cpu: 2
+```
+
+## **sysdig.resources.alerter.limits.memory**
+
+**Required**: `false`<br />
+**Description**: The amount of memory assigned to alerter pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 4Gi    |
+| medium       | 8Gi    |
+| large        | 16Gi   |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    alerter:
+      limits:
+        memory: 10Mi
+```
+
+## **sysdig.resources.alerter.requests.cpu**
+
+**Required**: `false`<br />
+**Description**: The amount of cpu required to schedule alerter pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 1        |
+| medium       | 2        |
+| large        | 4        |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    alerter:
+      requests:
+        cpu: 2
+```
+
+## **sysdig.resources.alerter.requests.memory**
+
+**Required**: `false`<br />
+**Description**: The amount of memory required to schedule alerter pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 1Gi      |
+| medium       | 2Gi      |
+| large        | 4Gi      |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    alerter:
+      requests:
+        memory: 200Mi
+```
+
 ## **sysdig.resources.collector.limits.cpu**
 
 **Required**: `false`<br />
@@ -5302,8 +5601,8 @@ sysdig:
 
 **Required**: `false`<br />
 **Description**: Scanning DB engine<br />
-**Options**: postgres|inmem<br />
-**Default**: postgres<br />
+**Options**:<br />
+**Default**: mysql<br />
 **Example**:
 
 ```yaml
@@ -5311,7 +5610,7 @@ sysdig:
   secure:
     scanning:
       retentionMgr:
-        scanningDBEngine: postgres
+        scanningDBEngine: mysql
 ```
 
 ## **sysdig.secure.scanning.retentionMgr.defaultValues.datePolicy**
@@ -6819,6 +7118,98 @@ sysdig:
         gomemlimit: 900MiB
 ```
 
+## **sysdig.resources.nats-streaming.limits.cpu**
+
+**Required**: `false`<br />
+**Description**: The amount of cpu assigned to nats-streaming pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 2      |
+| medium       | 2      |
+| large        | 2      |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    nats-streaming:
+      limits:
+        cpu: 2
+```
+
+## **sysdig.resources.nats-streaming.limits.memory**
+
+**Required**: `false`<br />
+**Description**: The amount of memory assigned to nats-streaming pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 2Gi    |
+| medium       | 2Gi    |
+| large        | 2Gi    |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    nats-streaming:
+      limits:
+        memory: 2Gi
+```
+
+## **sysdig.resources.nats-streaming.requests.cpu**
+
+**Required**: `false`<br />
+**Description**: The amount of cpu required to schedule nats-streaming pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 250m     |
+| medium       | 250m     |
+| large        | 250m     |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    nats-streaming:
+      requests:
+        cpu: 250m
+```
+
+## **sysdig.resources.nats-streaming.requests.memory**
+
+**Required**: `false`<br />
+**Description**: The amount of memory required to schedule nats-streaming pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 1Gi      |
+| medium       | 1Gi      |
+| large        | 1Gi      |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    nats-streaming:
+      requests:
+        memory: 1Gi
+```
+
 ## **sysdig.resources.activity-audit-api.limits.cpu**
 
 **Required**: `false`<br />
@@ -8193,13 +8584,14 @@ sysdig:
 ## **sysdig.cassandraReplicaCount**
 
 **Required**: `false`<br />
-**Description**: Number of Cassandra replicas<br />
+**Description**: Number of Cassandra replicas, this is a noop for clusters of
+`size` `small`.<br />
 **Options**:<br />
 **Default**:<br />
 
 | cluster-size | count |
 | ------------ | ----- |
-| small        | 3     |
+| small        | 1     |
 | medium       | 3     |
 | large        | 6     |
 
@@ -8395,13 +8787,14 @@ sysdig:
 ## **sysdig.elasticsearchReplicaCount**
 
 **Required**: `false`<br />
-**Description**: Number of ElasticSearch replicas<br />
+**Description**: Number of ElasticSearch replicas, this is a noop for clusters of
+`size` `small`.<br />
 **Options**:<br />
 **Default**:<br />
 
 | cluster-size | count |
 | ------------ | ----- |
-| small        | 3     |
+| small        | 1     |
 | medium       | 3     |
 | large        | 6     |
 
@@ -8452,6 +8845,27 @@ of `size` `small`.<br />
 ```yaml
 sysdig:
   workerReplicaCount: 7
+```
+
+## **sysdig.alerterReplicaCount**
+
+**Required**: `false`<br />
+**Description**: Number of Sysdig alerter replicas, this is a noop for clusters
+of `size` `small`.<br />
+**Options**:<br />
+**Default**:<br />
+
+| cluster-size | count |
+| ------------ | ----- |
+| small        | 1     |
+| medium       | 3     |
+| large        | 5     |
+
+**Example**:
+
+```yaml
+sysdig:
+  alerterReplicaCount: 7
 ```
 
 ## **sysdig.eventsGathererReplicaCount**
@@ -8712,6 +9126,7 @@ sysdig:
 sysdig:
   collector:
     jvmOptions: -Xms4G -Xmx4G -Ddraios.jvm-monitoring.ticker.enabled=true
+      -XX:-UseContainerSupport
 ```
 
 ## **sysdig.collector.certificate.generate**
@@ -8795,9 +9210,25 @@ sysdig:
 sysdig:
   worker:
     jvmOptions: -Xms4G -Xmx4G -Ddraios.jvm-monitoring.ticker.enabled=true
+      -XX:-UseContainerSupport
 ```
 
-## **sysdig.secure.eventsForwarder.enabledIntegrations**
+## **sysdig.alerter.jvmOptions**
+
+**Required**: `false`<br />
+**Description**: Custom configuration for Sysdig Alerter jvm.<br />
+**Options**:<br />
+**Default**:<br />
+**Example**:
+
+```yaml
+sysdig:
+  alerter:
+    jvmOptions: -Xms4G -Xmx4G -Ddraios.jvm-monitoring.ticker.enabled=true
+      -XX:-UseContainerSupport
+```
+
+## **sysdig.eventsForwarderEnabledIntegrations**
 
 **Required**: `false`<br />
 **Description**: List of enabled integrations, e.g. "MCM,QRADAR"<br />
@@ -8807,9 +9238,7 @@ sysdig:
 
 ```yaml
 sysdig:
-  secure:
-    eventsForwarder:
-      enabledIntegrations: "MCM,QRADAR"
+  eventsForwarderEnabledIntegrations: "MCM,QRADAR"
 ```
 
 ## **sysdig.secure.scanning.admissionControllerAPI.maxDurationBeforeDisconnection**
@@ -8945,15 +9374,15 @@ sysdig:
 
 **Required**: `false`<br />
 **Description**: which scanning database engine to use. <br />
-**Options**: postgres<br />
-**Default**: postgres<br />
+**Options**: mysql<br />
+**Default**: "mysql"<br />
 **Example**:
 
 ```yaml
 sysdig:
   secure:
     veJanitor:
-      scanningDbEngine: postgres
+      scanningDbEngine: "mysql"
 ```
 
 ## **sysdig.metadataService.enabled**
@@ -12888,10 +13317,10 @@ sysdig:
         memory: 100Mi
 ```
 
-## **sysdig.resources.scanningv2-reporting-worker.limits.cpu**
+## **sysdig.resources.scanningv2-reporting-worker-host.limits.cpu**
 
 **Required**: `false`<br />
-**Description**: The amount of cpu assigned to scanningv2-reporting-worker pods<br />
+**Description**: The amount of cpu assigned to scanningv2-reporting-worker-host pods<br />
 **Options**:<br />
 **Default**:
 
@@ -12906,15 +13335,15 @@ sysdig:
 ```yaml
 sysdig:
   resources:
-    scanningv2-reporting-worker:
+    scanningv2-reporting-worker-host:
       limits:
         cpu: 1
 ```
 
-## **sysdig.resources.scanningv2-reporting-worker.limits.memory**
+## **sysdig.resources.scanningv2-reporting-worker-host.limits.memory**
 
 **Required**: `false`<br />
-**Description**: The amount of memory assigned to scanningv2-reporting-worker pods<br />
+**Description**: The amount of memory assigned to scanningv2-reporting-worker-host pods<br />
 **Options**:<br />
 **Default**:
 
@@ -12929,15 +13358,15 @@ sysdig:
 ```yaml
 sysdig:
   resources:
-    scanningv2-reporting-worker:
+    scanningv2-reporting-worker-host:
       limits:
         memory: 1Gi
 ```
 
-## **sysdig.resources.scanningv2-reporting-worker.requests.cpu**
+## **sysdig.resources.scanningv2-reporting-worker-host.requests.cpu**
 
 **Required**: `false`<br />
-**Description**: The amount of cpu required to schedule scanningv2-reporting-worker pods<br />
+**Description**: The amount of cpu required to schedule scanningv2-reporting-worker-host pods<br />
 **Options**:<br />
 **Default**:
 
@@ -12952,15 +13381,15 @@ sysdig:
 ```yaml
 sysdig:
   resources:
-    scanningv2-reporting-worker:
+    scanningv2-reporting-worker-host:
       requests:
         cpu: 250m
 ```
 
-## **sysdig.resources.scanningv2-reporting-worker.requests.memory**
+## **sysdig.resources.scanningv2-reporting-worker-host.requests.memory**
 
 **Required**: `false`<br />
-**Description**: The amount of memory required to schedule scanningv2-reporting-worker pods<br />
+**Description**: The amount of memory required to schedule scanningv2-reporting-worker-host pods<br />
 **Options**:<br />
 **Default**:
 
@@ -12975,7 +13404,99 @@ sysdig:
 ```yaml
 sysdig:
   resources:
-    scanningv2-reporting-worker:
+    scanningv2-reporting-worker-host:
+      requests:
+        memory: 250Mi
+```
+
+## **sysdig.resources.scanningv2-reporting-worker-k8s.limits.cpu**
+
+**Required**: `false`<br />
+**Description**: The amount of cpu assigned to scanningv2-reporting-worker-k8s pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 1      |
+| medium       | 1      |
+| large        | 1      |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-reporting-worker-k8s:
+      limits:
+        cpu: 1
+```
+
+## **sysdig.resources.scanningv2-reporting-worker-k8s.limits.memory**
+
+**Required**: `false`<br />
+**Description**: The amount of memory assigned to scanningv2-reporting-worker-k8s pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | limits |
+| ------------ | ------ |
+| small        | 1Gi    |
+| medium       | 1Gi    |
+| large        | 2Gi    |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-reporting-worker-k8s:
+      limits:
+        memory: 1Gi
+```
+
+## **sysdig.resources.scanningv2-reporting-worker-k8s.requests.cpu**
+
+**Required**: `false`<br />
+**Description**: The amount of cpu required to schedule scanningv2-reporting-worker-k8s pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 250m     |
+| medium       | 500m     |
+| large        | 1        |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-reporting-worker-k8s:
+      requests:
+        cpu: 250m
+```
+
+## **sysdig.resources.scanningv2-reporting-worker-k8s.requests.memory**
+
+**Required**: `false`<br />
+**Description**: The amount of memory required to schedule scanningv2-reporting-worker-k8s pods<br />
+**Options**:<br />
+**Default**:
+
+| cluster-size | requests |
+| ------------ | -------- |
+| small        | 250Mi    |
+| medium       | 500Mi    |
+| large        | 1Gi      |
+
+**Example**:
+
+```yaml
+sysdig:
+  resources:
+    scanningv2-reporting-worker-k8s:
       requests:
         memory: 250Mi
 ```
