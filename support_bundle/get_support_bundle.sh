@@ -483,7 +483,7 @@ main() {
     # Collect the sysdigcloud-values secret, and write to the log directory if the backend version is 6.5 or higher
     if [[ "$BACKEND_VERSION" =~ ^(6.5) ]]; then       
         echo "Fetching the sysdigcloud-values Secret"
-        kubectl -n sysdigcloud get secret sysdigcloud-values -o jsonpath='{.data.values\.yaml}' | base64 -d > ${LOG_DIR}/values.yaml || true
+        kubectl ${KUBE_OPTS} get secret sysdigcloud-values -o jsonpath='{.data.values\.yaml}' | base64 -d > ${LOG_DIR}/values.yaml || true
     fi
 
     # Generate the bundle name, create a tarball, and remove the temp log directory
