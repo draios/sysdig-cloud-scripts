@@ -481,7 +481,9 @@ main() {
     kubectl ${KUBE_OPTS} get configmap sysdigcloud-config -o yaml | grep -v password | grep -v apiVersion > ${LOG_DIR}/config.yaml || true
 
     # Collect the sysdigcloud-values secret, and write to the log directory if the backend version is 6.5 or higher
-    if [[ "$BACKEND_VERSION" =~ ^(6.5) ]]; then       
+    major=$(echo $version | awk -F. '{ print $1 }')
+    minor=$(echo $version | awk -F. '{ print $2 }')
+    if [[ $major -gt 6]] || [[ $major -eq 6]] && [[ $minor -ge 5 ]]; then
         echo "Fetching the sysdigcloud-values Secret"
         kubectl ${KUBE_OPTS} get secret sysdigcloud-values -o jsonpath='{.data.values\.yaml}' | base64 -d > ${LOG_DIR}/values.yaml || true
     fi
