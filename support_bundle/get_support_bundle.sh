@@ -483,7 +483,7 @@ main() {
     # Collect the sysdigcloud-values secret, and write to the log directory if the backend version is 6.5 or higher
     major=$(echo $version | awk -F. '{ print $1 }')
     minor=$(echo $version | awk -F. '{ print $2 }')
-    if [[ $major -ge 6]] && [[ $minor -ge 5 ]]; then
+    if [[ $major -gt 6 ]] || ( [[ $major -ge 6 ]] && [[ $minor -ge 5 ]] ); then
         echo "Fetching the sysdigcloud-values Secret"
         kubectl ${KUBE_OPTS} get secret sysdigcloud-values -o jsonpath='{.data.values\.yaml}' | base64 -d > ${LOG_DIR}/values.yaml || true
     fi
