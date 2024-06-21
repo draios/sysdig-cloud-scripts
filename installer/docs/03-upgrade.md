@@ -28,9 +28,9 @@ Options](../README.md#quickstart-install) for more context.
 
 <br />
 
-### Step 1
+### Step 1 - Download the latest `values.yaml` template
 
-Copy the current version sysdig-chart/values.yaml to your working directory.
+Copy the current version `sysdig-chart/values.yaml` to your working directory.
 
 ```bash
 wget https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/installer/installer/values.yaml
@@ -38,7 +38,7 @@ wget https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/installer/ins
 
 <br />
 
-### Step 2
+### Step 2 - Configure `values.yaml` according to your environment
 
 Edit the following values:
 
@@ -95,7 +95,7 @@ would also edit the following values:
 
 <br />
 
-### Step 3
+### Step 3 - Check differences with the old Sysdig environment
 
 Run the Installer (if you are in airgapped environment make sure you follow
 instructions from installation on how to get the images to your airgapped
@@ -107,7 +107,7 @@ registry)
 
 <br />
 
-### Step 4
+### Step 4 - Deploy Sysdig version
 
 If you are fine with the differences displayed, then run:
 

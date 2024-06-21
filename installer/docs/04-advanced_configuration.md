@@ -3,7 +3,7 @@
 <!-- Title: Advanced Configuration -->
 <!-- Layout: plain -->
 
-# Advanced configuration
+# Advanced Configuration
 
 <br />
 
