@@ -152,7 +152,7 @@ main() {
 
     # If API key is supplied, check the backend version, and send a GET to the relevant endpoints.
     if [[ ! -z ${API_KEY} ]]; then
-        BACKEND_VERSION=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get deployment sysdigcloud-api -ojsonpath='{.spec.template.spec.containers[0].image}' | awk 'match($0, /[0-9]\.[0-9]+\.[0-9](\.[0-9]+)?/) {print substr($0, RSTART, RLENGTH)}') || true
+        BACKEND_VERSION=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get deployment sysdigcloud-api -ojsonpath='{.spec.template.spec.containers[0].image}' | awk -F: '{ print $2 }' | awk -F. '{ print $1 }' || true
         echo ${BACKEND_VERSION} > ${LOG_DIR}/backend_version.txt
         if [[ "$BACKEND_VERSION" =~ ^(7|6)$ ]]; then
             if [[ "$API_LOCAL" == "true" ]]; then
