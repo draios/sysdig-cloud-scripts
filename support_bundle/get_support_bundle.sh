@@ -182,7 +182,7 @@ main() {
                 exit 1
             fi
             curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/meerkatSettings" >> ${LOG_DIR}/meerkat_settings.json
-        elif [[ "$BACKEND_VERSION" =~ ^(5) ]] || [[ "$BACKEND_VERSION" =~ ^(4) ]] || [[ "$BACKEND_VERSION" =~ ^(3) ]]; then
+        elif [[ "$BACKEND_VERSION" =~ ^(5|4|3)$ ]]; then
             if [[ "$API_LOCAL" == "true" ]]; then
                 kubectl ${KUBE_OPTS} port-forward service/sysdigcloud-api 8080 > /dev/null 2>&1 &
 
