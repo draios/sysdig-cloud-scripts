@@ -259,7 +259,7 @@ main() {
                 echo "The SECURE_API_KEY supplied is Unauthorized.  Please check and try again.  Return Code: ${RETVAL}"   
                 exit 1
             fi
-        elif [[ "$BACKEND_VERSION" =~ ^(5) ]] || [[ "$BACKEND_VERSION" =~ ^(4) ]] || [[ "$BACKEND_VERSION" =~ ^(3) ]]; then
+        elif [[ "$BACKEND_VERSION" =~ ^(5|4|3)$ ]]; then
             if [[ "$API_LOCAL" == "true" ]]; then
                 kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} port-forward service/sysdigcloud-api 8080 > /dev/null 2>&1 &
 
