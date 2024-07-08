@@ -231,7 +231,7 @@ main() {
 
     # If Secure API key is supplied, collect settings
     if [[ ! -z ${SECURE_API_KEY} ]]; then                                                                     
-        BACKEND_VERSION=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get deployment sysdigcloud-api -ojsonpath='{.spec.template.spec.containers[0].image}' | awk 'match($0, /[0-9]\.[0-9]+\.[0-9](\.[0-9]+)?/) {print substr($0, RSTART, RLENGTH)}') || true
+        BACKEND_VERSION=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get deployment sysdigcloud-api -ojsonpath='{.spec.template.spec.containers[0].image}' | awk -F: '{ print $2 }' | awk -F. '{ print $1 }') || true
         if [[ "$BACKEND_VERSION" =~ ^(7|6)$ ]]; then
             if [[ "$API_LOCAL" == "true" ]]; then
                 kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} port-forward service/sysdigcloud-api 8080 > /dev/null 2>&1 &
