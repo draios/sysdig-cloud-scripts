@@ -151,7 +151,7 @@ main() {
         BACKEND_VERSION=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get deployment sysdigcloud-api -ojsonpath='{.spec.template.spec.containers[0].image}' | awk 'match($0, /[0-9]\.[0-9]\.[0-9](\.[0-9]+)?/) {print substr($0, RSTART, RLENGTH)}') || true
         echo ${BACKEND_VERSION} > ${LOG_DIR}/backend_version.txt
         if [[ "$BACKEND_VERSION" =~ ^(6) ]]; then
-            API_URL=$(kubectl ${KUBE_OPTS} get cm sysdigcloud-collector-config -ojsonpath='{.data.collector-config\.conf}' | awk 'p&&$0~/"/{gsub("\"","");print} /{/{p=0} /sso/{p=1}' | grep serverName | awk '{print $3}')
+            API_URL=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get cm sysdigcloud-collector-config -ojsonpath='{.data.collector-config\.conf}' | awk 'p&&$0~/"/{gsub("\"","");print} /{/{p=0} /sso/{p=1}' | grep serverName | awk '{print $3}')
             # Check that the API_KEY for the Super User is valid and exit 
             CURL_OUT=$(curl -fks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/license" >/dev/null 2>&1) && RETVAL=$? && error=0 || { RETVAL=$? && error=1; }
             if [[ ${error} -eq 1 ]]; then
@@ -160,7 +160,7 @@ main() {
             fi
             curl -ks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/admin/customer/1/meerkatSettings" >> ${LOG_DIR}/meerkat_settings.json
         elif [[ "$BACKEND_VERSION" =~ ^(5) ]] || [[ "$BACKEND_VERSION" =~ ^(4) ]] || [[ "$BACKEND_VERSION" =~ ^(3) ]]; then
-            API_URL=$(kubectl ${KUBE_OPTS} get cm sysdigcloud-config -o yaml | grep -i api.url: | head -1 | awk '{print $2}')
+            API_URL=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get cm sysdigcloud-config -o yaml | grep -i api.url: | head -1 | awk '{print $2}')
             # Check that the API_KEY for the Super User is valid and exit 
             CURL_OUT=$(curl -fks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/license" >/dev/null 2>&1) && RETVAL=$? && error=0 || { RETVAL=$? && error=1; }
             if [[ ${error} -eq 1 ]]; then
@@ -191,7 +191,7 @@ main() {
     if [[ ! -z ${SECURE_API_KEY} ]]; then                                                                     
         BACKEND_VERSION=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get deployment sysdigcloud-api -ojsonpath='{.spec.template.spec.containers[0].image}' | awk 'match($0, /[0-9]\.[0-9]\.[0-9](\.[0-9]+)?/) {print substr($0, RSTART, RLENGTH)}') || true
         if [[ "$BACKEND_VERSION" =~ ^(6) ]]; then                                                             
-            API_URL=$(kubectl ${KUBE_OPTS} get cm sysdigcloud-collector-config -ojsonpath='{.data.collector-config\.conf}' | awk 'p&&$0~/"/{gsub("\"","");print} /{/{p=0} /sso/{p=1}' | grep serverName | awk '{print $3}')                                                           
+            API_URL=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get cm sysdigcloud-collector-config -ojsonpath='{.data.collector-config\.conf}' | awk 'p&&$0~/"/{gsub("\"","");print} /{/{p=0} /sso/{p=1}' | grep serverName | awk '{print $3}')                                                           
             # Check that the SECURE_API_KEY for the Super User is valid and exit                              
             CURL_OUT=$(curl -fks -H "Authorization: Bearer ${SECURE_API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/license" >/dev/null 2>&1) && RETVAL=$? && error=0 || { RETVAL=$? && error=1; }                                                                      
             if [[ ${error} -eq 1 ]]; then                                                                     
@@ -199,7 +199,7 @@ main() {
                 exit 1
             fi
         elif [[ "$BACKEND_VERSION" =~ ^(5) ]] || [[ "$BACKEND_VERSION" =~ ^(4) ]] || [[ "$BACKEND_VERSION" =~ ^(3) ]]; then    
-            API_URL=$(kubectl ${KUBE_OPTS} get cm sysdigcloud-config -o yaml | grep -i api.url: | head -1 | awk '{print $2}')  
+            API_URL=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get cm sysdigcloud-config -o yaml | grep -i api.url: | head -1 | awk '{print $2}')  
             # Check that the API_KEY for the Super User is valid and exit 
             CURL_OUT=$(curl -fks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/license" >/dev/null 2>&1) && RETVAL=$? && error=0 || { RETVAL=$? && error=1; }
             if [[ ${error} -eq 1 ]]; then
@@ -259,9 +259,9 @@ main() {
 
     # Configure kubectl command if labels are set
     if [[ -z ${LABELS} ]]; then
-        SYSDIGCLOUD_PODS=$(kubectl ${KUBE_OPTS} get pods --no-headers -o custom-columns=NAME:metadata.name)
+        SYSDIGCLOUD_PODS=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get pods --no-headers -o custom-columns=NAME:metadata.name)
     else
-        SYSDIGCLOUD_PODS=$(kubectl ${KUBE_OPTS} -l "role in (${LABELS})" get pods --no-headers -o custom-columns=NAME:metadata.name)
+        SYSDIGCLOUD_PODS=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} -l "role in (${LABELS})" get pods --no-headers -o custom-columns=NAME:metadata.name)
     fi
 
     echo "Using namespace ${NAMESPACE}"
@@ -270,7 +270,7 @@ main() {
     # Collect kubectl cluster dump
     CLUSTER_DUMP_DIR="${LOG_DIR}/kubectl-cluster-dump"
     mkdir -p ${CLUSTER_DUMP_DIR}
-    kubectl ${KUBE_OPTS} cluster-info dump --output-directory=${CLUSTER_DUMP_DIR}
+    kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} cluster-info dump --output-directory=${CLUSTER_DUMP_DIR}
 
     # Collect container logs for each pod
     if [[ "${SKIP_LOGS}" == "false" ]]; then
@@ -279,16 +279,16 @@ main() {
         for pod in ${SYSDIGCLOUD_PODS}; do
             echo "Getting support logs for ${pod}"
             mkdir -p ${LOG_DIR}/pod_logs/${pod}
-            containers=$(kubectl ${KUBE_OPTS} get pod ${pod} -o json | jq -r '.spec.containers[].name' || echo "")
+            containers=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get pod ${pod} -o json | jq -r '.spec.containers[].name' || echo "")
             for container in ${containers}; do
-                kubectl ${KUBE_OPTS} logs ${pod} -c ${container} ${SINCE_OPTS} > ${LOG_DIR}/pod_logs/${pod}/${container}-kubectl-logs.txt || true
+                kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} logs ${pod} -c ${container} ${SINCE_OPTS} > ${LOG_DIR}/pod_logs/${pod}/${container}-kubectl-logs.txt || true
                 echo "Execing into ${container}"
-                kubectl ${KUBE_OPTS} exec ${pod} -c ${container} -- bash -c "echo" >/dev/null 2>&1 && RETVAL=$? || RETVAL=$? && true
-                kubectl ${KUBE_OPTS} exec ${pod} -c ${container} -- sh -c "echo" >/dev/null 2>&1 && RETVAL1=$? || RETVAL1=$? && true
+                kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod} -c ${container} -- bash -c "echo" >/dev/null 2>&1 && RETVAL=$? || RETVAL=$? && true
+                kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod} -c ${container} -- sh -c "echo" >/dev/null 2>&1 && RETVAL1=$? || RETVAL1=$? && true
                 if [ $RETVAL -eq 0 ]; then
-                    kubectl ${KUBE_OPTS} exec ${pod} -c ${container} -- bash -c "${command}" > ${LOG_DIR}/pod_logs/${pod}/${container}-support-files.tgz || true
+                    kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod} -c ${container} -- bash -c "${command}" > ${LOG_DIR}/pod_logs/${pod}/${container}-support-files.tgz || true
                 elif [ $RETVAL1 -eq 0 ]; then
-                    kubectl ${KUBE_OPTS} exec ${pod} -c ${container} -- sh -c "${command}" > ${LOG_DIR}/pod_logs/${pod}/${container}-support-files.tgz || true
+                    kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod} -c ${container} -- sh -c "${command}" > ${LOG_DIR}/pod_logs/${pod}/${container}-support-files.tgz || true
                 else
                     echo "Skipping log gathering for ${pod}"
                 fi
@@ -300,34 +300,34 @@ main() {
     for pod in ${SYSDIGCLOUD_PODS}; do
         echo "Getting pod description for ${pod}"
         mkdir -p ${LOG_DIR}/${pod}
-        kubectl ${KUBE_OPTS} get pod ${pod} -o json > ${LOG_DIR}/${pod}/kubectl-describe.json || true
+        kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get pod ${pod} -o json > ${LOG_DIR}/${pod}/kubectl-describe.json || true
     done
 
     #Collect Describe Node Output
     echo "Collecting node information"
-    kubectl ${KUBE_OPTS} describe nodes | tee -a ${LOG_DIR}/describe_node_output.log || echo "No permission to describe nodes!"
+    kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} describe nodes | tee -a ${LOG_DIR}/describe_node_output.log || echo "No permission to describe nodes!"
 
-    NODES=$(kubectl ${KUBE_OPTS} get nodes --no-headers -o custom-columns=NAME:metadata.name) && RETVAL=0 || { RETVAL=$? && echo "No permission to get nodes!"; }
+    NODES=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get nodes --no-headers -o custom-columns=NAME:metadata.name) && RETVAL=0 || { RETVAL=$? && echo "No permission to get nodes!"; }
     if [[ "${RETVAL}" == "0" ]]; then
         mkdir -p ${LOG_DIR}/nodes
         for node in ${NODES[@]}; do
-            kubectl ${KUBE_OPTS} get node ${node} -ojson > ${LOG_DIR}/nodes/${node}-kubectl.json
+            kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get node ${node} -ojson > ${LOG_DIR}/nodes/${node}-kubectl.json
         done
         unset RETVAL
     fi
 
     #Collect PV info
-    kubectl ${KUBE_OPTS} get pv | grep sysdig | tee -a ${LOG_DIR}/pv_output.log || echo "No permission to get PersistentVolumes"
-    kubectl ${KUBE_OPTS} get pvc | grep sysdig | tee -a ${LOG_DIR}/pvc_output.log
-    kubectl ${KUBE_OPTS} get storageclass | tee -a ${LOG_DIR}/sc_output.log || echo "No permission to get StorageClasses"
+    kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get pv | grep sysdig | tee -a ${LOG_DIR}/pv_output.log || echo "No permission to get PersistentVolumes"
+    kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get pvc | grep sysdig | tee -a ${LOG_DIR}/pvc_output.log
+    kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get storageclass | tee -a ${LOG_DIR}/sc_output.log || echo "No permission to get StorageClasses"
 
     # Get info on deployments, statefulsets, persistentVolumeClaims, daemonsets, and ingresses
     echo "Gathering Manifest Information"
     for object in svc deployment sts pvc daemonset ingress replicaset networkpolicy cronjob configmap; do
-        items=$(kubectl ${KUBE_OPTS} get ${object} -o jsonpath="{.items[*]['metadata.name']}")
+        items=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get ${object} -o jsonpath="{.items[*]['metadata.name']}")
         mkdir -p ${LOG_DIR}/${object}
         for item in ${items}; do
-            kubectl ${KUBE_OPTS} get ${object} ${item} -o json > ${LOG_DIR}/${object}/${item}-kubectl.json
+            kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get ${object} ${item} -o json > ${LOG_DIR}/${object}/${item}-kubectl.json
         done
     done
 
@@ -338,10 +338,10 @@ main() {
     num_total_containers=0
 
     printf "%-30s %-10s %-10s %-10s %-10s\n" "Node" "Pods" "Running Containers" "Total Containers" >> ${LOG_DIR}/container_density.txt
-    for node in $(kubectl ${KUBE_OPTS} get nodes --no-headers -o custom-columns=node:.metadata.name); do
-        total_pods=$(kubectl ${KUBE_OPTS} get pods -A --no-headers -o wide | grep ${node} |wc -l |xargs)
-        running_containers=$( kubectl ${KUBE_OPTS} get pods -A --no-headers -o wide |grep ${node} |awk '{print $3}' |cut -f 1 -d/ | awk '{ SUM += $1} END { print SUM }' |xargs)
-        total_containers=$( kubectl get ${KUBE_OPTS} pods -A --no-headers -o wide |grep ${node} |awk '{print $3}' |cut -f 2 -d/ | awk '{ SUM += $1} END { print SUM }' |xargs)
+    for node in $(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get nodes --no-headers -o custom-columns=node:.metadata.name); do
+        total_pods=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get pods -A --no-headers -o wide | grep ${node} |wc -l |xargs)
+        running_containers=$( kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get pods -A --no-headers -o wide |grep ${node} |awk '{print $3}' |cut -f 1 -d/ | awk '{ SUM += $1} END { print SUM }' |xargs)
+        total_containers=$( kubectl ${CONTEXT_OPTS} get ${KUBE_OPTS} pods -A --no-headers -o wide |grep ${node} |awk '{print $3}' |cut -f 2 -d/ | awk '{ SUM += $1} END { print SUM }' |xargs)
         printf "%-30s %-15s %-20s %-10s\n" "${node}" "${total_pods}" "${running_containers}" "${total_containers}" >> ${LOG_DIR}/container_density.txt
         num_nodes=$((num_nodes+1))
         num_pods=$((num_pods+${total_pods}))
@@ -357,32 +357,32 @@ main() {
 
     # Fetch Cassandra Nodetool output
     echo "Fetching Cassandra statistics"
-    for pod in $(kubectl ${KUBE_OPTS} get pod -l role=cassandra --no-headers -o custom-columns=NAME:metadata.name)
+    for pod in $(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get pod -l role=cassandra --no-headers -o custom-columns=NAME:metadata.name)
     do
         mkdir -p ${LOG_DIR}/cassandra/${pod}
-        kubectl ${KUBE_OPTS} exec -it ${pod} -c cassandra -- nodetool info | tee -a ${LOG_DIR}/cassandra/${pod}/nodetool_info.log
-        kubectl ${KUBE_OPTS} exec -it ${pod} -c cassandra -- nodetool status | tee -a ${LOG_DIR}/cassandra/${pod}/nodetool_status.log
-        kubectl ${KUBE_OPTS} exec -it ${pod} -c cassandra -- nodetool getcompactionthroughput | tee -a ${LOG_DIR}/cassandra/${pod}/nodetool_getcompactionthroughput.log
-        kubectl ${KUBE_OPTS} exec -it ${pod} -c cassandra -- nodetool cfstats | tee -a ${LOG_DIR}/cassandra/${pod}/nodetool_cfstats.log
-        kubectl ${KUBE_OPTS} exec -it ${pod} -c cassandra -- nodetool cfhistograms draios message_data10 | tee -a ${LOG_DIR}/cassandra/${pod}/nodetool_cfhistograms.log
-        kubectl ${KUBE_OPTS} exec -it ${pod} -c cassandra -- nodetool proxyhistograms | tee -a ${LOG_DIR}/cassandra/${pod}/nodetool_proxyhistograms.log
-        kubectl ${KUBE_OPTS} exec -it ${pod} -c cassandra -- nodetool tpstats | tee -a ${LOG_DIR}/cassandra/${pod}/nodetool_tpstats.log
-        kubectl ${KUBE_OPTS} exec -it ${pod} -c cassandra -- nodetool compactionstats | tee -a ${LOG_DIR}/cassandra/${pod}/nodetool_compactionstats.log
+        kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec -it ${pod} -c cassandra -- nodetool info | tee -a ${LOG_DIR}/cassandra/${pod}/nodetool_info.log
+        kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec -it ${pod} -c cassandra -- nodetool status | tee -a ${LOG_DIR}/cassandra/${pod}/nodetool_status.log
+        kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec -it ${pod} -c cassandra -- nodetool getcompactionthroughput | tee -a ${LOG_DIR}/cassandra/${pod}/nodetool_getcompactionthroughput.log
+        kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec -it ${pod} -c cassandra -- nodetool cfstats | tee -a ${LOG_DIR}/cassandra/${pod}/nodetool_cfstats.log
+        kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec -it ${pod} -c cassandra -- nodetool cfhistograms draios message_data10 | tee -a ${LOG_DIR}/cassandra/${pod}/nodetool_cfhistograms.log
+        kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec -it ${pod} -c cassandra -- nodetool proxyhistograms | tee -a ${LOG_DIR}/cassandra/${pod}/nodetool_proxyhistograms.log
+        kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec -it ${pod} -c cassandra -- nodetool tpstats | tee -a ${LOG_DIR}/cassandra/${pod}/nodetool_tpstats.log
+        kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec -it ${pod} -c cassandra -- nodetool compactionstats | tee -a ${LOG_DIR}/cassandra/${pod}/nodetool_compactionstats.log
     done
 
     echo "Fetching Elasticsearch health info"
     # CHECK HERE IF THE TLS ENV VARIABLE IS SET IN ELASTICSEARCH, AND BUILD THE CURL COMMAND OUT
-    ELASTIC_POD=$(kubectl ${KUBE_OPTS} get pods -l role=elasticsearch --no-headers -o custom-columns=NAME:metadata.name | head -1) || true
+    ELASTIC_POD=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get pods -l role=elasticsearch --no-headers -o custom-columns=NAME:metadata.name | head -1) || true
 
     if [ ! -z ${ELASTIC_POD} ]; then
-        ELASTIC_IMAGE=$(kubectl ${KUBE_OPTS} get pod ${ELASTIC_POD} -ojsonpath='{.spec.containers[?(@.name == "elasticsearch")].image}' | awk -F '/' '{print $NF}' | cut -f 1 -d ':') || true
+        ELASTIC_IMAGE=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get pod ${ELASTIC_POD} -ojsonpath='{.spec.containers[?(@.name == "elasticsearch")].image}' | awk -F '/' '{print $NF}' | cut -f 1 -d ':') || true
 
         if [[ ${ELASTIC_IMAGE} == "opensearch"* ]]; then
             CERTIFICATE_DIRECTORY="/usr/share/opensearch/config"
             ELASTIC_TLS="true"
         else
             CERTIFICATE_DIRECTORY="/usr/share/elasticsearch/config"
-            ELASTIC_TLS=$(kubectl ${KUBE_OPTS} exec ${ELASTIC_POD} -c elasticsearch -- env | grep -i ELASTICSEARCH_TLS_ENCRYPTION) || true
+            ELASTIC_TLS=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${ELASTIC_POD} -c elasticsearch -- env | grep -i ELASTICSEARCH_TLS_ENCRYPTION) || true
             if [[ ${ELASTIC_TLS} == *"ELASTICSEARCH_TLS_ENCRYPTION=true"* ]]; then
                 ELASTIC_TLS="true"
             fi
@@ -394,31 +394,31 @@ main() {
             ELASTIC_CURL='curl -s -k http://$(hostname):9200'
         fi
 
-        for pod in $(kubectl ${KUBE_OPTS} get pods -l role=elasticsearch --no-headers -o custom-columns=NAME:metadata.name)
+        for pod in $(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get pods -l role=elasticsearch --no-headers -o custom-columns=NAME:metadata.name)
         do
             mkdir -p ${LOG_DIR}/elasticsearch/${pod}
 
-            kubectl ${KUBE_OPTS} exec ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}/_cat/health" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_health.log || true
+            kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}/_cat/health" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_health.log || true
 
-            kubectl ${KUBE_OPTS} exec ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}/_cat/indices" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_indices.log || true
+            kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}/_cat/indices" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_indices.log || true
 
-            kubectl ${KUBE_OPTS} exec ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}/_cat/nodes?v" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_nodes.log || true
+            kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}/_cat/nodes?v" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_nodes.log || true
 
-            kubectl ${KUBE_OPTS} exec ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}/_cluster/allocation/explain?pretty" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_index_allocation.log || true
+            kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}/_cluster/allocation/explain?pretty" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_index_allocation.log || true
 
             echo "Fetching ElasticSearch SSL Certificate Expiration Dates"
-            kubectl ${KUBE_OPTS} exec ${pod}  -c elasticsearch -- openssl x509 -in ${CERTIFICATE_DIRECTORY}/node.pem -noout -enddate | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_node_pem_expiration.log || true
-            kubectl ${KUBE_OPTS} exec ${pod}  -c elasticsearch -- openssl x509 -in ${CERTIFICATE_DIRECTORY}/admin.pem -noout -enddate | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_admin_pem_expiration.log || true
-            kubectl ${KUBE_OPTS} exec ${pod}  -c elasticsearch -- openssl x509 -in ${CERTIFICATE_DIRECTORY}/root-ca.pem -noout -enddate | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_root_ca_pem_expiration.log || true
+            kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod}  -c elasticsearch -- openssl x509 -in ${CERTIFICATE_DIRECTORY}/node.pem -noout -enddate | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_node_pem_expiration.log || true
+            kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod}  -c elasticsearch -- openssl x509 -in ${CERTIFICATE_DIRECTORY}/admin.pem -noout -enddate | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_admin_pem_expiration.log || true
+            kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod}  -c elasticsearch -- openssl x509 -in ${CERTIFICATE_DIRECTORY}/root-ca.pem -noout -enddate | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_root_ca_pem_expiration.log || true
 
 
             echo "Fetching Elasticsearch Index Versions"
-            kubectl ${KUBE_OPTS} exec ${pod} -c elasticsearch -- bash -c "${ELASTIC_CURL}/_all/_settings/index.version\*?pretty" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_index_versions.log || true
+            kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod} -c elasticsearch -- bash -c "${ELASTIC_CURL}/_all/_settings/index.version\*?pretty" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_index_versions.log || true
 
             echo "Checking Used Elasticsearch Storage - ${pod}"
-            mountpath=$(kubectl ${KUBE_OPTS} get sts sysdigcloud-elasticsearch -ojsonpath='{.spec.template.spec.containers[].volumeMounts[?(@.name == "data")].mountPath}')
+            mountpath=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get sts sysdigcloud-elasticsearch -ojsonpath='{.spec.template.spec.containers[].volumeMounts[?(@.name == "data")].mountPath}')
             if [ ! -z $mountpath ]; then
-               kubectl ${KUBE_OPTS} exec ${pod} -c elasticsearch -- du -ch ${mountpath} | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_storage.log || true
+               kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod} -c elasticsearch -- du -ch ${mountpath} | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_storage.log || true
            else
               printf "Error getting ElasticSearch ${pod} mount path\n" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_storage.log
            fi
@@ -428,58 +428,58 @@ main() {
     fi
 
     # Fetch Cassandra storage info
-    for pod in $(kubectl ${KUBE_OPTS} get pods -l role=cassandra --no-headers -o custom-columns=NAME:metadata.name)
+    for pod in $(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get pods -l role=cassandra --no-headers -o custom-columns=NAME:metadata.name)
     do
         echo "Checking Used Cassandra Storage - ${pod}"
         mkdir -p ${LOG_DIR}/cassandra/${pod}
         printf "${pod}\n" | tee -a ${LOG_DIR}/cassandra/${pod}/cassandra_storage.log
-        mountpath=$(kubectl ${KUBE_OPTS} get sts sysdigcloud-cassandra -ojsonpath='{.spec.template.spec.containers[].volumeMounts[?(@.name == "data")].mountPath}')
+        mountpath=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get sts sysdigcloud-cassandra -ojsonpath='{.spec.template.spec.containers[].volumeMounts[?(@.name == "data")].mountPath}')
         if [ ! -z $mountpath ]; then
-            kubectl ${KUBE_OPTS} exec -it ${pod} -c cassandra -- du -ch ${mountpath} | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' | tee -a ${LOG_DIR}/cassandra/${pod}/cassandra_storage.log || true
+            kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec -it ${pod} -c cassandra -- du -ch ${mountpath} | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' | tee -a ${LOG_DIR}/cassandra/${pod}/cassandra_storage.log || true
        else
           printf "Error getting Cassandra ${pod} mount path\n" | tee -a ${LOG_DIR}/cassandra/${pod}/cassandra_storage.log
        fi
     done
 
     # Fetch postgresql storage info
-    for pod in $(kubectl ${KUBE_OPTS} get pods -l role=postgresql --no-headers -o custom-columns=NAME:metadata.name)
+    for pod in $(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get pods -l role=postgresql --no-headers -o custom-columns=NAME:metadata.name)
     do
         echo "Checking Used PostgreSQL Storage - ${pod}"
         mkdir -p ${LOG_DIR}/postgresql/${pod}
         printf "${pod}\n" | tee -a ${LOG_DIR}/postgresql/${pod}/postgresql_storage.log
-        kubectl ${KUBE_OPTS} exec -it ${pod} -c postgresql -- du -ch /var/lib/postgresql | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' | tee -a ${LOG_DIR}/postgresql/${pod}/postgresql_storage.log || true
+        kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec -it ${pod} -c postgresql -- du -ch /var/lib/postgresql | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' | tee -a ${LOG_DIR}/postgresql/${pod}/postgresql_storage.log || true
     done
 
     # Fetch mysql storage info
-    for pod in $(kubectl ${KUBE_OPTS} get pods -l role=mysql --no-headers -o custom-columns=NAME:metadata.name)
+    for pod in $(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get pods -l role=mysql --no-headers -o custom-columns=NAME:metadata.name)
     do
         echo "Checking Used MySQL Storage - ${pod}"
         mkdir -p ${LOG_DIR}/mysql/${pod}
         printf "${pod}\n" | tee -a ${LOG_DIR}/mysql/${pod}/mysql_storage.log
-        kubectl ${KUBE_OPTS} exec -it ${pod} -c mysql -- du -ch /var/lib/mysql | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' | tee -a ${LOG_DIR}/mysql/${pod}/mysql_storage.log || true
+        kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec -it ${pod} -c mysql -- du -ch /var/lib/mysql | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' | tee -a ${LOG_DIR}/mysql/${pod}/mysql_storage.log || true
     done
 
     # Fetch kafka storage info
-    for pod in $(kubectl ${KUBE_OPTS} get pods -l role=cp-kafka --no-headers -o custom-columns=NAME:metadata.name)
+    for pod in $(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get pods -l role=cp-kafka --no-headers -o custom-columns=NAME:metadata.name)
     do
         echo "Checking Used Kafka Storage - ${pod}"
         mkdir -p ${LOG_DIR}/kafka/${pod}
         printf "${pod}\n" | tee -a ${LOG_DIR}/kafka/${pod}/kafka_storage.log
-        kubectl ${KUBE_OPTS} exec -it ${pod} -c broker -- du -ch /opt/kafka/data | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' | tee -a ${LOG_DIR}/kafka/${pod}/kafka_storage.log || true
+        kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec -it ${pod} -c broker -- du -ch /opt/kafka/data | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' | tee -a ${LOG_DIR}/kafka/${pod}/kafka_storage.log || true
     done
 
     # Fetch zookeeper storage info
-    for pod in $(kubectl ${KUBE_OPTS} get pods -l role=zookeeper --no-headers -o custom-columns=NAME:metadata.name)
+    for pod in $(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get pods -l role=zookeeper --no-headers -o custom-columns=NAME:metadata.name)
     do
         echo "Checking Used Zookeeper Storage - ${pod}"
         mkdir -p ${LOG_DIR}/zookeeper/${pod}
         printf "${pod}\n" | tee -a ${LOG_DIR}/zookeeper/${pod}/zookeeper_storage.log
-        kubectl ${KUBE_OPTS} exec -it ${pod} -c server -- du -ch /var/lib/zookeeper/data | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' | tee -a ${LOG_DIR}/zookeeper/${pod}/zookeeper_storage.log || true
+        kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec -it ${pod} -c server -- du -ch /var/lib/zookeeper/data | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' | tee -a ${LOG_DIR}/zookeeper/${pod}/zookeeper_storage.log || true
     done
 
     # Collect the sysdigcloud-config configmap, and write to the log directory
     echo "Fetching the sysdigcloud-config ConfigMap"
-    kubectl ${KUBE_OPTS} get configmap sysdigcloud-config -o yaml | grep -v password | grep -v apiVersion > ${LOG_DIR}/config.yaml || true
+    kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get configmap sysdigcloud-config -o yaml | grep -v password | grep -v apiVersion > ${LOG_DIR}/config.yaml || true
 
     # Generate the bundle name, create a tarball, and remove the temp log directory
     BUNDLE_NAME=$(date +%s)_sysdig_cloud_support_bundle.tgz
