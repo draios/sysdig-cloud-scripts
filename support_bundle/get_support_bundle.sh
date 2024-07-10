@@ -150,10 +150,11 @@ main() {
         exit 1
     fi
 
+    echo "$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get deployment sysdigcloud-api -ojsonpath='{.spec.template.spec.containers[0].image}' | awk -F: '{ print $2 }')" > ${LOG_DIR}/backend_version.txt
+    BACKEND_VERSION=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get deployment sysdigcloud-api -ojsonpath='{.spec.template.spec.containers[0].image}' | awk -F: '{ print $2 }' | awk -F. '{ print $1 }') || true
+
     # If API key is supplied, check the backend version, and send a GET to the relevant endpoints.
     if [[ ! -z ${API_KEY} ]]; then
-        BACKEND_VERSION=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get deployment sysdigcloud-api -ojsonpath='{.spec.template.spec.containers[0].image}' | awk -F: '{ print $2 }' | awk -F. '{ print $1 }') || true
-        echo ${BACKEND_VERSION} > ${LOG_DIR}/backend_version.txt
         if [[ "$BACKEND_VERSION" =~ ^(7|6)$ ]]; then
             if [[ "$API_LOCAL" == "true" ]]; then
                 kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} port-forward service/sysdigcloud-api 8080 > /dev/null 2>&1 &
@@ -231,7 +232,6 @@ main() {
 
     # If Secure API key is supplied, collect settings
     if [[ ! -z ${SECURE_API_KEY} ]]; then                                                                     
-        BACKEND_VERSION=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get deployment sysdigcloud-api -ojsonpath='{.spec.template.spec.containers[0].image}' | awk -F: '{ print $2 }' | awk -F. '{ print $1 }') || true
         if [[ "$BACKEND_VERSION" =~ ^(7|6)$ ]]; then
             if [[ "$API_LOCAL" == "true" ]]; then
                 kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} port-forward service/sysdigcloud-api 8080 > /dev/null 2>&1 &
