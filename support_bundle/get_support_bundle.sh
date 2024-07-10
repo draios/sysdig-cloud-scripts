@@ -152,7 +152,7 @@ main() {
 
     # If API key is supplied, check the backend version, and send a GET to the relevant endpoints.
     if [[ ! -z ${API_KEY} ]]; then
-        BACKEND_VERSION=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get deployment sysdigcloud-api -ojsonpath='{.spec.template.spec.containers[0].image}' | awk -F: '{ print $2 }' | awk -F. '{ print $1 }' || true
+        BACKEND_VERSION=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get deployment sysdigcloud-api -ojsonpath='{.spec.template.spec.containers[0].image}' | awk -F: '{ print $2 }' | awk -F. '{ print $1 }') || true
         echo ${BACKEND_VERSION} > ${LOG_DIR}/backend_version.txt
         if [[ "$BACKEND_VERSION" =~ ^(7|6)$ ]]; then
             if [[ "$API_LOCAL" == "true" ]]; then
@@ -173,7 +173,7 @@ main() {
                 done
                 API_URL="http://127.0.0.1:8080"
             else
-                API_URL=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get cm sysdigcloud-collector-config '-ojsonpath={.data.collector-config\.conf}' | grep serverName | head -1 | awk '{print $3}' | sed 's/"//g')
+                API_URL=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get cm sysdigcloud-collector-config -ojsonpath='{.data.collector-config\.conf}' | grep serverName | head -1 | awk '{print $3}' | sed 's/"//g')
             fi
             # Check that the API_KEY for the Super User is valid and exit 
             CURL_OUT=$(curl -fks -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/license" >/dev/null 2>&1) && RETVAL=$? && error=0 || { RETVAL=$? && error=1; }
@@ -251,7 +251,7 @@ main() {
                 done
                 API_URL="http://127.0.0.1:8080"
             else
-                API_URL=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get cm sysdigcloud-collector-config '-ojsonpath={.data.collector-config\.conf}' | grep serverName | head -1 | awk '{print $3}' | sed 's/"//g')
+                API_URL=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get cm sysdigcloud-collector-config -ojsonpath='{.data.collector-config\.conf}' | grep serverName | head -1 | awk '{print $3}' | sed 's/"//g')
             fi
             # Check that the SECURE_API_KEY for the Super User is valid and exit                              
             CURL_OUT=$(curl -fks -H "Authorization: Bearer ${SECURE_API_KEY}" -H "Content-Type: application/json" "${API_URL}/api/license" >/dev/null 2>&1) && RETVAL=$? && error=0 || { RETVAL=$? && error=1; }                                                                      
