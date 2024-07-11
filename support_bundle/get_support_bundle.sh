@@ -8,6 +8,7 @@ catch() {
 
 #generate sysdigcloud support bundle on kubernetes
 
+API_LOCAL=""
 LABELS=""
 CONTEXT=""
 CONTEXT_OPTS=""
