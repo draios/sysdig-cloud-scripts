@@ -1,9 +1,10 @@
-<!-- Space: TOOLS -->
+<!-- Space: IONP -->
 <!-- Parent: Installer -->
+<!-- Parent: Git Synced Docs -->
 <!-- Title: Command Line Arguments -->
 <!-- Layout: plain -->
 
-# Command line arguments explained
+# Command Line Arguments
 
 <br/>
 
@@ -13,12 +14,12 @@
 
 - installer does not deploy the `namespace.yaml` manifest.
   It expects the Namespace to exist and to match the value in `values.yaml`
-  There is no validation, in case of mismatch the installer will fail
+  If there is a mismatch, the installer will fail as no validation is in place.
 
 `--skip-pull-secret`
 
-- the services expect the pull secret to exist,
-  to have the expected name (`sysdigcloud-pull-secret`) and to allow access to the registry.
+- The services require the pull secret to exist with the expected name (`sysdigcloud-pull-secret`) and to have access to the registry.
+
 - if the pull secret is missing, the behaviour could be unpredictable:
   some Pods could start if they can find the image locally and if their `imagePullPolicy`
   is not `Always`
@@ -26,7 +27,7 @@
 
 `--skip-serviceaccount`
 
-- The user must provide SAs with the exact same name expected:
+- The user must provide service accounts with the exact same name expected:
 
 ```text
 sysdig-serviceaccount.yaml:  name: sysdig
@@ -36,10 +37,10 @@ sysdig-serviceaccount.yaml:  name: sysdig-elasticsearch
 sysdig-serviceaccount.yaml:  name: sysdig-cassandra
 ```
 
-- One implication of this is that unless the `node-to-labels` SA is added,
-  rack awareness will not work neither in Cassandra nor in ES (to be verified)
-  Another implication is that if SA(s) are missing, the user will have to `describe`
-  the STS because Pods will not start at all:
+- One implication of this is that unless the `node-to-labels` ServiceAccount is added,
+  rack awareness will not be available for any datastore.
+  Another implication is that if the  ServiceAccount(s) are missing, the user will have to `describe`
+  the StatefulSet because Pods will not start at all:
 
 ```text
 Events:
@@ -54,13 +55,19 @@ Events:
 - installer does not apply the StorageClass manifest.
   It expects the storageClassName specified in values.yaml to exist.
 
+`--disable-proxy`
+
+- This flag allows disabling an existing configuration for proxy. Several services can be configured to use a proxy to go out to the Internet. For example `scanningv2-pkgmeta`, `certmanager`, `eventsForwarder` etc.
+- If it becomes necessary to remove such configuration, this flag can be used to remove the proxy configuration.
+- This flag also applies to `generate`, `diff` and `import`.
+
 ## Command: `import`
 
 `--zookeeper-workloadname <string value>`
 
 - This is the value that will be used for the `zookeeper` StatefulSet.
 The default value is `zookeeper`, this argument must be used when the
-actual name of the STS in the cluster differs
+actual name of the StatefulSet in the cluster differs
 
 `--kafka-workloadname <value>`
 
@@ -75,8 +82,6 @@ actual name of the STS in the cluster differs
 - This flag will use the new import logic, which will import the values from the cluster and then generate the manifests based on the imported values. Defaults to `false`, which means the old import logic will be used, unless the `--use-import-v2` flag is provided. Import V2 is supported starting from version 6.6.0, and is expected to become the default in the future.
 
 ## Command: `update-license`
-
-Added November 2022, this is a new command.
 
 ** WARNING: THIS FEATURE requires `kubectl` to be at least version `1.20.0` **
 
@@ -97,8 +102,6 @@ This command performs the following:
 
 ## Command: `image-list`
 
-Added November 2022
-
 This command prints to `stdout` (and optionally to a file) a list of all images in a generated stack.
 
 It requires a `values.yaml` and it produces a list of images based on that `values.yaml`.
@@ -107,7 +110,7 @@ It does not require a live cluster, and it does not fetches any value from a liv
 
 ### Flags
 
-`-f <filename>` - write the list to a file. **If the file exists, it is overwritten**
+`-f <filename>` - write the list to a file. If the file already exists, it will be overwritten.
 
 ### Example
 
@@ -132,7 +135,6 @@ quay.io/sysdig/postgres:12.10.0.0
 quay.io/sysdig/cp-kafka-6:0.2.1
 quay.io/sysdig/kube-rbac-proxy:v0.8.0
 quay.io/sysdig/secure-onboarding-api:6.0.0.12431
-quay.io/sysdig/nats-streaming-init:0.22.0.8
 quay.io/sysdig/ui-monitor-nginx:6.0.0.12431
 quay.io/sysdig/sysdig-worker:6.0.0.12431
 quay.io/sysdig/profiling-api:6.0.0.12431
@@ -168,7 +170,6 @@ quay.io/sysdig/haproxy-ingress:1.1.5-v0.10
 quay.io/sysdig/sysdig-meerkat-api:6.0.0.12431
 quay.io/sysdig/metadata-service-operator:1.0.1.23
 quay.io/sysdig/netsec:6.0.0.12431
-quay.io/sysdig/nats-streaming:0.22.0.8
 quay.io/sysdig/nats-exporter:0.9.0.2
 quay.io/sysdig/secure-prometheus:2.17.2
 quay.io/sysdig/opensearch-1:0.0.16
@@ -177,11 +178,10 @@ quay.io/sysdig/reporting-api:6.0.0.12431
 quay.io/sysdig/promchap:0.99.0-master.2022-11-18T13-46-40Z.d6b3d10f83
 quay.io/sysdig/redis-6:1.0.1
 quay.io/sysdig/ui-admin-nginx:6.0.0.12431
-quay.io/sysdig/admission-controller-api-pg-migrate:6.0.0.12431
 quay.io/sysdig/admission-controller-api:6.0.0.12431
 quay.io/sysdig/scanning:6.0.0.12431
 quay.io/sysdig/sysdig-alert-notifier:6.0.0.12431
-quay.io/sysdig/cassandra-3:0.0.36
+quay.io/sysdig/cassandra:0.0.36
 quay.io/sysdig/metadata-service-server:1.10.63
 quay.io/sysdig/rapid-response-connector:6.0.0.12431
 quay.io/sysdig/secure-todo-api:6.0.0.12431
@@ -257,6 +257,69 @@ This subcommand is DEPRECATED and will be removed starting from version 6.7.0, y
 `--k8s-server-version`
 
 - Sets the `kubernetesServerVersion` within values.
+
+`--helm-install`
+
+- The installer will extract the necessary files for an installation using the `helm` command only. By default it will create a directory `helm-install` in the directory where the installer is being executed. Content of the directory:
+
+  - `values.hi.yaml`: the complete values generated by the `installer`
+  - `values.hi.nats.yaml` and `values.hi.nats.global.yaml`: values for the rendering of NATSJS
+  - `charts`: the Helm charts that make up the Sysdig onprem stack
+
+`--helm-install-out-dir`
+
+- To use a custom directory to output the files generated by `--helm-install` instead of the default.
+
+### ArgoCD Generation
+
+We have introduced a way to generate ArgoCD apps definitions so that the sysdig stack can be installed using ArgoCD.
+
+At the moment we only take care of the generation of the files, the actual deploy of these files in ArgoCD is left to the user.
+
+`--argocd (boolean)`
+
+Generates files needed to deploy the sysdig stack on an ArgoCD installation. If the ArgoCD output directory exists, it will be deleted and recreated.
+NOTE: Using this flag will automatically generate the charts that you would obtain with the --helm-install CLI flag. This happens because the argoCD generation is closely linked to the specific production method of the helm-charts.
+
+`--argo-repo-url (string)`
+
+The URL of the repository that will contain the ArgoCD files and helm charts, expected in the form `git@github.com:ORGANIZATION/SAMPLE-REPO.git`. The default is `git@github.com:ORGANIZATION/SAMPLE-REPO.git`. This will be replaced within the ArgoCD apps definition files.
+
+`--argo-repo-rev (string)`
+
+The name of the branch of the repo to use. The default is `main`. This will be replaced within the ArgoCD apps definition files.
+
+example of hierarchy:
+```
+git@github.com:ORGANIZATION/SAMPLE-REPO.git
+    |
+    '- argocd-projects/
+    |        '- sysdig/
+    |        |    '- argocd/
+    |        |    |    '- sysdig-root/
+    |        |    |    '- sysdig-common-config/
+    |        |    |    '- sysdigcloud-infra/
+    |        |    |         [...]
+    |        |    '- helm-install/
+    |        |    |    '- charts/
+    |        |    |          '- chart-1/
+    |        |    |          '- chart-2/
+    |        |    |          [...]
+```
+
+`--argo-git-apps-dir (string)`
+
+Relative path from the repo root that will contain the folder with ArgoCD apps definitions. (default "argocd"). This will be replaced within the ArgoCD apps definition files.
+If you consider the example above, the correct value for this would be `argocd-projects/sysdig/argocd`.
+
+`--argo-git-charts-dir (string)`
+
+The relative path from the repo root that will contain the folder with charts. The default is `helm-install/charts`. This will be replaced within the ArgoCD apps definition files. If you consider the example above, the correct value for this would be `argocd-projects/sysdig/helm-install/charts`.
+
+`--argo-out-dir (string)`
+
+actual output directory on file system where argocd files will be written. Default is `./argocd/`.
+
 
 ## Command: `list-resources`
 
