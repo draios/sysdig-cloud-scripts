@@ -1,10 +1,9 @@
-<!-- Space: IONP -->
+<!-- Space: TOOLS -->
 <!-- Parent: Installer -->
-<!-- Parent: Git Synced Docs -->
 <!-- Title: Network policies v2 in the installer -->
 <!-- Layout: plain -->
 
-# Network Policies
+# Network policies
 
 <br />
 
@@ -12,7 +11,7 @@
 
 <br />
 
-## Overview
+## Introduction
 
 The current version of Sysdig Network policies v2 supports Sysdig HAProxy Ingress and IBM Cloud IKS ALBs.
 
@@ -28,7 +27,7 @@ A validation checks that the minimal requirements for each type of environment (
 
 - if `.deployment=kubernetes`, then the `.networkPolicies.ingress.haproxy.allowedNetworks` is required
 
-- if `.deployment=iks`, then the `.networkPolicies.ingress.alb.selector` is required
+- if `.deployment=iks`, then the `.networkPolicies.ingress.alb
 
 ## Parameters
 
@@ -50,7 +49,7 @@ networkPolicies:
 
 **Required**: `false` <br />
 **Description**: to render the NetworkPolicies this flag must be set to `deny`. It works together with flag `networkPolicies.enabled`.<br />
-**Options**: `deny|allow`<br />
+**Options**: `deny`/`allow`<br />
 **Default**: `false`<br />
 
 **Example**:
