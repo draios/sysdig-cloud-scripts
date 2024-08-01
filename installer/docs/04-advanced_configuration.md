@@ -1,10 +1,9 @@
-<!-- Space: IONP -->
+<!-- Space: TOOLS -->
 <!-- Parent: Installer -->
-<!-- Parent: Git Synced Docs -->
 <!-- Title: Advanced Configuration -->
 <!-- Layout: plain -->
 
-# Advanced Configuration
+# Advanced configuration
 
 <br />
 
