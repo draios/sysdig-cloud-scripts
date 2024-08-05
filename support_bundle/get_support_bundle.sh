@@ -151,8 +151,8 @@ main() {
         exit 1
     fi
 
-    echo "$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get deployment sysdigcloud-api -ojsonpath='{.spec.template.spec.containers[0].image}' | awk -F: '{ print $2 }')" > ${LOG_DIR}/backend_version.txt
-    BACKEND_VERSION=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get deployment sysdigcloud-api -ojsonpath='{.spec.template.spec.containers[0].image}' | awk -F: '{ print $2 }' | awk -F. '{ print $1 }') || true
+    echo "$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get deployment sysdigcloud-api -ojsonpath='{.spec.template.spec.containers[0].image}' | awk -F: '{ print $NF }')" > ${LOG_DIR}/backend_version.txt
+    BACKEND_VERSION=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get deployment sysdigcloud-api -ojsonpath='{.spec.template.spec.containers[0].image}' | awk -F: '{ print $NF }' | awk -F. '{ print $1 }') || true
 
     # If API key is supplied, check the backend version, and send a GET to the relevant endpoints.
     if [[ ! -z ${API_KEY} ]]; then
