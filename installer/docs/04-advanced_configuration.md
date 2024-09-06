@@ -1,9 +1,10 @@
-<!-- Space: TOOLS -->
+<!-- Space: IONP -->
 <!-- Parent: Installer -->
+<!-- Parent: Git Synced Docs -->
 <!-- Title: Advanced Configuration -->
 <!-- Layout: plain -->
 
-# Advanced configuration
+# Advanced Configuration
 
 <br />
 
@@ -131,16 +132,19 @@ Make sure that subnets have internet gateway configured and has enough ips.
 
 ### Updating the feeds database in airgapped environments [ScanningV2]
 
-This is a script that can be used to automatically update the vulnerability feeds used by the ScanningV2 engine.
+In non-airgap onprem environments, the vulnerabilities feeds is automatically retrieved by the Sysdig stack from a Sysdig SaaS endpoint.
+In an airgap onprem environment, the customer must retrieve the feed as a Docker image from a workstation with Internet access and then load the image onto their own private registry.
+
+The following is an example of a Bash script that could be used to update the vulnerability feeds used by the ScanningV2 engine.
+The tag used is `latest`, and Sysdig is building and pushing this tag multiple times each day.
+The details of the image can be found using the `docker inspect` command, even if the tag is `latest`.
+The script is only provided as an example or template to be filled and customized.
 
 ```bash
 #!/bin/bash
 QUAY_USERNAME="<change_me>"
 QUAY_PASSWORD="<change_me>"
-
-# Calculate the tag of the last version.
-epoch=`date +%s`
-IMAGE_TAG=$(( $epoch - 86400 - $epoch % 86400))
+IMAGE_TAG="latest"
 
 # Download image
 docker login quay.io/sysdig -u ${QUAY_USERNAME} -p ${QUAY_PASSWORD}
@@ -154,15 +158,30 @@ ssh -t user@airgapped-host "docker image load -i /var/shared-folder/airgap-vuln-
 # Push image remotely
 ssh -t user@airgapped-host "docker tag airgap-vuln-feeds:${IMAGE_TAG} airgapped-registry/airgap-vuln-feeds:${IMAGE_TAG}"
 ssh -t user@airgapped-host "docker image push airgapped-registry/airgap-vuln-feeds:${IMAGE_TAG}"
+# verify the image timestamp - this command should return the timestamp in epoch format
+epoch_timestamp=$(ssh -q -t user@airgapped-host "docker inspect --format '{{ index .Config.Labels \"sysdig.origin-docker-image-tag\" }}' airgapped-registry/airgap-vuln-feeds:${IMAGE_TAG}")
+human_readable_timestamp=$(date -d@"$epoch_timestamp")
+echo "Actual timestamp of the image based on the label sysdig.origin-docker-image-tag: epoch: ${epoch_timestamp} human readable: ${human_readable_timestamp}"
 
-# Update the image
-ssh -t user@airgapped-host "kubectl -n sysdigcloud set image deploy/sysdigcloud-scanningv2-airgap-vuln-feeds airgap-vuln-feeds=airgapped-registry/airgap-vuln-feeds:${IMAGE_TAG}"
+
+# Update the image: we need to restart the Deployment so that the image will be reloaded
+ssh -t user@airgapped-host "kubectl -n <namespace> rollout restart deploy/sysdigcloud-scanningv2-airgap-vuln-feeds"
+
+# Follow and check the restart
+ssh -t user@airgapped-host "kubectl -n <namespace> rollout status deploy/sysdigcloud-scanningv2-airgap-vuln-feeds"
 ```
 
-The above script could be scheduled using a cron job that run every day like
+> Note: The `IMAGE_TAG` mentioned above could also be used with the timestamp as well, like it was used in previous releases, here an example how to re-write the `IMAGE_TAG` line for the timestamp:
+> ```
+> # Calculate the tag of the last version.
+> epoch=`date +%s`
+> IMAGE_TAG=$(( $epoch - 86400 - $epoch % 86400))
+> ```
+
+The above script could be scheduled using a Linux cronjob that runs every day. E.g.:
 
 ```bash
-0 8 * * * airgap-vuln-feeds-image-update.sh >/dev/null 2>&1
+0 8 * * * airgap-vuln-feeds-image-update.sh > /somedir/sysdig-airgapvulnfeed.log 2>&1
 ```
 
 ### Updating the feeds database in airgapped environments [Legacy Scanning]

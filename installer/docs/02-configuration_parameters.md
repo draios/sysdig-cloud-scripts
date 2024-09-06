@@ -1,5 +1,6 @@
-<!-- Space: TOOLS -->
+<!-- Space: IONP -->
 <!-- Parent: Installer -->
+<!-- Parent: Git Synced Docs -->
 <!-- Title: Configuration Parameters -->
 <!-- Layout: plain -->
 
@@ -10,9 +11,8 @@
 ## **quaypullsecret**
 
 **Required**: `true`<br />
-**Description**: quay.io credentials provided with your Sysdig purchase confirmation
-mail.<br />
-**Options**:<br />
+**Description**: quay.io credentials provided with your Sysdig purchase confirmation mail.<br />
+**Options**: <br />
 **Default**: <br />
 **Example**:
 
@@ -120,7 +120,7 @@ Tags and pushes images as airgapped_registry_name/airgapped_repository_prefix/im
 **Example**:
 
 ```yaml
-#tags and pushes the image to <airgapped_registry_name>/foo/bar/<image_name:tag>
+# tags and pushes the image to <airgapped_registry_name>/foo/bar/<image_name:tag>
 airgapped_repository_prefix: foo/bar
 ```
 
@@ -401,13 +401,13 @@ elasticsearch:
 **Required**: `false`<br />
 **Description**: The docker image tag of the elasticsearch jobs<br />
 **Options**:<br />
-**Default**: 0.0.46<br />
+**Default**: 0.0.49<br />
 **Example**:
 
 ```yaml
 elasticsearch:
   jobs:
-    toolsImageVersion: 0.0.46
+    toolsImageVersion: 0.0.49
 ```
 
 ## **elasticsearch.enableMetrics**
@@ -615,12 +615,23 @@ nodeaffinityLabel:
   value: sysdig
 ```
 
+## **pvStorageSize.cassandra**
+
+**Required**: `false`<br />
+**Description**: The size of the persistent volume assigned to Cassandra, regardless of the cluster `size` used. This option *does not* apply when [`storageClassProvisioner`](#storageclassprovisioner) is `hostPath`.<br />
+**Options**:<br />
+**Default**: 30Gi<br />
+**Example**:
+
+```yaml
+pvStorageSize:
+    cassandra: 500Gi
+```
+
 ## **pvStorageSize.large.cassandra**
 
 **Required**: `false`<br />
-**Description**: The size of the persistent volume assigned to Cassandra in a
-cluster of [`size`](#size) large. This option is ignored if
-[`storageClassProvisioner`](#storageclassprovisioner) is `hostPath`.<br />
+**Description**: The size of the persistent volume assigned to Cassandra in a cluster of [`size`](#size) large. This option *only* applies if [`storageClassProvisioner`](#storageclassprovisioner) is `hostPath`.<br />
 **Options**:<br />
 **Default**: 300Gi<br />
 **Example**:
@@ -666,9 +677,7 @@ pvStorageSize:
 ## **pvStorageSize.medium.cassandra**
 
 **Required**: `false`<br />
-**Description**: The size of the persistent volume assigned to Cassandra in a
-cluster of [`size`](#size) medium. This option is ignored if
-[`storageClassProvisioner`](#storageclassprovisioner) is `hostPath`.<br />
+**Description**: The size of the persistent volume assigned to Cassandra in a cluster of [`size`](#size) medium. This option *only* applies if [`storageClassProvisioner`](#storageclassprovisioner) is `hostPath`.<br />
 **Options**:<br />
 **Default**: 150Gi<br />
 **Example**:
@@ -714,9 +723,7 @@ pvStorageSize:
 ## **pvStorageSize.small.cassandra**
 
 **Required**: `false`<br />
-**Description**: The size of the persistent volume assigned to Cassandra in a
-cluster of [`size`](#size) small. This option is ignored if
-[`storageClassProvisioner`](#storageclassprovisioner) is `hostPath`.<br />
+**Description**: The size of the persistent volume assigned to Cassandra in a cluster of [`size`](#size) small. This option *only* applies if [`storageClassProvisioner`](#storageclassprovisioner) is `hostPath`.<br />
 **Options**:<br />
 **Default**: 30Gi<br />
 **Example**:
@@ -1322,9 +1329,9 @@ sysdig:
 
 **Required**: `false`<br />
 **Description**: Global flag to enable Sysdig Platform Audit in all services.
-**Required**: `false`</br>
-**Options**: `true|false` </br>
-**Default**: `false`</br>
+**Required**: `false`<br />
+**Options**: `true|false` <br />
+**Default**: `false`<br />
 **Example**:
 
 ```yaml
@@ -1337,9 +1344,9 @@ sysdig:
 
 **Required**: `false`<br />
 **Description**: Global flag to enable storing of origin IP in Sysdig Platform Audit in all services.
-**Required**: `false`</br>
-**Options**: `true|false` </br>
-**Default**: `false`</br>
+**Required**: `false`<br />
+**Options**: `true|false` <br />
+**Default**: `false`<br />
 **Example**:
 
 ```yaml
@@ -1366,17 +1373,30 @@ sysdig:
   elasticsearch6Version: 6.8.6.12
 ```
 
+## **sysdig.opensearchImageName**
+
+**Required**: `false`<br />
+**Description**: Docker Image name for Opensearch. Eg, for Opensearch 2: "opensearch-2".<br />
+**Options**:<br />
+**Default**: opensearch-2<br />
+**Example**:
+
+```yaml
+sysdig:
+  opensearchImageName: "opensearch-2"
+```
+
 ## **sysdig.opensearchVersion**
 
 **Required**: `false`<br />
 **Description**: The docker image tag of Opensearch.<br />
 **Options**:<br />
-**Default**: 0.0.16<br />
+**Default**: 0.2.7<br />
 **Example**:
 
 ```yaml
 sysdig:
-  opensearchVersion: 0.0.16
+  opensearchVersion: 0.2.7
 ```
 
 ## **sysdig.haproxyVersion**
@@ -1397,11 +1417,11 @@ sysdig:
 
 ## **sysdig.skipIngressGeneration**
 
-**NOTE** - this is a recently added variable that bypasses the previous logic of skipping Ingress resource generation when networking was set to `external`. The goal is to generate the Ingress manifests either way, because even if a customer uses their own Ingress controller, they would still need the Ingress resources. The only reason to have this parameter is if we _explicitly_ need to avoid the generation of Ingress resources</br>
-**Required**: `false`</br>
-**Description**: Boolean parameter which can be used to skip the generation of the ingress resources if desired.</br>
-**Options**: `true|false` </br>
-**Default**: `false`</br>
+**NOTE** - this is a recently added variable that bypasses the previous logic of skipping Ingress resource generation when networking was set to `external`. The goal is to generate the Ingress manifests either way, because even if a customer uses their own Ingress controller, they would still need the Ingress resources. The only reason to have this parameter is if we _explicitly_ need to avoid the generation of Ingress resources<br />
+**Required**: `false`<br />
+**Description**: Boolean parameter which can be used to skip the generation of the ingress resources if desired.<br />
+**Options**: `true|false` <br />
+**Default**: `false`<br />
 **Example**:
 
 ```yaml
@@ -3229,12 +3249,12 @@ redisTls:
 
 A Monitor service can have multiple [component connection](https://docs.google.com/spreadsheets/d/1vuNIc4tPInTbAiMwlV8xgFdjWKoTmP8AYm04hwnqHN8/edit#gid=700533343):<br />
 
-| Instance  | Component |
-| --------- | --------- |
-| agent     | agent     |
-| common    | common    |
+| Instance  | Component                                                 |
+| --------- | --------------------------------------------------------- |
+| agent     | agent                                                     |
+| common    | common                                                    |
 | monitor-1 | cache, distributedJobs, ibmCache, promchap, policiesCache |
-| monitor-2 | alerting, meerkat, metering, prws |
+| monitor-2 | alerting, meerkat, metering, prws                         |
 
 **Options**: _Redis standalone/Redis HA_ | _Redis with TLS_ | _external Redis_<br />
 **Default**: _Redis standalone/Redis HA_<br />
@@ -3293,9 +3313,9 @@ redisClientsMonitor:
 
 A Secure service can have multiple [component connection](https://docs.google.com/spreadsheets/d/1vuNIc4tPInTbAiMwlV8xgFdjWKoTmP8AYm04hwnqHN8/edit#gid=700533343):<br />
 
-| Instance  | Component |
-| --------- | --------- |
-| profiling | profiling |
+| Instance  | Component                                                                                             |
+| --------- | ----------------------------------------------------------------------------------------------------- |
+| profiling | profiling                                                                                             |
 | secure-1  | scanning, forensic, events, rapidResponse, overview, compliance, cloudsec, policies, netsec, padvisor |
 
 **Options**: _Redis standalone/Redis HA_ | _Redis with TLS_ | _external Redis_<br />
@@ -5566,102 +5586,6 @@ sysdig:
         memory: 50Mi
 ```
 
-## **sysdig.resources.scanningAdmissionControllerApiPgMigrate.limits.cpu**
-
-**Required**: `false`<br />
-**Description**: The amount of cpu assigned to admission-controller-api PG
-migrate containers<br />
-**Options**:<br />
-**Default**:
-
-| cluster-size | limits |
-| ------------ | ------ |
-| small        | 1      |
-| medium       | 1      |
-| large        | 1      |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    scanningAdmissionControllerApiPgMigrate:
-      limits:
-        cpu: 1
-```
-
-## **sysdig.resources.scanningAdmissionControllerApiPgMigrate.limits.memory**
-
-**Required**: `false`<br />
-**Description**: The amount of memory assigned to admission-controller-api PG
-migrate containers<br />
-**Options**:<br />
-**Default**:
-
-| cluster-size | limits |
-| ------------ | ------ |
-| small        | 256Mi  |
-| medium       | 256Mi  |
-| large        | 256Mi  |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    scanningAdmissionControllerApiPgMigrate:
-      limits:
-        memory: 256Mi
-```
-
-## **sysdig.resources.scanningAdmissionControllerApiPgMigrate.requests.cpu**
-
-**Required**: `false`<br />
-**Description**: The amount of cpu required to schedule admission-controller-api
-PG migrate containers<br />
-**Options**:<br />
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 100m     |
-| medium       | 100m     |
-| large        | 100m     |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    scanningAdmissionControllerApiPgMigrate:
-      requests:
-        cpu: 100m
-```
-
-## **sysdig.resources.scanningAdmissionControllerApiPgMigrate.requests.memory**
-
-**Required**: `false`<br />
-**Description**: The amount of memory required to schedule admission-controller-api
-PG migrate containers<br />
-**Options**:<br />
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 50Mi     |
-| medium       | 50Mi     |
-| large        | 50Mi     |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    admission-controller-api-pg-migrate:
-      requests:
-        memory: 50Mi
-```
-
 ## **sysdig.resources.reporting-init.limits.cpu**
 
 **Required**: `false`<br />
@@ -6603,9 +6527,8 @@ sysdig:
 ```yaml
 sysdig:
   natsJs:
-    nats:
-      natsbox:
-        enabled: true
+    natsbox:
+      enabled: true
 ```
 
 ## **sysdig.natsJs.natsTLSGenerator.enabled**
@@ -10118,16 +10041,15 @@ sysdig:
 **Required**: `false`<br />
 **Description**: Custom configuration for Meerkat API JVM.<br />
 **Options**:<br />
-**Default**:
-
-```
+**Default**: <br />
+<span>
 -Dlogging.level.org.springframework.transaction.interceptor=TRACE
 -Dio.netty.leakDetection.level=advanced
 -Dlogging.level.com.sysdig.meerkat.api.server.adapter.TimeSeriesGAdapter=DEBUG
 -Dlogging.level.com.sysdig.meerkat.api.server.service.realtime.RealTimeQueryServiceImpl=DEBUG
 -Dlogging.level.com.sysdig.meerkat.api.server.service.realtime.MeerkatClientDNSGrpcResolver=DEBUG
 -Dsysdig.meerkat.cassandra.features.queryAllMetricDescriptorsEnabled=true
-```
+</span>
 
 **Example**:
 
@@ -10234,12 +10156,12 @@ sysdig:
 **Required**: `false`<br />
 **Description**: Custom configuration for Meerkat Aggregator JVM.<br />
 **Options**:<br />
-**Default**:
-
-```
+**Default**: <br/>
+<span>
 -Dlogging.level.org.springframework.transaction.interceptor=TRACE
 -Dio.netty.leakDetection.level=advanced
-```
+</span>
+
 
 **Example**:
 
@@ -10453,9 +10375,8 @@ sysdig:
 **Required**: `false`<br />
 **Description**: Custom configuration for Meerkat Collector JVM.<br />
 **Options**:<br />
-**Default**:
-
-```
+**Default**: <br/>
+<span>
 -Dsysdig.cassandra.auto-schema=true
 -Dlogging.level.org.springframework.transaction.interceptor=TRACE
 -Dio.netty.leakDetection.level=advanced
@@ -10464,7 +10385,7 @@ sysdig:
 -Dlogging.level.com.sysdig.meerkat.collector.service.MeerkatIndexer=DEBUG
 -Dlogging.level.com.sysdig.meerkat.collector.kafka.MeerkatWorker=DEBUG
 -Dlogging.level.com.sysdig.meerkat.collector.grpc.GPartsQueryServiceGrpcImpl=DEBUG
-```
+</span>
 
 **Example**:
 
@@ -10585,11 +10506,7 @@ sysdig:
 **Required**: `false`<br />
 **Description**: Custom configuration for Meerkat Datastream JVM.<br />
 **Options**:<br />
-**Default**:
-
-```
--Xms1g -Xmx1g
-```
+**Default**: -Xms1g -Xmx1g
 
 **Example**:
 
@@ -10617,7 +10534,7 @@ sysdig:
 ## **sysdig.kafkaVersion**
 
 **Required**: `false`<br />
-**Description**: Docker image tag of Kafka, relevant when `sysdig.meerkat.enabled` is `true` or `sysdig.fastpathAggregator.enabled` is `true`.<br />
+**Description**: Docker image tag of Kafka, relevant when `sysdig.meerkat.enabled` is `true`.<br />
 **Options**:<br />
 **Default**: 1.0.0<br />
 **Example**:
@@ -10793,7 +10710,7 @@ sysdig:
 ## **sysdig.zookeeperVersion**
 
 **Required**: `false`<br />
-**Description**: Docker image tag of Zookeeper, relevant when `sysdig.meerkat.enabled` is `true` or `sysdig.fastpathAggregator.enabled` is `true`.<br />
+**Description**: Docker image tag of Zookeeper, relevant when `sysdig.meerkat.enabled` is `true`.<br />
 **Options**:<br />
 **Default**: 1.0.0<br />
 **Example**:
@@ -10998,7 +10915,7 @@ sysdigcloud-collector                                HostAlreadyClaimed
 
 Use this overlay to avoid the error:
 
-```
+```yaml
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
@@ -11440,32 +11357,6 @@ sysdig:
   promqlatorVersion: 0.99.0-2022-07-12T09-19-16Z.93c0642b55
 ```
 
-## **sysdig.streamsnapVersion**
-
-**Required**: `false`<br />
-**Description**: Docker image tag of Sysdig Streamsnap service, relevant when `sysdig.streamsnap.enabled` is `true`.<br />
-**Options**:<br />
-**Default**: 0.99.0-staging.2022-07-29T13-34-18Z.2d308b4<br />
-**Example**:
-
-```yaml
-sysdig:
-  streamsnapVersion: 0.99.0-staging.2022-07-29T13-34-18Z.2d308b4
-```
-
-## ~~**sysdig.fastpathAggregatorVersion**~~ (**Deprecated**)
-
-**Required**: `false`<br />
-**Description**: Docker image tag of Sysdig Fastpath Aggregator service, relevant when `sysdig.fastpathAggregator.enabled` is `true`.<br />
-**Options**:<br />
-**Default**: 0.99.0-staging.2022-07-29T13-34-18Z.2d308b4<br />
-**Example**:
-
-```yaml
-sysdig:
-  fastpathAggregatorVersion: 0.99.0-staging.2022-07-29T13-34-18Z.2d308b4
-```
-
 ## **sysdig.promqlatorReplicaCount**
 
 **Required**: `false`<br />
@@ -11686,470 +11577,6 @@ sysdig:
     promchap:
       requests:
         memory: 300Mi
-```
-
-## **sysdig.streamsnapReplicaCount**
-
-**Required**: `false`<br />
-**Description**: Number of Streamsnap replicas.<br />
-**Options**:<br />
-**Default**:<br />
-
-| cluster-size | count |
-| ------------ | ----- |
-| small        | 1     |
-| medium       | 2     |
-| large        | 3     |
-
-**Example**:
-
-```yaml
-sysdig:
-  streamsnapReplicaCount: 2
-```
-
-## ~~**sysdig.fastpathAggregatorReplicaCount**~~ (**Deprecated**)
-
-**Required**: `false`<br />
-**Description**: Number of Fastpath Aggregator replicas.<br />
-**Options**:<br />
-**Default**:<br />
-
-| cluster-size | count |
-| ------------ | ----- |
-| small        | 1     |
-| medium       | 2     |
-| large        | 3     |
-
-**Example**:
-
-```yaml
-sysdig:
-  fastpathAggregatorReplicaCount: 2
-```
-
-## **sysdig.streamsnap.enabled**
-
-**Required**: `false`<br />
-**Description**: Whether to enable Streamsnap or not.<br />
-**Options**: `true|false`<br />
-**Default**: `false`<br />
-
-**Example**:
-
-```yaml
-sysdig:
-  streamsnap:
-    enabled: true
-```
-
-## **sysdig.streamsnap.jvmOptions**
-
-**Required**: `false`<br />
-**Description**: Custom configuration for Streamsnap jvm.<br />
-**Options**: <br />
-**Default**:
-
-| cluster-size | jvmOptions |
-| ------------ | ---------- |
-| small        | -Xmx=4g    |
-| medium       | -Xmx=12g   |
-| large        | -Xmx=18g   |
-
-**Example**:
-
-```yaml
-sysdig:
-  streamsnap:
-    jvmOptions: "-Xmx=4g"
-```
-
-## **sysdig.streamsnap.numThreadsForInterval60**
-
-**Required**: `false`<br />
-**Description**: Number of threads Streamsnap uses for the 1-minute snapshots.<br />
-**Options**: <br />
-**Default**:
-
-| cluster-size | numThreadsForInterval60 |
-| ------------ | ----------------------- |
-| small        | 2                       |
-| medium       | 4                       |
-| large        | 6                       |
-
-**Example**:
-
-```yaml
-sysdig:
-  streamsnap:
-    numThreadsForInterval60: 4
-```
-
-## **sysdig.streamsnap.numThreadsForInterval600**
-
-**Required**: `false`<br />
-**Description**: Number of threads Streamsnap uses for the 10-minutes snapshots.<br />
-**Options**: <br />
-**Default**:
-
-| cluster-size | numThreadsForInterval600 |
-| ------------ | ------------------------ |
-| small        | 1                        |
-| medium       | 2                        |
-| large        | 6                        |
-
-**Example**:
-
-```yaml
-sysdig:
-  streamsnap:
-    numThreadsForInterval600: 2
-```
-
-## **sysdig.streamsnap.numThreadsForInterval3600**
-
-**Required**: `false`<br />
-**Description**: Number of threads Streamsnap uses for the 1-hour snapshots.<br />
-**Options**: <br />
-**Default**:
-
-| cluster-size | numThreadsForInterval3600 |
-| ------------ | ------------------------- |
-| small        | 1                         |
-| medium       | 2                         |
-| large        | 6                         |
-
-**Example**:
-
-```yaml
-sysdig:
-  streamsnap:
-    numThreadsForInterval3600: 2
-```
-
-## **sysdig.streamsnap.numThreadsForInterval86400**
-
-**Required**: `false`<br />
-**Description**: Number of threads Streamsnap uses for the 1-day snapshots.<br />
-**Options**: <br />
-**Default**:
-
-| cluster-size | numThreadsForInterval86400 |
-| ------------ | -------------------------- |
-| small        | 1                          |
-| medium       | 2                          |
-| large        | 6                          |
-
-**Example**:
-
-```yaml
-sysdig:
-  streamsnap:
-    numThreadsForInterval86400: 2
-```
-
-## **sysdig.resources.streamsnap.limits.cpu**
-
-**Required**: `false`<br />
-**Description**: The amount of cpu assigned to Streamsnap containers<br />
-**Options**:<br />
-**Default**:
-
-| cluster-size | limits |
-| ------------ | ------ |
-| small        | 2      |
-| medium       | 4      |
-| large        | 8      |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    streamsnap:
-      limits:
-        cpu: 8
-```
-
-## **sysdig.resources.streamsnap.limits.memory**
-
-**Required**: `false`<br />
-**Description**: The amount of memory assigned to Streamsnap containers<br />
-**Options**:<br />
-**Default**:
-
-| cluster-size | limits |
-| ------------ | ------ |
-| small        | 8g     |
-| medium       | 16g    |
-| large        | 24g    |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    streamsnap:
-      limits:
-        memory: 8Gi
-```
-
-## **sysdig.resources.streamsnap.requests.cpu**
-
-**Required**: `false`<br />
-**Description**: The amount of cpu required to schedule Streamsnap containers<br />
-**Options**:<br />
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 2        |
-| medium       | 4        |
-| large        | 8        |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    streamsnap:
-      requests:
-        cpu: 2
-```
-
-## **sysdig.resources.streamsnap.requests.memory**
-
-**Required**: `false`<br />
-**Description**: The amount of memory required to schedule Streamsnap containers<br />
-**Options**:<br />
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 8g       |
-| medium       | 16g      |
-| large        | 24g      |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    streamsnap:
-      requests:
-        memory: 2Gi
-```
-
-## ~~**sysdig.fastpathAggregator.enabled**~~ (**Deprecated**)
-
-**Required**: `false`<br />
-**Description**: Whether to enable Fastpath Aggregator or not.<br />
-**Options**: `true|false`<br />
-**Default**: `false`<br />
-
-**Example**:
-
-```yaml
-sysdig:
-  fastpathAggregator:
-    enabled: true
-```
-
-## ~~**sysdig.fastpathAggregator.jvmOptions**~~ (**Deprecated**)
-
-**Required**: `false`<br />
-**Description**: Custom configuration for the Fastpath Aggregator jvm.<br />
-**Options**: <br />
-**Default**:
-
-| cluster-size | jvmOptions |
-| ------------ | ---------- |
-| small        | -Xmx=4g    |
-| medium       | -Xmx=12g   |
-| large        | -Xmx=16g   |
-
-**Example**:
-
-```yaml
-sysdig:
-  fastpathAggregator:
-    jvmOptions: "-Xmx=4g"
-```
-
-## ~~**sysdig.fastpathAggregator.numThreadsForInterval60**~~ (**Deprecated**)
-
-**Required**: `false`<br />
-**Description**: Number of threads Fastpath Aggregator uses for the 1-minute snapshots.<br />
-**Options**: <br />
-**Default**:
-
-| cluster-size | numThreadsForInterval60 |
-| ------------ | ----------------------- |
-| small        | 2                       |
-| medium       | 4                       |
-| large        | 4                       |
-
-**Example**:
-
-```yaml
-sysdig:
-  fastpathAggregator:
-    numThreadsForInterval60: 4
-```
-
-## ~~**sysdig.fastpathAggregator.numThreadsForInterval600**~~ (**Deprecated**)
-
-**Required**: `false`<br />
-**Description**: Number of threads Fastpath Aggregator uses for the 10-minutes snapshots.<br />
-**Options**: <br />
-**Default**:
-
-| cluster-size | numThreadsForInterval600 |
-| ------------ | ------------------------ |
-| small        | 1                        |
-| medium       | 2                        |
-| large        | 2                        |
-
-**Example**:
-
-```yaml
-sysdig:
-  fastpathAggregator:
-    numThreadsForInterval600: 2
-```
-
-## ~~**sysdig.fastpathAggregator.numThreadsForInterval3600**~~ (**Deprecated**)
-
-**Required**: `false`<br />
-**Description**: Number of threads Fastpath Aggregator uses for the 1-hour snapshots.<br />
-**Options**: <br />
-**Default**:
-
-| cluster-size | numThreadsForInterval3600 |
-| ------------ | ------------------------- |
-| small        | 1                         |
-| medium       | 2                         |
-| large        | 2                         |
-
-**Example**:
-
-```yaml
-sysdig:
-  fastpathAggregator:
-    numThreadsForInterval3600: 2
-```
-
-## ~~**sysdig.fastpathAggregator.numThreadsForInterval86400**~~ (**Deprecated**)
-
-**Required**: `false`<br />
-**Description**: Number of threads Fastpath Aggregator uses for the 1-day snapshots.<br />
-**Options**: <br />
-**Default**:
-
-| cluster-size | numThreadsForInterval86400 |
-| ------------ | -------------------------- |
-| small        | 1                          |
-| medium       | 2                          |
-| large        | 2                          |
-
-**Example**:
-
-```yaml
-sysdig:
-  fastpathAggregator:
-    numThreadsForInterval86400: 2
-```
-
-## ~~**sysdig.resources.fastpathAggregator.limits.cpu**~~ (**Deprecated**)
-
-**Required**: `false`<br />
-**Description**: The amount of cpu assigned to Fastpath Aggregator containers<br />
-**Options**:<br />
-**Default**:
-
-| cluster-size | limits |
-| ------------ | ------ |
-| small        | 2      |
-| medium       | 4      |
-| large        | 8      |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    fastpathAggregator:
-      limits:
-        cpu: 8
-```
-
-## ~~**sysdig.resources.fastpathAggregator.limits.memory**~~ (**Deprecated**)
-
-**Required**: `false`<br />
-**Description**: The amount of memory assigned to Fastpath Aggregator containers<br />
-**Options**:<br />
-**Default**:
-
-| cluster-size | limits |
-| ------------ | ------ |
-| small        | 8g     |
-| medium       | 16g    |
-| large        | 24g    |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    fastpathAggregator:
-      limits:
-        memory: 8Gi
-```
-
-## ~~**sysdig.resources.fastpathAggregator.requests.cpu**~~ (**Deprecated**)
-
-**Required**: `false`<br />
-**Description**: The amount of cpu required to schedule Fastpath Aggregator containers<br />
-**Options**:<br />
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 2        |
-| medium       | 4        |
-| large        | 8        |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    fastpathAggregator:
-      requests:
-        cpu: 2
-```
-
-## ~~**sysdig.resources.fastpathAggregator.requests.memory**~~ (**Deprecated**)
-
-**Required**: `false`<br />
-**Description**: The amount of memory required to schedule Fastpath Aggregator containers<br />
-**Options**:<br />
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 8g       |
-| medium       | 16g      |
-| large        | 24g      |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    fastpathAggregator:
-      requests:
-        memory: 2Gi
 ```
 
 ## **sysdig.resources.scanningv2-agents-conf.limits.cpu**
@@ -13406,6 +12833,142 @@ sysdig:
         user: alice
 ```
 
+## **sysdig.secure.certman.proxy.enable**
+
+**Required**: `false`<br />
+**Description**: Set proxy settings for secure certman (overrides global settings)<br />
+**Options**: `true|false`<br />
+**Default**:
+
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    certman:
+      proxy:
+        enable: false
+```
+
+## **sysdig.secure.certman.proxy.host**
+
+**Required**: `false`<br />
+**Description**: The address of the web proxy, this could be a domain name or
+an IP address. This is required if [`sysdig.secure.certman.proxy.enable`](#sysdigsecurecertmanproxyenable)
+is configured.<br />
+**Options**:<br />
+**Default**:<br />
+
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    certman:
+      proxy:
+        enable: true
+        host: my-awesome-proxy.my-awesome-domain.com
+```
+
+## **sysdig.secure.certman.proxy.noProxy**
+
+**Required**: `false`<br />
+**Description**: Comma separated list of addresses or domain names
+that can be reached without going through the configured web proxy. This is
+only relevant if [`sysdig.secure.certman.proxy.enable`](#sysdigsecurecertmanproxyenable) is configured and
+appended to the list in
+[`sysdig.proxy.defaultNoProxy`](#sysdigproxydefaultnoproxy]).<br />
+**Options**:<br />
+**Default**: `127.0.0.1, localhost, sysdigcloud-anchore-core, sysdigcloud-anchore-api`<br />
+
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    certman:
+      proxy:
+        enable: true
+        noProxy: my-awesome.domain.com, 192.168.0.0/16
+```
+
+## **sysdig.secure.certman.proxy.password**
+
+**Required**: `false`<br />
+**Description**: The password used to access the configured
+[`sysdig.secure.certman.proxy.host`](#sysdigsecurecertmanproxyhost).<br />
+**Options**:<br />
+**Default**:<br />
+
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    certman:
+      proxy:
+        enable: true
+        password: F00B@r!
+```
+
+## **sysdig.secure.certman.proxy.port**
+
+**Required**: `false`<br />
+**Description**: The port the configured
+[`sysdig.secure.certman.proxy.host`](#sysdigsecurecertmanproxyhost) is listening on. If this is not
+configured it defaults to 80.<br />
+**Options**:<br />
+**Default**: `80`<br />
+
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    certman:
+      proxy:
+        enable: true
+        port: 3128
+```
+
+## **sysdig.secure.certman.proxy.protocol**
+
+**Required**: `false`<br />
+**Description**: The protocol to use to communicate with the configured
+[`sysdig.secure.certman.proxy.host`](#sysdigsecurecertmanproxyhost) .<br />
+**Options**: `http|https`<br />
+**Default**: `http`<br />
+
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    certman:
+      proxy:
+        enable: true
+        protocol: https
+```
+
+## **sysdig.secure.certman.proxy.user**
+
+**Required**: `false`<br />
+**Description**: The user used to access the configured
+[`sysdig.secure.certman.proxy.host`](#sysdigsecurecertmanproxyhost).<br />
+**Options**:<br />
+**Default**:<br />
+
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    certman:
+      proxy:
+        enable: true
+        user: alice
+```
+
 ## **sysdig.postgresDatabases.PRWSInternalIngestion**
 
 **Required**: `false`<br />
@@ -13565,6 +13128,38 @@ sysdig:
     scanningv2:
       enabled: true
 ```
+
+## **sysdig.secure.scanningv2.proxy**
+
+**Required**: `false`<br />
+**Description**: Enables use of a proxy for two ScanningV2 services: PkgMeta and VulnAPI.<br />
+**Options**:<br />
+**Default**: `false`<br />
+**Example**:
+
+```yaml
+  secure:
+    scanningv2:
+      proxy:
+        defaultNoProxy: "https://foo.bar"
+        user: "user01"
+        password: "password"
+        noProxy: "localhost"
+        enable: true
+        host: "myproxy.example.com"
+        port: 3128
+        protocol: "http"
+```
+**Related parameters**: <br />
+<span>
+sysdig.secure.scanningv2.proxy.enable
+sysdig.secure.scanningv2.proxy.defaultNoProxy
+sysdig.secure.scanningv2.proxy.user
+sysdig.secure.scanningv2.proxy.noProxy
+sysdig.secure.scanningv2.proxy.host
+sysdig.secure.scanningv2.proxy.port
+sysdig.secure.scanningv2.proxy.protocol
+</span>
 
 ## **sysdig.secure.scanningv2.vulnsApi.remoteSaaSEndpoint**
 
@@ -13781,7 +13376,7 @@ This configuration when set expects certificates with .pem extension under certs
 **Example**:
 
 ```bash
-#In the example directory structure below, certificate1.crt and certificate2.crt will be added to the trusted list.
+# In the example directory structure below, certificate1.crt and certificate2.crt will be added to the trusted list.
 bash-5.0$ find certs values.yaml
 certs
 certs/scanningv2-custom-certs
@@ -13811,4 +13406,1626 @@ sysdig:
   secure:
     scanningv2:
       airgappedFeeds: true
+```
+
+## **sysdig.secure.scanningV2.scanRequestor.enabled**
+**Required**: `false`<br />
+**Description**: Enables the ScanRequestor BE component. By default it is set at true; setting it at false disables the ScanRequestor. If this flag is set at false also the **sysdig.secure.scanningv2.agentsConf.isBackendScanningEnabled** must be set at `false`<br/>
+**Options**: `true|false`<br />
+**Default**: `true`<br />
+
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanningv2:
+      scanRequestor: 
+        enabled: true
+```
+
+## **sysdig.secure.scanningV2.scanRequestor.deploymentType**
+**Required**: `false`<br />
+**Description**: Defines whether the ScanRequestor should exploit MinIO as S3 storage. Setting the value at `onprem` enables the initialization job required for the ScanRequestor to set-up required buckets on MinIO and triggers the deployment of MinIO in on-prem. If set at `saas` the storage type for the SR will be s3, if not set or empty SR will use cassandra. <br/>
+**Options**: `onprem|saas|empty`<br />
+**Default**: `empty`<br />
+
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanningv2:
+      scanRequestor: 
+        deploymentType: saas
+```
+
+## **sysdig.secure.scanningV2.scanRequestor.loggingLevel**
+**Required**: `false`<br />
+**Description**: Sets the log level for the scan requestor component<br/>
+**Options**: `TRACE|DEBUG|INFO|WARN|ERROR`<br />
+**Default**: `INFO`<br />
+
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanningv2:
+      scanRequestor: 
+        loggingLevel: INFO
+```
+
+## **sysdig.secure.scanningV2.scanRequestor.serviceAccount**
+**Required**: `false`<br />
+**Description**: Sets the service account (name) used to access the (S3) storage in case the selected storage type is S3.<br/>
+**Default**: `sysdig`<br />
+
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanningv2:
+      scanRequestor: 
+        serviceAccount: sysdig
+```
+
+## **sysdig.secure.scanningV2.scanRequestor.storage.type**
+**Required**: `false`<br />
+**Description**: Sets the type of storage is used by the ScanRequestor to persist its state.<br/>
+**Options**: `S3|cassandra`<br />
+**Default**: `cassandra`<br />
+
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanningv2:
+      scanRequestor: 
+        storage:
+          type: cassandra
+```
+
+## **sysdig.secure.scanningV2.scanRequestor.storage.bucketName**
+**Required**: `false`<br />
+**Description**: Sets the name of the bucket on which the ScanRequestor will store state and staging information, if the selected storage type is `S3`.<br/>
+**Default**: `scan-requestor`<br />
+
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanningv2:
+      scanRequestor: 
+        storage:
+          bucketName: "scan-requestor"
+```
+
+## **sysdig.secure.scanningV2.scanRequestor.storage.endpoint**
+**Required**: `false`<br />
+**Description**: Sets the URl of the S3 service to use as storage, if the selected storage type is S3<br/>
+**Default**: `https://sysdigcloud-minio-hl.<namespace>.svc.cluster.local:9000`<br />
+
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanningv2:
+      scanRequestor: 
+        storage:
+          endpoint: https://sysdigcloud-minio-hl.sysdigloud.svc.cluster.local:9000
+```
+
+## **sysdig.secure.scanningV2.scanRequestor.storage.region**
+**Required**: `false`<br />
+**Description**: Sets the region S3 service to use as storage, if the selected storage type is S3. Set to `auto` for MinIO deployments.<br/>
+**Default**: `auto`<br />
+
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanningv2:
+      scanRequestor: 
+        storage:
+          region: auto
+```
+
+## **sysdig.secure.scanningV2.scanRequestor.storage.retentionTime**
+**Required**: `false`<br />
+**Description**: Sets the bucket retention time, if the selected storage type is S3 and the deployment is onprem (i.e., MinIO is used).<br/>
+**Default**: `2`<br />
+
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanningv2:
+      scanRequestor: 
+        storage:
+          retentionTime: 2
+```
+
+## **sysdig.secure.scanningV2.scanRequestor.storage.caCrt**
+**Required**: `false`<br />
+**Description**: Sets the certificate of the S3 service to use as storage, if the selected storage type is S3<br/>
+**Default**: `/opt/certs/minio-tls-ca/public.crt`<br />
+
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanningv2:
+      scanRequestor: 
+        storage:
+          caCrt: "/opt/certs/minio-tls-ca/public.crt"
+```
+
+## **sysdig.secure.scanningV2.scanRequestor.storage.requestStore.enabled**
+**Required**: `false`<br />
+**Description**: Enables the (PostgreSQL) Request Store used by the SR to store the ScanNow and ACValidation queue of requests.<br/>
+**Options**: `true|false`<br />
+**Default**: `true`<br />
+
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanningv2:
+      scanRequestor: 
+        storage:
+          requestStore: 
+            enabled: true
+```
+
+## **sysdig.secure.scanningV2.scanRequestor.storage.requestStore.requestMaxAge**
+**Required**: `false`<br />
+**Description**: The maximum age for requests to be considered still valid/pending<br/>
+**Default**: `1h`<br />
+
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanningv2:
+      scanRequestor: 
+        storage:
+          requestStore: 
+            requestMaxAge: "1h"
+```
+
+## **sysdig.secure.scanningV2.scanRequestor.storage.requestStore.requestReplyTimeout**
+**Required**: `false`<br />
+**Description**: The period of time after which a scan request (in the ScanNow flow) is considered failed if no response is received.<br/>
+**Default**: `30s`<br />
+
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanningv2:
+      scanRequestor: 
+        storage:
+          requestStore: 
+            requestReplyTimeout: 30s
+```
+
+## **sysdig.secure.scanningV2.scanRequestor.storage.requestStore.cassandra.hosts**
+**Required**: `false`<br />
+**Description**: The URL of cassandra server(s).<br/>
+**Default**: `sysdigcloud-cassandra:9042`<br />
+
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanningv2:
+      scanRequestor: 
+        storage:
+          cassandra: 
+            hosts: "sysdigcloud-cassandra:9042"
+```
+
+## **sysdig.secure.scanningV2.scanRequestor.storage.requestStore.cassandra.keyspace**
+**Required**: `false`<br />
+**Description**: The cassandra key space to use for storing ScanRequestor tables.<br/>
+**Default**: `sysdig_scanning`<br />
+
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanningv2:
+      scanRequestor: 
+        storage:
+          cassandra: 
+            keyspace: "sysdig_scanning"
+```
+
+## **sysdig.secure.scanningV2.scanRequestor.storage.requestStore.cassandra.protocolVersion**
+**Required**: `false`<br />
+**Description**: The protocol version used to communicate with Cassandra<br/>
+**Default**: `3`<br />
+
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanningv2:
+      scanRequestor: 
+        storage:
+          cassandra: 
+            protocolVersion: "3"
+```
+
+## **sysdig.secure.scanningV2.scanRequestor.storage.requestStore.cassandra.replicationFactor**
+**Required**: `false`<br />
+**Description**: The replication factor to use for ScanRequestor tables.<br/>
+**Default**: `3`<br />
+
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanningv2:
+      scanRequestor: 
+        storage:
+          cassandra: 
+            replicationFactor: "3"
+```
+
+## **sysdig.secure.scanningV2.scanRequestor.storage.requestStore.cassandra.datacenter**
+**Required**: `false`<br />
+**Description**: The datacenter identifier to be used for cassandra communication.<br/>
+**Default**: `datacenter1`<br />
+
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanningv2:
+      scanRequestor: 
+        storage:
+          cassandra: 
+            datacenter: "datacenter1"
+```
+
+## **sysdig.secure.scanningV2.scanRequestor.storage.requestStore.cassandra.requestTimeout**
+**Required**: `false`<br />
+**Description**: The timeout for cassandra requests.<br/>
+**Default**: ` `<br />
+
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanningv2:
+      scanRequestor: 
+        storage:
+          cassandra:
+            requestTimeout: "3s"
+```
+
+## **sysdig.secure.scanningV2.scanRequestor.storage.requestStore.cassandra.maxReadRequests**
+**Required**: `false`<br />
+**Description**: - to be filled - <br/>
+**Default**: ` `<br />
+
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanningv2:
+      scanRequestor: 
+        storage:
+          cassandra:
+            maxReadRequests: ""
+```
+
+## **sysdig.secure.scanningV2.scanRequestor.storage.requestStore.cassandra.maxWriteRequests**
+**Required**: `false`<br />
+**Description**: - to be filled - <br/>
+**Default**: ` `<br />
+
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanningv2:
+      scanRequestor: 
+        storage:
+          cassandra:
+            maxWriteRequests: ""
+```
+
+## **sysdig.secure.scanningV2.scanRequestor.storage.requestStore.cassandra.compressionEnabled**
+**Required**: `false`<br />
+**Description**: - to be filled - <br/>
+**Options**: `true|false`<br />
+**Default**: `true`<br />
+
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanningv2:
+      scanRequestor: 
+        storage:
+          cassandra:
+            compressionEnabled: true
+```
+
+## **sysdig.secure.scanningV2.scanRequestor.storage.requestStore.cassandra.compressionThreshold**
+**Required**: `false`<br />
+**Description**: - to be filled - <br/>
+**Default**: ` `<br />
+
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanningv2:
+      scanRequestor: 
+        storage:
+          cassandra:
+            compressionThreshold: ""
+```
+
+## **sysdig.secure.scanningV2.scanRequestor.storage.requestStore.cassandra.ttlSec.Metadata**
+**Required**: `false`<br />
+**Description**: - to be filled - <br/>
+**Default**: ` `<br />
+
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanningv2:
+      scanRequestor: 
+        storage:
+          cassandra:
+            ttlSec: 
+              metadata: "86400"
+```
+
+## **sysdig.secure.scanningV2.scanRequestor.storage.requestStore.cassandra.ttlSec.state**
+**Required**: `false`<br />
+**Description**: - to be filled - <br/>
+**Default**: ` `<br />
+
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanningv2:
+      scanRequestor: 
+        storage:
+          cassandra:
+            ttlSec: 
+              state: "86400"
+```
+
+## **sysdig.secure.scanningV2.scanRequestor.storage.requestStore.cassandra.ttlSec.events**
+**Required**: `false`<br />
+**Description**: - to be filled - <br/>
+**Default**: ` `<br />
+
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanningv2:
+      scanRequestor: 
+        storage:
+          cassandra:
+            ttlSec: 
+              events: "86400"
+```
+
+## **sysdig.s3.scanRequestor.accessKeyId**
+**Required**: `false`<br />
+**Description**: The S3 access-key id to be used when the storage type is set at S3.<br/>
+**Default**: `scanningv2_scanrequestor`<br />
+
+**Example**:
+
+```yaml
+sysdig:
+  s3:
+    scanRequestor:
+      accessKeyId: "a-key"
+```
+## **sysdig.s3.scanRequestor.secretAccessKey**
+**Required**: `false`<br />
+**Description**: The S3 secret access-key id to be used when the storage type is set at S3.<br/>
+**Default**: `random`<br />
+
+**Example**:
+
+```yaml
+sysdig:
+  s3:
+    scanRequestor:
+      secretAccessKey: "DLGJdgoiefebefhbhdfuhvbEAFBVAUGWUEghdwbYUWREG"
+```
+
+## **sysdig.secure.scanningv2.scanRequestor.requestPartitionProcessingScheduler.interval**
+**Required**: `false`<br />
+**Description**: The interval between two subsequent processing of messages in the ScanRequestor staging area. Should be no lower than `5m`<br/>
+**Default**: `5m`<br />
+
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanningv2:
+      scanRequestor:
+        requestPartitionProcessingScheduler:
+          interval: "5m"
+```
+
+## **sysdig.secure.scanningv2.scanRequestor.requestPartitionProcessingScheduler.startDelay**
+**Required**: `false`<br />
+**Description**: The initial delay in staging area scheduled processing.<br/>
+**Default**: `10s`<br />
+
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanningv2:
+      scanRequestor:
+        requestPartitionProcessingScheduler:
+          startDelay: "10s"
+```
+
+## **sysdig.secure.scanningv2.scanRequestor.requestPartitionProcessingScheduler.timeout**
+**Required**: `false`<br />
+**Description**: The timeout for getting partition processing requests from NATS.<br/>
+**Default**: `30s`<br />
+
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanningv2:
+      scanRequestor:
+        requestPartitionProcessingScheduler:
+          timeout: "30s"
+```
+
+## **sysdig.secure.scanningv2.scanRequestor.partitionProcessing.deleteObjectsAfter**
+**Required**: `false`<br />
+**Description**: A flag requiring to delete events from the staging area, as soon as they are processed. Must be `true` when using the S3 MinIO backend to avoid incurring into premature end of available inodes.<br/>
+**Options**: `true|false`<br />
+**Default**: `false`<br />
+
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanningv2:
+      scanRequestor:
+        partitionProcessing:
+          deleteObjectsAfter: true
+```
+
+## **sysdig.platformService.enabled**
+
+**Required**: `false`<br />
+**Description**: Enable or disable the platform-service deployment<br />
+**Options**:`true|false`<br />
+**Default**: `false`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    enabled: false
+```
+
+## **sysdig.platformService.audit.enabled**
+
+**Required**: `false`<br />
+**Description**: Enable or disable sending of audit data for platform-service<br />
+**Options**:`true|false`<br />
+**Default**: `false`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    audit:
+      enabled: false
+```
+
+## **sysdig.platformService.ingestion.endpoint**
+
+**Required**: `false`<br />
+**Description**: Endpoint where platform-service will send data for Sysdig Platform Audit<br/>
+**Default**: `sysdigcloud-events-ingestion:3000`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    ingestion:
+      endpoint: sysdigcloud-events-ingestion:3000
+```
+
+## **sysdig.platformService.server.port.metric**
+
+**Required**: `false`<br />
+**Description**: Server port that will be used to serve metrics data<br/>
+**Default**: `25000`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    server:
+      port:
+        metric: 25000
+```
+
+## **sysdig.platformService.server.port.health**
+
+**Required**: `false`<br />
+**Description**: Server port that will be used to serve health checker endpoint<br/>
+**Default**: `8083`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    server:
+      port:
+        health: 8083
+```
+
+## **sysdig.platformService.pdf.server.port.rest**
+
+**Required**: `false`<br />
+**Description**: PDF service server port that will serve HTTP requests<br/>
+**Default**: `7000`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    pdf:
+      server:
+        port:
+          rest: 7000
+```
+
+## **sysdig.platformService.pdf.server.port.grpc**
+
+**Required**: `false`<br />
+**Description**: PDF service server port that will serve GRPC requests<br/>
+**Default**: `5051`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    pdf:
+      server:
+        port:
+          grpc: 5051
+```
+
+## **sysdig.platformService.alerts.enabled**
+
+**Required**: `false`<br />
+**Description**: Enable or disable Platform Alerts service<br />
+**Options**:`true|false`<br />
+**Default**: `false`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    alerts:
+      enabled: false
+```
+
+## **sysdig.platformService.alerts.serviceToken**
+
+**Required**: `false`<br />
+**Description**: Service token used to identify platform service for service calls to other services<br />
+**Default**: `change_me`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    alerts:
+      serviceToken: change_me
+
+
+## **sysdig.platformService.alerts.server.port.grpc**
+
+**Required**: `false`<br />
+**Description**: Platform Alerts service server port that will serve GRPC requests<br/>
+**Default**: `5052`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    alerts:
+      server:
+        port:
+          grpc: 5052
+```
+
+## **sysdig.platformService.alerts.server.port.rest**
+
+**Required**: `false`<br />
+**Description**: Platform Alerts service server port that will serve HTTP requests<br/>
+**Default**: `7004`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    alerts:
+      server:
+        port:
+          rest: 7004
+```
+
+## **sysdig.platformService.alerts.server.enableEventsEndpoints**
+
+**Required**: `false`<br />
+**Description**: Enable or disable test endpoints that will send fake events<br />
+**Options**:`true|false`<br />
+**Default**: `false`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    alerts:
+      server:
+        enableEventsEndpoints: false
+```
+
+## **sysdig.platformService.alerts.ticketing.url**
+
+**Required**: `false`<br />
+**Description**: URL of the ticketing service which platform alerts will call to create Jira tickets<br/>
+**Default**: `http://sysdigcloud-ticketing-api:7001`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    alerts:
+      ticketing:
+        url: http://sysdigcloud-ticketing-api:7001
+```
+
+## **sysdig.platformService.alerts.monitor.url**
+
+**Required**: `false`<br />
+**Description**: Base URL for monitor API calls<br/>
+**Default**: `http://sysdigcloud-api:8080`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    alerts:
+      monitor:
+        url: http://sysdigcloud-api:8080
+```
+
+## **sysdig.platformService.alerts.monitor.cache.expiration**
+
+**Required**: `false`<br />
+**Description**: Expiration time of the cache for monitor API calls<br/>
+**Default**: `5m`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    alerts:
+      monitor:
+        cache:
+          expiration: 5m
+```
+
+## **sysdig.platformService.alerts.monitor.cache.cleanup**
+
+**Required**: `false`<br />
+**Description**: Time after which cache for monitor API calls will be cleanup<br/>
+**Default**: `10m`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    alerts:
+      monitor:
+        cache:
+          cleanup: 10m
+```
+
+## **sysdig.platformService.alerts.nats.js.enabled**
+
+**Required**: `false`<br />
+**Description**: Enable or disable NATS for platform alerts service<br/>
+**Options**: `true|false`<br />
+**Default**: `false`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    alerts:
+      nats:
+        js:
+          enabled: false
+```
+
+## **sysdig.platformService.alerts.nats.js.url**
+
+**Required**: `false`<br />
+**Description**: Url of the NATS server that platform alerts service will connect to<br/>
+**Default**: `nats`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    alerts:
+      nats:
+        js:
+          url: nats
+```
+
+## **sysdig.platformService.alerts.nats.js.clientName**
+
+**Required**: `false`<br />
+**Description**: Client name for platform alerts service<br/>
+**Default**: `sysdigcloud-platform-alerts-api`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    alerts:
+      nats:
+        js:
+          clientName: sysdigcloud-platform-alerts-api
+```
+
+## **sysdig.platformService.alerts.nats.js.tls.enabled**
+
+**Required**: `false`<br />
+**Description**: Enable or disable TLS connection for NATS<br/>
+**Options**: `true|false`<br />
+**Default**: `true`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    alerts:
+      nats:
+        js:
+          tls:
+            enabled: true
+```
+
+## **sysdig.platformService.alerts.nats.js.tls.cert**
+
+**Required**: `false`<br />
+**Description**: TLS certificate for NATS connection<br/>
+**Default**: `/opt/certs/nats-js-tls-certs/ca.crt`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    alerts:
+      nats:
+        js:
+          tls:
+            cert: /opt/certs/nats-js-tls-certs/ca.crt
+```
+
+## **sysdig.platformService.alerts.nats.js.migrationFile**
+
+**Required**: `false`<br />
+**Description**: Location of the json migration file<br/>
+**Default**: `/nats/migrations/streams.json`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    alerts:
+      nats:
+        js:
+          migrationFile: /nats/migrations/streams.json
+```
+
+## **sysdig.platformService.alerts.nats.js.risk.consumer.enabled**
+
+**Required**: `false`<br />
+**Description**: Enable or disable NATS consumer for Risk integration<br/>
+**Options**: `true|false`<br />
+**Default**: `false`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    alerts:
+      nats:
+        js:
+          risk:
+            consumer:
+              enabled: false
+```
+
+## **sysdig.platformService.alerts.nats.js.risk.consumer.name**
+
+**Required**: `false`<br />
+**Description**: Name of NATS consumer for Risk integration<br/>
+**Default**: `risk-consumer`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    alerts:
+      nats:
+        js:
+          risk:
+            consumer:
+              name: risk-consumer
+```
+
+## **sysdig.platformService.alerts.nats.js.risk.consumer.stream**
+
+**Required**: `false`<br />
+**Description**: NATS stream name of consumer for Risk integration<br/>
+**Default**: `risk-alerts`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    alerts:
+      nats:
+        js:
+          risk:
+            consumer:
+              stream: risk-alerts
+```
+
+## **sysdig.platformService.alerts.nats.js.risk.consumer.subjects**
+
+**Required**: `false`<br />
+**Description**: NATS subjects name of consumer for Risk integration<br/>
+**Default**: `risk.>`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    alerts:
+      nats:
+        js:
+          risk:
+            consumer:
+              subjects: risks-alerts.*
+```
+
+## **sysdig.platformService.alerts.nats.js.risk.consumer.timeoutRetryMaxWait**
+
+**Required**: `false`<br />
+**Description**: Max retry wait time for consumer for Risk integration<br/>
+**Default**: `10s`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    alerts:
+      nats:
+        js:
+          risk:
+            consumer:
+              timeoutRetryMaxWait: 10s
+```
+
+## **sysdig.platformService.alerts.nats.js.risk.notifier.enabled**
+
+**Required**: `false`<br />
+**Description**: Enable or disable NATS notifier publishing for Risk integration<br/>
+**Options**: `true|false`<br />
+**Default**: `false`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    alerts:
+      nats:
+        js:
+          risk:
+            notifier:
+              enabled: false
+```
+
+## **sysdig.platformService.alerts.nats.js.risk.notifier.stream**
+
+**Required**: `false`<br />
+**Description**: Name of a NATS stream for publishing events to notifier for Risk integration<br/>
+**Default**: `notifier-notifications-1`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    alerts:
+      nats:
+        js:
+          risk:
+            notifier:
+              stream: notifier-notifications-1
+```
+
+
+## **sysdig.platformService.alerts.nats.js.risk.notifier.subject**
+
+**Required**: `false`<br />
+**Description**: NATS subject for publishing events to notifier for Risk integration<br/>
+**Default**: `notifier.notifications.1.risk`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    alerts:
+      nats:
+        js:
+          risk:
+            notifier:
+              subject: notifier.notifications.1.risk
+```
+
+## **sysdig.platformService.alerts.nats.js.vm.consumer.enabled**
+
+**Required**: `false`<br />
+**Description**: Enable or disable NATS consumer for VM integration<br/>
+**Options**: `true|false`<br />
+**Default**: `false`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    alerts:
+      nats:
+        js:
+          vm:
+            consumer:
+              enabled: false
+```
+
+## **sysdig.platformService.alerts.nats.js.vm.consumer.name**
+
+**Required**: `false`<br />
+**Description**: Name of NATS consumer for VM integration<br/>
+**Default**: `vm-consumer`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    alerts:
+      nats:
+        js:
+          vm:
+            consumer:
+              name: vm-consumer
+```
+
+## **sysdig.platformService.alerts.nats.js.vm.consumer.stream**
+
+**Required**: `false`<br />
+**Description**: NATS stream name of consumer for VM integration<br/>
+**Default**: `secure-vm-notifier-integrations`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    alerts:
+      nats:
+        js:
+          vm:
+            consumer:
+              stream: secure-vm-notifier-integrations
+```
+
+## **sysdig.platformService.alerts.nats.js.vm.consumer.subjects**
+
+**Required**: `false`<br />
+**Description**: NATS subjects name of consumer for VM integration<br/>
+**Default**: `secure.vm.notifier.integrations.jira`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    alerts:
+      nats:
+        js:
+          vm:
+            consumer:
+              subjects: secure.vm.notifier.integrations.jira
+```
+
+## **sysdig.platformService.alerts.nats.js.vm.consumer.timeoutRetryMaxWait**
+
+**Required**: `false`<br />
+**Description**: Max retry wait time for consumer for VM integration<br/>
+**Default**: `10s`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    alerts:
+      nats:
+        js:
+          vm:
+            consumer:
+              timeoutRetryMaxWait: 10s
+```
+
+## **sysdig.platformService.alerts.nats.js.vm.notifier.enabled**
+
+**Required**: `false`<br />
+**Description**: Enable or disable NATS notifier publishing for VM integration<br/>
+**Options**: `true|false`<br />
+**Default**: `false`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    alerts:
+      nats:
+        js:
+          vm:
+            notifier:
+              enabled: false
+```
+
+## **sysdig.platformService.alerts.nats.js.vm.notifier.stream**
+
+**Required**: `false`<br />
+**Description**: Name of a NATS stream for publishing events to notifier for VM integration<br/>
+**Default**: `notifier-notifications-1`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    alerts:
+      nats:
+        js:
+          vm:
+            notifier:
+              stream: notifier-notifications-1
+```
+
+
+## **sysdig.platformService.alerts.nats.js.vm.notifier.subject**
+
+**Required**: `false`<br />
+**Description**: NATS subject for publishing events to notifier for VM integration<br/>
+**Default**: `false`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    alerts:
+      nats:
+        js:
+          vm:
+            notifier:
+              subject: notifier.notifications.1.vm
+```
+
+## **sysdig.platformService.alerts.workers.notification.enabled**
+
+**Required**: `false`<br />
+**Description**: Enables or disables workers for sending notifications in batches to alerts-notifier<br/>
+**Options**: `true|false`<br />
+**Default**: `true`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    alerts:
+      workers:
+        notification:
+          enabled: true
+```
+
+## **sysdig.platformService.alerts.workers.notification.pollInterval**
+
+**Required**: `false`<br />
+**Description**: Pooling time interval that will read unsend notifications<br/>
+**Default**: `500ms`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    alerts:
+      workers:
+        notification:
+          pollInterval: 500ms
+```
+
+## **sysdig.platformService.alerts.workers.notification.batchSize**
+
+**Required**: `false`<br />
+**Description**: Number of events that will be sent from platform alerts to alert-notifier<br/>
+**Default**: `50`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    alerts:
+      workers:
+        notification:
+          batchSize: 50
+```
+
+
+## **sysdig.secure.ticketing.enabled**
+
+**Required**: `false`<br />
+**Description**: Enable or disable the ticketing service deployment<br />
+**Options**:`true|false`<br />
+**Default**: `false`<br />
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    ticketing:
+      enabled: false
+```
+
+## **sysdig.secure.ticketing.audit.enabled**
+
+**Required**: `false`<br />
+**Description**: Enable or disable sending of audit data for ticketing service<br />
+**Options**:`true|false`<br />
+**Default**: `false`<br />
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    ticketing:
+      audit:
+        enabled: false
+```
+
+## **sysdig.secure.ticketing.jiraClientMaxRetries**
+
+**Required**: `false`<br />
+**Description**: Number of max retries for Jira client<br/>
+**Default**: `5`<br />
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    ticketing:
+      jiraClientMaxRetries: 5
+```
+
+## **sysdig.secure.ticketing.jiraClientBaseWait**
+
+**Required**: `false`<br />
+**Description**: Jira client base wait time<br/>
+**Default**: `1s`<br />
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    ticketing:
+      jiraClientBaseWait: 1s
+```
+
+## **sysdig.secure.ticketing.jiraClientMaxWait**
+
+**Required**: `false`<br />
+**Description**: Max wait time for Jira client<br/>
+**Default**: `30s`<br />
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    ticketing:
+      jiraClientMaxWait: 30s
+```
+
+## **sysdig.secure.ticketing.jiraClientJitterMaxMillis**
+
+**Required**: `false`<br />
+**Description**: Max number for Jira client jitter in milliseconds<br/>
+**Default**: `1000`<br />
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    ticketing:
+      jiraClientJitterMaxMillis: 1000
+```
+
+## **sysdig.secure.ticketing.jiraCacheDefaultExpiration**
+
+**Required**: `false`<br />
+**Description**: Jira cache will expire after this period<br/>
+**Default**: `15m`<br />
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    ticketing:
+      jiraCacheDefaultExpiration: 15m
+```
+
+## **sysdig.secure.ticketing.jiraCacheCleanupInterval**
+
+**Required**: `false`<br />
+**Description**: Time interval for Jira cache cleanup<br/>
+**Default**: `1m`<br />
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    ticketing:
+      jiraCacheCleanupInterval: 1m
+```
+
+## **sysdig.secure.ticketing.jiraAssignableMaxResults**
+
+**Required**: `false`<br />
+**Description**: Number of max results that you can assign to<br/>
+**Default**: `2000`<br />
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    ticketing:
+      jiraAssignableMaxResults: 2000
+```
+
+## **sysdig.secure.ticketing.jiraSyncIssuesCronExpr**
+
+**Required**: `false`<br />
+**Description**: Expression for cron job for Jira sync issues job<br/>
+**Default**: `0 0 * * * *`<br />
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    ticketing:
+      jiraSyncIssuesCronExpr: "0 0 * * * *"
+```
+
+## **sysdig.secure.ticketing.jiraCreateIssuesCronExpr**
+
+**Required**: `false`<br />
+**Description**: Expression for cron job for Jira create issues job<br/>
+**Default**: `0 0 * * * *`<br />
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    ticketing:
+      jiraCreateIssuesCronExpr: "0 0 * * * *"
+```
+
+## **sysdig.secure.ticketing.jiraCreateIssuesOrchestratorInterval**
+
+**Required**: `false`<br />
+**Description**: Time interval for creating issues orchestrator<br/>
+**Default**: `5m`<br />
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    ticketing:
+      jiraCreateIssuesOrchestratorInterval: 5m
+```
+
+## **sysdig.secure.ticketing.jiraCreateIssuesWorkersMinWait**
+
+**Required**: `false`<br />
+**Description**: Min wait time for create issues from workers to compleate<br/>
+**Default**: `1s`<br />
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    ticketing:
+      jiraCreateIssuesWorkersMinWait: 1s
+```
+
+## **sysdig.secure.ticketing.jiraCreateIssuesWorkersMaxWait**
+
+**Required**: `false`<br />
+**Description**: Max wait time for create issues from workers to compleate<br/>
+**Default**: `5s`<br />
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    ticketing:
+      jiraCreateIssuesWorkersMaxWait: 5s
+```
+
+## **sysdig.secure.ticketing.jiraMaxAttachmentSize**
+
+**Required**: `false`<br />
+**Description**: Sets maximum size for jira attachment in bytes<br/>
+**Default**: `1048576`<br />
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    ticketing:
+      jiraMaxAttachmentSize: 1048576
+```
+
+## **sysdig.secure.ticketing.hardDeleteIntegrationAPIEnabled**
+
+**Required**: `false`<br />
+**Description**: Enables or disables hard delete of integrations in ticketing service<br/>
+**Options**: `true|false`<br />
+**Default**: `false`<br />
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    ticketing:
+      hardDeleteIntegrationAPIEnabled: false
+```
+
+## **sysdig.secure.ticketing.natsJS.migrationFile**
+
+**Required**: `false`<br />
+**Description**: Location of the json migration file<br/>
+**Default**: `/nats/migrations/streams.json`<br />
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    ticketing:
+      natsJS:
+        migrationFile: /nats/migrations/streams.json
+```
+
+## **sysdig.secure.ticketing.natsJS.url**
+
+**Required**: `false`<br />
+**Description**: Url of the NATS server that ticketing service will connect to<br/>
+**Default**: `nats`<br />
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    ticketing:
+      natsJS:
+        url: nats
+```
+
+## **sysdig.secure.ticketing.natsJS.secure.enabled**
+
+**Required**: `false`<br />
+**Description**: Enables or disables NATS in ticketing service<br/>
+**Options**: `true|false`<br />
+**Default**: `true`<br />
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    ticketing:
+      natsJS:
+        secure:
+          enabled: true
+```
+
+## **sysdig.secure.ticketing.natsJS.addAttachmentConsumer.deliverPolicyAll**
+
+**Required**: `false`<br />
+**Description**: Enables or disables deliverPolicyAll for NATS attachments consumer in ticketing service<br/>
+**Options**: `true|false`<br />
+**Default**: `true`<br />
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    ticketing:
+      natsJS:
+        addAttachmentConsumer:
+          deliverPolicyAll: true
+```
+
+## **sysdig.secure.ticketing.natsJS.addAttachmentConsumer.durable**
+
+**Required**: `false`<br />
+**Description**: Name of NATS durable consumer for consuming attachments events for ticketing service<br/>
+**Default**: `add_attachment_to_issue_consumer`<br />
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    ticketing:
+      natsJS:
+        addAttachmentConsumer:
+          durable: add_attachment_to_issue_consumer
+```
+
+## **sysdig.secure.ticketing.natsJS.addAttachmentConsumer.name**
+
+**Required**: `false`<br />
+**Description**: Name of NATS consumer for consuming attachments events for ticketing service<br/>
+**Default**: `add_attachment_to_issue_consumer`<br />
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    ticketing:
+      natsJS:
+        addAttachmentConsumer:
+          name: add_attachment_to_issue_consumer
+```
+
+## **sysdig.secure.ticketing.natsJS.addAttachmentConsumer.pull**
+
+**Required**: `false`<br />
+**Description**: Enable or disable pulling events for attachments consumer for ticketing service<br/>
+**Options**: `true|false`<br />
+**Default**: `true`<br />
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    ticketing:
+      natsJS:
+        addAttachmentConsumer:
+          pull: true
+```
+
+## **sysdig.secure.ticketing.natsJS.addAttachmentConsumer.streamName**
+
+**Required**: `false`<br />
+**Description**: Name of a NATS stream for consuming attachment events for ticketing service<br/>
+**Default**: `jira_attachments`<br />
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    ticketing:
+      natsJS:
+        addAttachmentConsumer:
+          streamName: jira_attachments
+```
+
+## **sysdig.secure.ticketing.natsJS.addAttachmentConsumer.subject**
+
+**Required**: `false`<br />
+**Description**: NATS subject for consuming attachments events for ticketing service<br/>
+**Default**: `jira_attachments.add_to_issue`<br />
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    ticketing:
+      natsJS:
+        addAttachmentConsumer:
+          subject: jira_attachments.add_to_issue
+```
+
+## **sysdig.secure.ticketing.natsJS.addAttachmentConsumer.maxDeliver**
+
+**Required**: `false`<br />
+**Description**: Number of max retries for delivering attachment<br/>
+**Default**: `3`<br />
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    ticketing:
+      natsJS:
+        addAttachmentConsumer:
+          maxDeliver: 3
+```
+
+## **sysdig.secure.ticketing.natsJS.addAttachmentConsumer.ackWait**
+
+**Required**: `false`<br />
+**Description**: Time to wait for receiving ACK signal for attachments<br/>
+**Default**: `5m`<br />
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    ticketing:
+      natsJS:
+        addAttachmentConsumer:
+          ackWait: 5m
 ```
