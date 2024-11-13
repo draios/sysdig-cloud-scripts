@@ -402,9 +402,14 @@ main() {
     kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get pvc | grep sysdig | tee -a ${LOG_DIR}/pvc_output.log
     kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get storageclass | tee -a ${LOG_DIR}/sc_output.log || echo "No permission to get StorageClasses"
 
-    # Get info on deployments, statefulsets, persistentVolumeClaims, daemonsets, and ingresses
+    # Get info on deployments, statefulsets, persistentVolumeClaims, daemonsets, ingresses, ocp routes and pod distruption budgets
     echo "Gathering Manifest Information"
-    for object in svc deployment sts pvc daemonset ingress replicaset networkpolicy cronjob configmap; do
+    objects=("svc" "deployment" "sts" "pvc" "daemonset" "ingress" "replicaset" "networkpolicy" "cronjob" "configmap" "pdb")
+    # Check within API server if "routes" api resource is available (in order to gather ingresses on OCP)
+    if $(kubectl api-resources | grep -q "routes"); then
+        objects+=("routes")
+    fi
+    for object in "${objects[@]}"; do
         items=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get ${object} -o jsonpath="{.items[*]['metadata.name']}")
         mkdir -p ${LOG_DIR}/${object}
         for item in ${items}; do
