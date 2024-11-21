@@ -1,0 +1,53 @@
+# The instructions here should create Sysdig Platform on a single node with 8 cores and 16Gig of RAM.
+size: small
+# Replace with quay.io pull secrets provided by the sales team.
+quaypullsecret: <PLEASE_REPLACE>
+# Acceptable values here are awe|gke|none|hostPath, change this to none and configure storageClassName if you want to use an existing storageClass
+storageClassProvisioner: hostPath
+# Uncomment the below to specify an existing storageClass, if not configured a storageClass is created with the configured storageClassProvisioner
+# storageClassName: sysdig
+elasticsearch:
+  hostPathNodes:
+      # replace with the name section of kubectl get nodes
+    - minikube
+sysdig:
+  mysql:
+    hostPathNodes:
+      # replace with the name section of kubectl get nodes
+      - minikube
+  postgresql:
+    hostPathNodes:
+      # replace with the name section of kubectl get nodes
+      - minikube
+  cassandra:
+    hostPathNodes:
+      # replace with the name section of kubectl get nodes
+      - minikube
+  # Replace with domain name the api should be served on.
+  dnsName: <PLEASE_REPLACE>
+  admin:
+    username: pov@sysdig.com
+  # Replace with license provided by the sales team.
+  license: <PLEASE_REPLACE>
+  # For PoC do not change the below
+  resources:
+    api:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+    cassandra:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+    collector:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+    elasticsearch:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+    worker:
+      requests:
+        cpu: 500m
+        memory: 1Gi
