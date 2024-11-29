@@ -9075,6 +9075,36 @@ sysdig:
   mdsOperatorVersion: 1.0.1.27
 ```
 
+## **sysdig.secure.artifactDeployer.tag**
+
+**Required**: `false`<br />
+**Description**: Docker image tag for `artifactDeployer`, default is `latest`.<br />
+**Options**:<br />
+**Default**: latest <br />
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    artifactDeployer
+      tag: latest
+```
+
+## **sysdig.secure.rulesDeployer.tag**
+
+**Required**: `false`<br />
+**Description**: Docker image tag for `rulesDeployer`, default is `latest`.<br />
+**Options**:<br />
+**Default**: latest <br />
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    rulesDeployer:
+      tag: latest
+```
+
 ## **sysdig.MdsServerVersion**
 
 **Required**: `false`<br />
@@ -9087,6 +9117,7 @@ sysdig:
 sysdig:
   mdsServerVersion: 1.10.250-vf2bcc4a
 ```
+
 
 ## **sysdig.helmRenderer.enabled**
 
