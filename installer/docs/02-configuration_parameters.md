@@ -814,6 +814,72 @@ pvStorageSize:
     natsJs: 50Gi
 ```
 
+## **pvStorageSize.small.neo4j**
+
+**Required**: `false`<br />
+**Description**: The size of the persistent volume assigned to Neo4J HA in a
+cluster of [`size`](#size) small. This option is ignored if
+`sysdig.neo4j.neo4j.volumes.data.dynamic.requests.storage` is set.<br />
+**Options**:<br />
+**Default**: 10Gi<br />
+**Example**:
+
+```yaml
+pvStorageSize:
+  large:
+    neo4j: 10Gi
+```
+
+## **pvStorageSize.medium.neo4j**
+
+**Required**: `false`<br />
+**Description**: The size of the persistent volume assigned to Neo4J HA in a
+cluster of [`size`](#size) medium. This option is ignored if
+`sysdig.neo4j.neo4j.volumes.data.dynamic.requests.storage` is set.<br />
+**Options**:<br />
+**Default**: 50Gi<br />
+**Example**:
+
+```yaml
+pvStorageSize:
+  medium:
+    natsJs: 50Gi
+```
+
+## **pvStorageSize.large.neo4j**
+
+**Required**: `false`<br />
+**Description**: The size of the persistent volume assigned to Neo4J HA in a
+cluster of [`size`](#size) large. This option is ignored if
+`sysdig.neo4j.neo4j.volumes.data.dynamic.requests.storage` is set.<br />
+**Options**:<br />
+**Default**: 100Gi<br />
+**Example**:
+
+```yaml
+pvStorageSize:
+  large:
+    neo4j: 100Gi
+```
+
+## **sysdig.neo4j.neo4j.volumes.data.dynamic.requests.storage**
+
+**Required**: `false`<br />
+**Description**: The size of the persistent volume assigned to Neo4J HA.<br />
+**Options**:<br />
+**Default**:<br />
+**Example**:
+
+```yaml
+neo4j:
+    neo4j:
+      volumes:
+        data:
+          dynamic:
+            requests:
+              storage: 50Gi
+```
+
 ## **sysdig.anchoreVersion**
 
 **Required**: `false`<br />
@@ -1340,7 +1406,7 @@ sysdig:
     enabled: true
 ```
 
-## **sysdig.secure.events.audit.config.store.ip.enabled**
+## **sysdig.secure.events.audit.config.store.ip**
 
 **Required**: `false`<br />
 **Description**: Global flag to enable storing of origin IP in Sysdig Platform Audit in all services.
@@ -1356,8 +1422,7 @@ sysdig:
       audit:
         config:
           store:
-            ip:
-              enabled: true
+            ip: true
 ```
 
 ## **sysdig.elasticsearch6Version**
@@ -9075,7 +9140,7 @@ sysdig:
   mdsOperatorVersion: 1.0.1.27
 ```
 
-## **sysdig.secure.artifactDeployer.tag**
+## **sysdig.ArtifactDeployerTag**
 
 **Required**: `false`<br />
 **Description**: Docker image tag for `artifactDeployer`, default is `latest`.<br />
@@ -9085,12 +9150,10 @@ sysdig:
 
 ```yaml
 sysdig:
-  secure:
-    artifactDeployer
-      tag: latest
+  artifactDeployerTag: latest
 ```
 
-## **sysdig.secure.rulesDeployer.tag**
+## **sysdig.RulesDeployerTag**
 
 **Required**: `false`<br />
 **Description**: Docker image tag for `rulesDeployer`, default is `latest`.<br />
@@ -9100,9 +9163,7 @@ sysdig:
 
 ```yaml
 sysdig:
-  secure:
-    rulesDeployer:
-      tag: latest
+  rulesDeployerTag: latest
 ```
 
 ## **sysdig.MdsServerVersion**
@@ -13451,7 +13512,7 @@ sysdig:
 sysdig:
   secure:
     scanningv2:
-      scanRequestor: 
+      scanRequestor:
         enabled: true
 ```
 
@@ -13467,7 +13528,7 @@ sysdig:
 sysdig:
   secure:
     scanningv2:
-      scanRequestor: 
+      scanRequestor:
         deploymentType: saas
 ```
 
@@ -13483,7 +13544,7 @@ sysdig:
 sysdig:
   secure:
     scanningv2:
-      scanRequestor: 
+      scanRequestor:
         loggingLevel: INFO
 ```
 
@@ -13498,7 +13559,7 @@ sysdig:
 sysdig:
   secure:
     scanningv2:
-      scanRequestor: 
+      scanRequestor:
         serviceAccount: sysdig
 ```
 
@@ -13514,7 +13575,7 @@ sysdig:
 sysdig:
   secure:
     scanningv2:
-      scanRequestor: 
+      scanRequestor:
         storage:
           type: cassandra
 ```
@@ -13530,7 +13591,7 @@ sysdig:
 sysdig:
   secure:
     scanningv2:
-      scanRequestor: 
+      scanRequestor:
         storage:
           bucketName: "scan-requestor"
 ```
@@ -13546,7 +13607,7 @@ sysdig:
 sysdig:
   secure:
     scanningv2:
-      scanRequestor: 
+      scanRequestor:
         storage:
           endpoint: https://sysdigcloud-minio-hl.sysdigloud.svc.cluster.local:9000
 ```
@@ -13562,7 +13623,7 @@ sysdig:
 sysdig:
   secure:
     scanningv2:
-      scanRequestor: 
+      scanRequestor:
         storage:
           region: auto
 ```
@@ -13578,7 +13639,7 @@ sysdig:
 sysdig:
   secure:
     scanningv2:
-      scanRequestor: 
+      scanRequestor:
         storage:
           retentionTime: 2
 ```
@@ -13594,7 +13655,7 @@ sysdig:
 sysdig:
   secure:
     scanningv2:
-      scanRequestor: 
+      scanRequestor:
         storage:
           caCrt: "/opt/certs/minio-tls-ca/public.crt"
 ```
@@ -13611,9 +13672,9 @@ sysdig:
 sysdig:
   secure:
     scanningv2:
-      scanRequestor: 
+      scanRequestor:
         storage:
-          requestStore: 
+          requestStore:
             enabled: true
 ```
 
@@ -13628,9 +13689,9 @@ sysdig:
 sysdig:
   secure:
     scanningv2:
-      scanRequestor: 
+      scanRequestor:
         storage:
-          requestStore: 
+          requestStore:
             requestMaxAge: "1h"
 ```
 
@@ -13645,9 +13706,9 @@ sysdig:
 sysdig:
   secure:
     scanningv2:
-      scanRequestor: 
+      scanRequestor:
         storage:
-          requestStore: 
+          requestStore:
             requestReplyTimeout: 30s
 ```
 
@@ -13662,9 +13723,9 @@ sysdig:
 sysdig:
   secure:
     scanningv2:
-      scanRequestor: 
+      scanRequestor:
         storage:
-          cassandra: 
+          cassandra:
             hosts: "sysdigcloud-cassandra:9042"
 ```
 
@@ -13679,9 +13740,9 @@ sysdig:
 sysdig:
   secure:
     scanningv2:
-      scanRequestor: 
+      scanRequestor:
         storage:
-          cassandra: 
+          cassandra:
             keyspace: "sysdig_scanning"
 ```
 
@@ -13696,9 +13757,9 @@ sysdig:
 sysdig:
   secure:
     scanningv2:
-      scanRequestor: 
+      scanRequestor:
         storage:
-          cassandra: 
+          cassandra:
             protocolVersion: "3"
 ```
 
@@ -13713,9 +13774,9 @@ sysdig:
 sysdig:
   secure:
     scanningv2:
-      scanRequestor: 
+      scanRequestor:
         storage:
-          cassandra: 
+          cassandra:
             replicationFactor: "3"
 ```
 
@@ -13730,9 +13791,9 @@ sysdig:
 sysdig:
   secure:
     scanningv2:
-      scanRequestor: 
+      scanRequestor:
         storage:
-          cassandra: 
+          cassandra:
             datacenter: "datacenter1"
 ```
 
@@ -13747,7 +13808,7 @@ sysdig:
 sysdig:
   secure:
     scanningv2:
-      scanRequestor: 
+      scanRequestor:
         storage:
           cassandra:
             requestTimeout: "3s"
@@ -13764,7 +13825,7 @@ sysdig:
 sysdig:
   secure:
     scanningv2:
-      scanRequestor: 
+      scanRequestor:
         storage:
           cassandra:
             maxReadRequests: ""
@@ -13781,7 +13842,7 @@ sysdig:
 sysdig:
   secure:
     scanningv2:
-      scanRequestor: 
+      scanRequestor:
         storage:
           cassandra:
             maxWriteRequests: ""
@@ -13799,7 +13860,7 @@ sysdig:
 sysdig:
   secure:
     scanningv2:
-      scanRequestor: 
+      scanRequestor:
         storage:
           cassandra:
             compressionEnabled: true
@@ -13816,7 +13877,7 @@ sysdig:
 sysdig:
   secure:
     scanningv2:
-      scanRequestor: 
+      scanRequestor:
         storage:
           cassandra:
             compressionThreshold: ""
@@ -13833,10 +13894,10 @@ sysdig:
 sysdig:
   secure:
     scanningv2:
-      scanRequestor: 
+      scanRequestor:
         storage:
           cassandra:
-            ttlSec: 
+            ttlSec:
               metadata: "86400"
 ```
 
@@ -13851,10 +13912,10 @@ sysdig:
 sysdig:
   secure:
     scanningv2:
-      scanRequestor: 
+      scanRequestor:
         storage:
           cassandra:
-            ttlSec: 
+            ttlSec:
               state: "86400"
 ```
 
@@ -13869,10 +13930,10 @@ sysdig:
 sysdig:
   secure:
     scanningv2:
-      scanRequestor: 
+      scanRequestor:
         storage:
           cassandra:
-            ttlSec: 
+            ttlSec:
               events: "86400"
 ```
 
@@ -14039,38 +14100,6 @@ sysdig:
     server:
       port:
         health: 8083
-```
-
-## **sysdig.platformService.pdf.server.port.rest**
-
-**Required**: `false`<br />
-**Description**: PDF service server port that will serve HTTP requests<br/>
-**Default**: `7000`<br />
-**Example**:
-
-```yaml
-sysdig:
-  platformService:
-    pdf:
-      server:
-        port:
-          rest: 7000
-```
-
-## **sysdig.platformService.pdf.server.port.grpc**
-
-**Required**: `false`<br />
-**Description**: PDF service server port that will serve GRPC requests<br/>
-**Default**: `5051`<br />
-**Example**:
-
-```yaml
-sysdig:
-  platformService:
-    pdf:
-      server:
-        port:
-          grpc: 5051
 ```
 
 ## **sysdig.platformService.alerts.enabled**
@@ -14655,6 +14684,216 @@ sysdig:
           batchSize: 50
 ```
 
+## **sysdig.platformService.zones.enabled**
+
+**Required**: `false`<br />
+**Description**: Enable or disable Platform Zones service<br/>
+**Options**:`true|false`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    zones:
+      enabled: false
+```
+
+
+## **sysdig.platformService.zones.readOnly**
+
+**Required**: `false`<br />
+**Description**: Puts the Platform Zones service in read-only mode<br/>
+**Options**:`true|false`<br />
+**Default**: `false`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    zones:
+      readOnly: false
+```
+
+
+## **sysdig.platformService.zones.devmode**
+
+**Required**: `false`<br />
+**Description**: Puts the Platform Zones service in devmode with enhanced logs and debug capabilities<br/>
+**Options**:`true|false`<br />
+**Default**: `false`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    zones:
+      devmode: false
+```
+
+## **sysdig.platformService.zones.nats.js.enabled**
+
+**Required**: `false`<br />
+**Description**: Enable or disable NATS for Platform Zones service<br/>
+**Options**: `true|false`<br />
+**Default**: `true`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    zones:
+      nats:
+        js:
+          enabled: false
+```
+
+## **sysdig.platformService.zones.nats.js.url**
+
+**Required**: `false`<br />
+**Description**: Url of the NATS server that Platform Zones service will connect to<br/>
+**Default**: `nats`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    zones:
+      nats:
+        js:
+          url: nats
+```
+
+## **sysdig.platformService.zones.nats.js.clientName**
+
+**Required**: `false`<br />
+**Description**: Client name for Platform Zones service<br/>
+**Default**: `sysdigcloud-platform-zones-service`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    zones:
+      nats:
+        js:
+          clientName: sysdigcloud-platform-zones-service
+```
+
+## **sysdig.platformService.zones.nats.js.tls.enabled**
+
+**Required**: `false`<br />
+**Description**: Enable or disable TLS connection for NATS<br/>
+**Options**: `true|false`<br />
+**Default**: `true`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    zones:
+      nats:
+        js:
+          tls:
+            enabled: true
+```
+
+## **sysdig.platformService.zones.nats.js.tls.cert**
+
+**Required**: `false`<br />
+**Description**: TLS certificate for NATS connection<br/>
+**Default**: `/opt/certs/nats-js-tls-certs/ca.crt`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    zones:
+      nats:
+        js:
+          tls:
+            cert: /opt/certs/nats-js-tls-certs/ca.crt
+```
+
+## **sysdig.platformService.zones.nats.js.migrationFile**
+
+**Required**: `false`<br />
+**Description**: Location of the json migration file<br/>
+**Default**: `/platform-service/zones/nats/migrations/streams.json`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    zones:
+      nats:
+        js:
+          migrationFile: /nats/migrations/streams.json
+```
+
+## **sysdig.platformService.zones.monitor.url**
+
+**Required**: `false`<br />
+**Description**: Base URL for monitor API calls<br/>
+**Default**: `http://sysdigcloud-api:8080`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    zones:
+      monitor:
+        url: http://sysdigcloud-api:8080
+```
+
+## **sysdig.platformService.zones.monitor.authCache.expiration**
+
+**Required**: `false`<br />
+**Description**: Expiration time of the authentication cache for monitor API calls<br/>
+**Default**: `5m`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    zones:
+      monitor:
+        authCache:
+          expiration: 5m
+```
+
+## **sysdig.platformService.zones.server.port.rest**
+
+**Required**: `false`<br />
+**Description**: Platform Zones service server port that will serve HTTP requests<br/>
+**Default**: `8090`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    zones:
+      server:
+        port:
+          rest: 7004
+```
+
+
+## **sysdig.platformService.zones.server.port.grpc**
+
+**Required**: `false`<br />
+**Description**: Platform Zones service server port that will serve HTTP requests<br/>
+**Default**: `8091`<br />
+**Example**:
+
+```yaml
+sysdig:
+  platformService:
+    zones:
+      server:
+        port:
+          rest: 7004
+```
+
 
 ## **sysdig.secure.ticketing.enabled**
 
@@ -14729,20 +14968,6 @@ sysdig:
       jiraClientMaxWait: 30s
 ```
 
-## **sysdig.secure.ticketing.jiraClientJitterMaxMillis**
-
-**Required**: `false`<br />
-**Description**: Max number for Jira client jitter in milliseconds<br/>
-**Default**: `1000`<br />
-**Example**:
-
-```yaml
-sysdig:
-  secure:
-    ticketing:
-      jiraClientJitterMaxMillis: 1000
-```
-
 ## **sysdig.secure.ticketing.jiraCacheDefaultExpiration**
 
 **Required**: `false`<br />
@@ -14769,20 +14994,6 @@ sysdig:
   secure:
     ticketing:
       jiraCacheCleanupInterval: 1m
-```
-
-## **sysdig.secure.ticketing.jiraAssignableMaxResults**
-
-**Required**: `false`<br />
-**Description**: Number of max results that you can assign to<br/>
-**Default**: `2000`<br />
-**Example**:
-
-```yaml
-sysdig:
-  secure:
-    ticketing:
-      jiraAssignableMaxResults: 2000
 ```
 
 ## **sysdig.secure.ticketing.jiraSyncIssuesCronExpr**

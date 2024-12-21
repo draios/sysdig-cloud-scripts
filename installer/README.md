@@ -58,7 +58,7 @@ This install assumes the Kubernetes cluster has network access to pull images fr
     provided with your Sysdig purchase confirmation mail
   - [`sysdig.platformAuditTrail.enabled`](docs/02-configuration_parameters.md#sysdigplatformAuditTrailenabled):
     Set this parameter to `true` if you would like to use Sysdig Platform Audit.
-  - [`sysdig.secure.events.audit.config.store.ip.enabled`](docs/02-configuration_parameters.md#sysdigsecureeventsauditconfigstoreipenabled):
+  - [`sysdig.secure.events.audit.config.store.ip`](docs/02-configuration_parameters.md#sysdigsecureeventsauditconfigstoreip):
   	Set this parameter to `true` if you would like to see the origin IP address in Sysdig Platform Audit.
   - [`sysdig.dnsName`](docs/02-configuration_parameters.md#sysdigdnsName): The domain name
     the Sysdig APIs will be served on.
@@ -314,18 +314,21 @@ For advanced configuration option see [advanced.md](docs/04-advanced_configurati
 
 # Example values.yaml
 
-- [single-node values.yaml](examples/single-node/values.yaml)
 - [openshift-with-hostpath values.yaml](examples/openshift-with-hostpath/values.yaml)
 
 # Resource requirements
 
-The below table represents the amount of resources for various cluster sizes
-in their default configuration. The `Redis HA` column indicates extra amount
-of resources required if `redisHa: true` is configured.
+The below table represents the amount of resources for various cluster sizes and deployment modes
+in their default configuration.
 
-| Application | SMALL        |            | GB              | GB            | GB      |     | MEDIUM       |            | GB              | GB            | GB      |     | LARGE |              | GB         | GB              | GB            |         |
-| ----------- | ------------ | ---------- | --------------- | ------------- | ------- | --- | ------------ | ---------- | --------------- | ------------- | ------- | --- | ----- | ------------ | ---------- | --------------- | ------------- | ------- |
-|             | cpu requests | cpu limits | memory requests | memory limits | storage |     | cpu requests | cpu limits | memory requests | memory limits | storage |     |       | cpu requests | cpu limits | memory requests | memory limits | storage |
-| Platform    | 8.1          | 36         | 14.6            | 50            | 115     |     | 35.6         | 118        | 42.1            | 142           | 685     |     |       | 82.1         | 298        | 142.1           | 304           | 1885    |
-| Monitor     | 5.6          | 18         | 10.1            | 30            | 85      |     | 30.6         | 98         | 37.1            | 122           | 625     |     |       | 76.1         | 278        | 136.1           | 280           | 1825    |
-| Redis HA    | 0.45         | 6.9        | 0.345           | 6.06          |         |     | 0.45         | 6.9        | 0.345           | 6.06          |         |     |       | 0.45         | 6.9        | 0.345           | 6.06          |         |
+|Size                                    |Mode        |CPU Cores Requests|CPU Cores Limits|Memory GB Limits|Total Disk GB|
+|----------------------------------------|------------|------------------|----------------|----------------|-------------|
+|Small                                   |Secure Only |23                |80              |94              |947.15       |
+|                                        |Platform    |53                |119             |213             |1403.15      |
+|                                        |Monitor Only|26                |76              |169             |1191         |
+|Medium                                  |Secure Only |37                |92              |109             |1589         |
+|                                        |Platform    |61                |137             |222             |4244         |
+|                                        |Monitor Only|31                |81              |182             |2616         |
+|Large                                   |Secure Only |45                |101             |115             |3040         |
+|                                        |Platform    |111               |166             |403             |10180        |
+|                                        |Monitor Only|91                |120             |365             |6663         |
