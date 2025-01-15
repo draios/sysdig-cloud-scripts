@@ -1,6 +1,6 @@
 #This patchfile adds an initcontainer to ElasticSearch and sets vmmaxmap count in ES hosts
 #
-# WARNING: this patch is not necessary anymore, you can just add this option to the installer values:
+# WARNING: This patch is no longer necessary. Instead, you can add this option to the installer values:
 #
 # elasticsearch:
 #   ...
