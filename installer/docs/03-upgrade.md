@@ -14,16 +14,17 @@
 
 ## Overview
 
-The Installer can be used to upgrade a Sysdig implementation. As in an
-install, you must meet the prerequisites, download the values.yaml, edit the
-values as indicated, and run the Installer. The main difference is that you
-run it twice: once to discover the differences between the old and new
-versions, and the second time to deploy the new version.
+You can use the Installer to upgrade a Sysdig implementation. As with an install, you must:
+- Meet the prerequisites.
+- Download the values.yaml.
+- Edit the values as indicated.
+- Run the Installer.
+
+The main difference is that you run it twice: once to discover the differences between the old and new versions, and the second time to deploy the new version.
 
 As with installs, it can be used in airgapped or non-airgapped environments.
 
-Review the [Prerequisites](../README.md#prerequisites) and [Installation
-Options](../README.md#quickstart-install) for more context.
+For more context, review the [Prerequisites](../README.md#prerequisites) and [Installation Options](../README.md#quickstart-install).
 
 ## Upgrade Steps
 
@@ -80,7 +81,7 @@ Edit the following values:
     - sysdig.ingressNetworkingApiNodePort
     - sysdig.ingressNetworkingCollectorNodePort
 
-**NOTE**: If doing an airgapped install (see Airgapped Installation Options), you
+**NOTE**: If doing an airgapped install (see airgapped Installation Options), you
 would also edit the following values:
 
 - [`airgapped_registry_name`](docs/configuration_parameters.md#airgapped_registry_name):
@@ -98,9 +99,7 @@ would also edit the following values:
 
 ### Step 3 - Check differences with the old Sysdig environment
 
-Run the Installer (if you are in airgapped environment make sure you follow
-instructions from installation on how to get the images to your airgapped
-registry)
+Run the Installer (if you are in airgapped environment make sure you follow instructions from installation on how to get the images to your airgapped registry)
 
 ```bash
 ./installer diff
