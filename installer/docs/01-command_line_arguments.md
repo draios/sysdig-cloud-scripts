@@ -12,7 +12,7 @@
 
 `--skip-namespace`
 
-- Installer does not deploy the `namespace.yaml` manifest.
+- installer does not deploy the `namespace.yaml` manifest.
   It expects the Namespace to exist and to match the value in `values.yaml`
   If there is a mismatch, the installer will fail as no validation is in place.
 
@@ -20,7 +20,10 @@
 
 - The services require the pull secret to exist with the expected name (`sysdigcloud-pull-secret`) and to have access to the registry.
 
-- If the pull secret is missing, the behavior could be unpredictable. Some Pods could start if they can find the image locally and if their `imagePullPolicy` is not `Always`; Other Pods will fail because they can't pull the image.
+- if the pull secret is missing, the behaviour could be unpredictable:
+  some Pods could start if they can find the image locally and if their `imagePullPolicy`
+  is not `Always`
+- Other Pods will fail because they can't pull the image
 
 `--skip-serviceaccount`
 
@@ -49,7 +52,7 @@ Events:
 
 `--skip-storageclass`
 
-- Installer does not apply the StorageClass manifest.
+- installer does not apply the StorageClass manifest.
   It expects the storageClassName specified in values.yaml to exist.
 
 `--disable-proxy`
@@ -80,7 +83,7 @@ actual name of the StatefulSet in the cluster differs
 
 ## Command: `update-license`
 
-Prerequisite: `kubectl` version `1.20.0` or greater.
+** WARNING: THIS FEATURE requires `kubectl` to be at least version `1.20.0` **
 
 This command performs the minimal changes and restarts to apply a new license.
 Based on [this page](https://docs.sysdig.com/en/docs/administration/on-premises-deployments/upgrade-an-on-premises-license/)
@@ -89,7 +92,7 @@ This command performs the following:
 
 - Gets a new license from either `--license` or from `--license-file name.ext`
 
-- Applies the license to `common-config` and to the relevant Secret of the following backend services:
+- applies the license to `common-config` and to the relevant Secret of the following backend services:
 
   - `api`
   - `collector`
@@ -196,15 +199,15 @@ quay.io/sysdig/ui-inspect-nginx:6.0.0.12431
 
 ## Command: `diff`
 
-Performs a diff between the platform objects in a running Kubernetes cluster, and the generated manifests based on some values.
+Will perform a diff between the platform objects in a running k8s cluster, and the generated manifests based on some values.
 
 `--write-diff`
 
-- Writes the diff on the filesystem organized in subfolders, rather than printing it to the stdout.
+- Will write the diff on the filesystem organized in subfolders, rather than printing it to the stdout.
 
 `--out-diff-dir`
 
-- Allows you to specify a custom path for the diff files being written on the filesystem. Will be used only if also `--write-diff` is provided. If not set, a temporary directory will be used.
+- Allows you to specify a custom path for the diff files being written on the filesystem. Will be used only if also `--write-diff` is provided. If not set will use a temporary directory.
 
 `--cleanup`
 
@@ -212,13 +215,13 @@ Performs a diff between the platform objects in a running Kubernetes cluster, an
 
 `--secure`
 
-- Applies some filters to the produced diff in order to avoid printing sensitive information. This is useful if you need to share diffs with a user who should not have access to credentials.
+- applies some filters to the produced diff in order to avoid printing sensitive informations. This is useful if you need to share diffs to user who shouldn't have access to credentials.
 
 `--summary`
 
-- Prints a summary of the diff errors.
+- Only prints a summary of the diff errors.
 
-The `diff` command also has options inherited from the `generate` command options. See **generate** command section.
+Diff command also has options inherited from the generate command options. See **generate** command section.
 
 ### Sub-Command: secure-diff [DEPRECATED]
 
@@ -269,8 +272,8 @@ This subcommand is DEPRECATED and will be removed starting from version 6.7.0, y
 
 ## Command: `list-resources`
 
-Lists all the required resources and limits for a planned deployment, based on the the defaults, provided values, and overlays.
-This command expects to have a `generated` folder. If one doesn't exist, you can use the `--generate-manifests` flag to create it within the scope of this command.
+Will list all the required resources and limits for a planned deployment, based on the the defaults, provided values, and overlays.
+This command expects to have a `generated` folder. If one doesn't exist, it can be created within the scope of this command, using the `--generate-manifests` flag.
 
 `--generate-manifests`
 

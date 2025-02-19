@@ -8,18 +8,6 @@
 
 <br />
 
-## **global.graphServicesEnabled**
-**Required**: `false`<br />
-**Description**: A shared flag to turn enable/disable the following GraphDB services: neo4j, graph-query, graph-gatherer, sysql-api, config-service, resource-ingestion<br />
-**Options**: true/false<br />
-**Default**: false<br />
-**Example**:
-
-```yaml
-global:
-  graphServicesEnabled: true
-```
-
 ## **quaypullsecret**
 
 **Required**: `true`<br />
@@ -76,7 +64,8 @@ kubernetesServerVersion: v1.18.10
 ## **storageClassProvisioner**
 
 **Required**: `false`<br />
-**Description**: The name of the [storage class provisioner](https://kubernetes.io/docs/concepts/storage/storage-classes/#provisioner)
+**Description**: The name of the [storage class
+provisioner](https://kubernetes.io/docs/concepts/storage/storage-classes/#provisioner)
 to use when creating the configured storageClassName parameter. Use hostPath
 or local in clusters that do not have a provisioner. For setups where
 Persistent Volumes and Persistent Volume Claims are created manually this
@@ -109,7 +98,8 @@ apps: monitor secure
 **Required**: `false`<br />
 **Description**: The URL of the airgapped (internal) docker registry. This URL
 is used for installations where the Kubernetes cluster can not pull images
-directly from Quay. See [airgap instructions multi-homed](../README.md#airgapped-with-multi-homed-installation-machine)
+directly from Quay. See [airgap instructions
+multi-homed](../README.md#airgapped-with-multi-homed-installation-machine)
 and [full airgap instructions](../README.md#full-airgap-install) for more
 details.<br />
 **Options**:<br />
@@ -395,7 +385,7 @@ elasticsearch:
 ## **elasticsearch.jobs.rollNodes**
 
 **Required**: `false`<br />
-**Description**: safely roll the elasticsearch nodes, if needed, after a change in the manifests. This can potentially take several minutes per node to restart. In case of an upgrade from elasticsearch to OpenSearch and this is false then a cluster restart will be performed, i.e. all Elasticsearch nodes will be restarted at the same time. WARNING: do not set this to true in a 5.x to 6.x upgrade scenario.<br />
+**Description**: safely roll the elasticsearch nodes, if needed, after a change in the manifests. This can potentially take several minutes per node to restart. In case of an upgrade from elasticsearch to opensearch and this is false then a cluster restart will be performed, i.e. all elasticsearch nodes will be restarted at the same time. WARNING: do not set this to true in a 5.x to 6.x upgrade scenario.<br />
 **Options**: `true|false`<br />
 **Default**: `false`<br />
 **Example**:
@@ -411,13 +401,13 @@ elasticsearch:
 **Required**: `false`<br />
 **Description**: The docker image tag of the elasticsearch jobs<br />
 **Options**:<br />
-**Default**: 0.0.53<br />
+**Default**: 0.0.49<br />
 **Example**:
 
 ```yaml
 elasticsearch:
   jobs:
-    toolsImageVersion: 0.0.53
+    toolsImageVersion: 0.0.49
 ```
 
 ## **elasticsearch.enableMetrics**
@@ -467,12 +457,12 @@ elasticsearch:
 
 **Required**: `false`<br />
 **Description**: Enables user authentication and TLS-encrypted data-in-transit
-with [Search Guard](https://search-guard.com/)
-If Search Guard is enabled Installer does the following in the provided order:
+with [Searchguard](https://search-guard.com/)
+If Searchguard is enabled Installer does the following in the provided order:
 
 1. Checks for user provided certificates under certs/elasticsearch-tls-certs if present uses that to setup elasticsearch(es) cluster.
-2. Checks for existing Search Guard certificates in the provided environment to setup ES cluster. (applicable for upgrades)
-3. If neither of them are present Installer autogenerates Search Guard certificates and uses them to setup es cluster.
+2. Checks for existing searchguard certificates in the provided environment to setup ES cluster. (applicable for upgrades)
+3. If neither of them are present Installer autogenerates searchguard certificates and uses them to setup es cluster.
 
 **Options**: `true|false`<br />
 **Default**: `false`<br />
@@ -487,7 +477,7 @@ elasticsearch:
 ## ~~**elasticsearch.searchguard.adminUser**~~ (**Deprecated**)
 
 **Required**: `false`<br />
-**Description**: The user bound to the ElasticSearch Search Guard admin role.<br />
+**Description**: The user bound to the ElasticSearch Searchguard admin role.<br />
 **Options**: <br />
 **Default**: `sysdig`<br />
 **Example**:
@@ -551,7 +541,7 @@ hostPathCustomPaths:
 ## **hostPathCustomPaths.elasticsearch**
 
 **Required**: `false`<br />
-**Description**: The directory to bind mount Elasticsearch pod's
+**Description**: The directory to bind mount elasticsearch pod's
 `/usr/share/elasticsearch` to on the host. This parameter is relevant only when
 `storageClassProvisioner` is `hostPath`.<br />
 **Options**: <br />
@@ -1466,12 +1456,12 @@ sysdig:
 **Required**: `false`<br />
 **Description**: The docker image tag of Opensearch.<br />
 **Options**:<br />
-**Default**: 0.3.6<br />
+**Default**: 0.2.7<br />
 **Example**:
 
 ```yaml
 sysdig:
-  opensearchVersion: 0.3.6
+  opensearchVersion: 0.2.7
 ```
 
 ## **sysdig.haproxyVersion**
@@ -13528,8 +13518,8 @@ sysdig:
 
 ## **sysdig.secure.scanningV2.scanRequestor.deploymentType**
 **Required**: `false`<br />
-**Description**: If set at `saas` the storage type for the SR will be S3, if not set or empty SR will use Cassandra. <br/>
-**Options**: `saas|empty`<br />
+**Description**: Defines whether the ScanRequestor should exploit MinIO as S3 storage. Setting the value at `onprem` enables the initialization job required for the ScanRequestor to set-up required buckets on MinIO and triggers the deployment of MinIO in on-prem. If set at `saas` the storage type for the SR will be s3, if not set or empty SR will use cassandra. <br/>
+**Options**: `onprem|saas|empty`<br />
 **Default**: `empty`<br />
 
 **Example**:
@@ -13609,7 +13599,7 @@ sysdig:
 ## **sysdig.secure.scanningV2.scanRequestor.storage.endpoint**
 **Required**: `false`<br />
 **Description**: Sets the URl of the S3 service to use as storage, if the selected storage type is S3<br/>
-**Default**: ``<br />
+**Default**: `https://sysdigcloud-minio-hl.<namespace>.svc.cluster.local:9000`<br />
 
 **Example**:
 
@@ -13619,13 +13609,13 @@ sysdig:
     scanningv2:
       scanRequestor:
         storage:
-          endpoint: ""
+          endpoint: https://sysdigcloud-minio-hl.sysdigloud.svc.cluster.local:9000
 ```
 
 ## **sysdig.secure.scanningV2.scanRequestor.storage.region**
 **Required**: `false`<br />
-**Description**: Sets the region S3 service to use as storage, if the selected storage type is S3.<br/>
-**Default**: ``<br />
+**Description**: Sets the region S3 service to use as storage, if the selected storage type is S3. Set to `auto` for MinIO deployments.<br/>
+**Default**: `auto`<br />
 
 **Example**:
 
@@ -13635,13 +13625,29 @@ sysdig:
     scanningv2:
       scanRequestor:
         storage:
-          region: ""
+          region: auto
+```
+
+## **sysdig.secure.scanningV2.scanRequestor.storage.retentionTime**
+**Required**: `false`<br />
+**Description**: Sets the bucket retention time, if the selected storage type is S3 and the deployment is onprem (i.e., MinIO is used).<br/>
+**Default**: `2`<br />
+
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanningv2:
+      scanRequestor:
+        storage:
+          retentionTime: 2
 ```
 
 ## **sysdig.secure.scanningV2.scanRequestor.storage.caCrt**
 **Required**: `false`<br />
 **Description**: Sets the certificate of the S3 service to use as storage, if the selected storage type is S3<br/>
-**Default**: ``<br />
+**Default**: `/opt/certs/minio-tls-ca/public.crt`<br />
 
 **Example**:
 
@@ -13651,7 +13657,7 @@ sysdig:
     scanningv2:
       scanRequestor:
         storage:
-          caCrt: ""
+          caCrt: "/opt/certs/minio-tls-ca/public.crt"
 ```
 
 ## **sysdig.secure.scanningV2.scanRequestor.storage.requestStore.enabled**
@@ -14006,6 +14012,23 @@ sysdig:
           timeout: "30s"
 ```
 
+## **sysdig.secure.scanningv2.scanRequestor.partitionProcessing.deleteObjectsAfter**
+**Required**: `false`<br />
+**Description**: A flag requiring to delete events from the staging area, as soon as they are processed. Must be `true` when using the S3 MinIO backend to avoid incurring into premature end of available inodes.<br/>
+**Options**: `true|false`<br />
+**Default**: `false`<br />
+
+**Example**:
+
+```yaml
+sysdig:
+  secure:
+    scanningv2:
+      scanRequestor:
+        partitionProcessing:
+          deleteObjectsAfter: true
+```
+
 ## **sysdig.platformService.enabled**
 
 **Required**: `false`<br />
@@ -14223,7 +14246,7 @@ sysdig:
 **Required**: `false`<br />
 **Description**: Enable or disable NATS for platform alerts service<br/>
 **Options**: `true|false`<br />
-**Default**: `true`<br />
+**Default**: `false`<br />
 **Example**:
 
 ```yaml
@@ -14232,7 +14255,7 @@ sysdig:
     alerts:
       nats:
         js:
-          enabled: true
+          enabled: false
 ```
 
 ## **sysdig.platformService.alerts.nats.js.url**
@@ -14414,7 +14437,7 @@ sysdig:
 **Required**: `false`<br />
 **Description**: Enable or disable NATS notifier publishing for Risk integration<br/>
 **Options**: `true|false`<br />
-**Default**: `true`<br />
+**Default**: `false`<br />
 **Example**:
 
 ```yaml
@@ -14465,12 +14488,12 @@ sysdig:
               subject: notifier.notifications.1.risk
 ```
 
-## **sysdig.platformService.alerts.nats.js.vm.imageHasVulns.consumer.enabled**
+## **sysdig.platformService.alerts.nats.js.vm.consumer.enabled**
 
 **Required**: `false`<br />
-**Description**: Enable or disable NATS consumer for VM imageHasVulns integration<br/>
+**Description**: Enable or disable NATS consumer for VM integration<br/>
 **Options**: `true|false`<br />
-**Default**: `true`<br />
+**Default**: `false`<br />
 **Example**:
 
 ```yaml
@@ -14480,16 +14503,15 @@ sysdig:
       nats:
         js:
           vm:
-            imageHasVulns:
-              consumer:
-                enabled: true
+            consumer:
+              enabled: false
 ```
 
-## **sysdig.platformService.alerts.nats.js.vm.imageHasVulns.consumer.name**
+## **sysdig.platformService.alerts.nats.js.vm.consumer.name**
 
 **Required**: `false`<br />
-**Description**: Name of NATS consumer for VM imageHasVulns integration<br/>
-**Default**: `platform-alerts-consumer`<br />
+**Description**: Name of NATS consumer for VM integration<br/>
+**Default**: `vm-consumer`<br />
 **Example**:
 
 ```yaml
@@ -14499,15 +14521,14 @@ sysdig:
       nats:
         js:
           vm:
-            imageHasVulns:
-              consumer:
-                name: platform-alerts-consumer
+            consumer:
+              name: vm-consumer
 ```
 
-## **sysdig.platformService.alerts.nats.js.vm.imageHasVulns.consumer.stream**
+## **sysdig.platformService.alerts.nats.js.vm.consumer.stream**
 
 **Required**: `false`<br />
-**Description**: NATS stream name of consumer for VM imageHasVulns integration<br/>
+**Description**: NATS stream name of consumer for VM integration<br/>
 **Default**: `secure-vm-notifier-integrations`<br />
 **Example**:
 
@@ -14518,15 +14539,14 @@ sysdig:
       nats:
         js:
           vm:
-            imageHasVulns:
-              consumer:
-                stream: secure-vm-notifier-integrations
+            consumer:
+              stream: secure-vm-notifier-integrations
 ```
 
-## **sysdig.platformService.alerts.nats.js.vm.imageHasVulns.consumer.subjects**
+## **sysdig.platformService.alerts.nats.js.vm.consumer.subjects**
 
 **Required**: `false`<br />
-**Description**: NATS subjects name of consumer for VM imageHasVulns integration<br/>
+**Description**: NATS subjects name of consumer for VM integration<br/>
 **Default**: `secure.vm.notifier.integrations.jira`<br />
 **Example**:
 
@@ -14537,15 +14557,14 @@ sysdig:
       nats:
         js:
           vm:
-            imageHasVulns:
-              consumer:
-                subjects: secure.vm.notifier.integrations.jira
+            consumer:
+              subjects: secure.vm.notifier.integrations.jira
 ```
 
-## **sysdig.platformService.alerts.nats.js.vm.imageHasVulns.consumer.timeoutRetryMaxWait**
+## **sysdig.platformService.alerts.nats.js.vm.consumer.timeoutRetryMaxWait**
 
 **Required**: `false`<br />
-**Description**: Max retry wait time for consumer for VM imageHasVulns integration<br/>
+**Description**: Max retry wait time for consumer for VM integration<br/>
 **Default**: `10s`<br />
 **Example**:
 
@@ -14556,323 +14575,14 @@ sysdig:
       nats:
         js:
           vm:
-            imageHasVulns:
-              consumer:
-                timeoutRetryMaxWait: 10s
-```
-
-## **sysdig.platformService.alerts.nats.js.vm.imageHasVulns.notifier.enabled**
-
-**Required**: `false`<br />
-**Description**: Enable or disable NATS notifier publishing for VM imageHasVulns integration<br/>
-**Options**: `true|false`<br />
-**Default**: `true`<br />
-**Example**:
-
-```yaml
-sysdig:
-  platformService:
-    alerts:
-      nats:
-        js:
-          vm:
-            imageHasVulns:
-              notifier:
-                enabled: true
-```
-
-## **sysdig.platformService.alerts.nats.js.vm.imageHasVulns.notifier.stream**
-
-**Required**: `false`<br />
-**Description**: Name of a NATS stream for publishing events to notifier for VM imageHasVulns integration<br/>
-**Default**: `notifier-notifications-1`<br />
-**Example**:
-
-```yaml
-sysdig:
-  platformService:
-    alerts:
-      nats:
-        js:
-          vm:
-            imageHasVulns:
-              notifier:
-                stream: notifier-notifications-1
-```
-
-
-## **sysdig.platformService.alerts.nats.js.vm.imageHasVulns.notifier.subject**
-
-**Required**: `false`<br />
-**Description**: NATS subject for publishing events to notifier for VM imageHasVulns integration<br/>
-**Default**: `notifier.notifications.1.vm`<br />
-**Example**:
-
-```yaml
-sysdig:
-  platformService:
-    alerts:
-      nats:
-        js:
-          vm:
-            imageHasVulns:
-              notifier:
-                subject: notifier.notifications.1.vm
-```
-
-## **sysdig.platformService.alerts.nats.js.vm.newFindings.consumer.enabled**
-
-**Required**: `false`<br />
-**Description**: Enable or disable NATS consumer for VM newFindings integration<br/>
-**Options**: `true|false`<br />
-**Default**: `true`<br />
-**Example**:
-
-```yaml
-sysdig:
-  platformService:
-    alerts:
-      nats:
-        js:
-          vm:
-            newFindings:
-              consumer:
-                enabled: true
-```
-
-## **sysdig.platformService.alerts.nats.js.vm.newFindings.consumer.name**
-
-**Required**: `false`<br />
-**Description**: Name of NATS consumer for VM newFindings integration<br/>
-**Default**: `platform-alerts-consumer`<br />
-**Example**:
-
-```yaml
-sysdig:
-  platformService:
-    alerts:
-      nats:
-        js:
-          vm:
-            newFindings:
-              consumer:
-                name: platform-alerts-consumer
-```
-
-## **sysdig.platformService.alerts.nats.js.vm.newFindings.consumer.stream**
-
-**Required**: `false`<br />
-**Description**: NATS stream name of consumer for VM newFindings integration<br/>
-**Default**: `secure-vm-notifier-integrations`<br />
-**Example**:
-
-```yaml
-sysdig:
-  platformService:
-    alerts:
-      nats:
-        js:
-          vm:
-            newFindings:
-              consumer:
-                stream: secure-vm-notifier-integrations
-```
-
-## **sysdig.platformService.alerts.nats.js.vm.newFindings.consumer.subjects**
-
-**Required**: `false`<br />
-**Description**: NATS subjects name of consumer for VM newFindings integration<br/>
-**Default**: `secure.vm.newfindings`<br />
-**Example**:
-
-```yaml
-sysdig:
-  platformService:
-    alerts:
-      nats:
-        js:
-          vm:
-            newFindings:
-              consumer:
-                subjects: secure.vm.newfindings
-```
-
-## **sysdig.platformService.alerts.nats.js.vm.newFindings.consumer.timeoutRetryMaxWait**
-
-**Required**: `false`<br />
-**Description**: Max retry wait time for consumer for VM newFindings integration<br/>
-**Default**: `10s`<br />
-**Example**:
-
-```yaml
-sysdig:
-  platformService:
-    alerts:
-      nats:
-        js:
-          vm:
-            newFindings:
-              consumer:
-                timeoutRetryMaxWait: 10s
-```
-
-## **sysdig.platformService.alerts.nats.js.vm.newFindings.notifier.enabled**
-
-**Required**: `false`<br />
-**Description**: Enable or disable NATS notifier publishing for VM newFindings integration<br/>
-**Options**: `true|false`<br />
-**Default**: `true`<br />
-**Example**:
-
-```yaml
-sysdig:
-  platformService:
-    alerts:
-      nats:
-        js:
-          vm:
-            newFindings:
-              notifier:
-                enabled: true
-```
-
-## **sysdig.platformService.alerts.nats.js.vm.newFindings.notifier.stream**
-
-**Required**: `false`<br />
-**Description**: Name of a NATS stream for publishing events to notifier for VM newFindings integration<br/>
-**Default**: `notifier-notifications-1`<br />
-**Example**:
-
-```yaml
-sysdig:
-  platformService:
-    alerts:
-      nats:
-        js:
-          vm:
-            newFindings:
-              notifier:
-                stream: notifier-notifications-1
-```
-
-## **sysdig.platformService.alerts.nats.js.vm.newFindings.notifier.subject**
-
-**Required**: `false`<br />
-**Description**: NATS subject for publishing events to notifier for VM newFindings integration<br/>
-**Default**: `notifier.notifications.1.vm`<br />
-**Example**:
-
-```yaml
-sysdig:
-  platformService:
-    alerts:
-      nats:
-        js:
-          vm:
-            newFindings:
-              notifier:
-                subject: notifier.notifications.1.vm
-```
-
-
-## **sysdig.platformService.alerts.nats.js.vm.newFindings.consumer.enabled**
-
-**Required**: `false`<br />
-**Description**: Enable or disable NATS consumer for VM newFindings integration<br/>
-**Options**: `true|false`<br />
-**Default**: `true`<br />
-**Example**:
-
-```yaml
-sysdig:
-  platformService:
-    alerts:
-      nats:
-        js:
-          vm:
-            newFindings:
-              consumer:
-                enabled: true
-```
-
-## **sysdig.platformService.alerts.nats.js.responseActions.consumer.name**
-
-**Required**: `false`<br />
-**Description**: Name of NATS consumer for responseActions integration<br/>
-**Default**: `platform-alerts-consumer`<br />
-**Example**:
-
-```yaml
-sysdig:
-  platformService:
-    alerts:
-      nats:
-        js:
-          responseActions:
-            consumer:
-              name: platform-alerts-consumer
-```
-
-## **sysdig.platformService.alerts.nats.js.responseActions.consumer.stream**
-
-**Required**: `false`<br />
-**Description**: NATS stream name of consumer for responseActions integration<br/>
-**Default**: `response-actions-executions-1`<br />
-**Example**:
-
-```yaml
-sysdig:
-  platformService:
-    alerts:
-      nats:
-        js:
-          responseActions:
-            consumer:
-              stream: response-actions-executions-1
-```
-
-## **sysdig.platformService.alerts.nats.js.responseActions.consumer.subjects**
-
-**Required**: `false`<br />
-**Description**: NATS subjects name of consumer for responseActions integration<br/>
-**Default**: `response-actions.execution.action.v1.>`<br />
-**Example**:
-
-```yaml
-sysdig:
-  platformService:
-    alerts:
-      nats:
-        js:
-          responseActions:
-            consumer:
-              subjects: response-actions.execution.action.v1.>
-```
-
-## **sysdig.platformService.alerts.nats.js.responseActions.consumer.timeoutRetryMaxWait**
-
-**Required**: `false`<br />
-**Description**: Max retry wait time for consumer for responseActions integration<br/>
-**Default**: `10s`<br />
-**Example**:
-
-```yaml
-sysdig:
-  platformService:
-    alerts:
-      nats:
-        js:
-          responseActions:
             consumer:
               timeoutRetryMaxWait: 10s
 ```
 
-```
-
-## **sysdig.platformService.alerts.nats.js.runtime.consumer.enabled**
+## **sysdig.platformService.alerts.nats.js.vm.notifier.enabled**
 
 **Required**: `false`<br />
-**Description**: Enable or disable NATS consumer for runtime integration<br/>
+**Description**: Enable or disable NATS notifier publishing for VM integration<br/>
 **Options**: `true|false`<br />
 **Default**: `false`<br />
 **Example**:
@@ -14883,106 +14593,15 @@ sysdig:
     alerts:
       nats:
         js:
-          runtime:
-            consumer:
-              enabled: false
-```
-
-## **sysdig.platformService.alerts.nats.js.runtime.consumer.name**
-
-**Required**: `false`<br />
-**Description**: Name of NATS consumer for runtime integration<br/>
-**Default**: `platform-alerts-consumer`<br />
-**Example**:
-
-```yaml
-sysdig:
-  platformService:
-    alerts:
-      nats:
-        js:
-          runtime:
-            consumer:
-              name: platform-alerts-consumer
-```
-
-## **sysdig.platformService.alerts.nats.js.runtime.consumer.stream**
-
-**Required**: `false`<br />
-**Description**: NATS stream name of consumer for runtime integration<br/>
-**Default**: `events`<br />
-**Example**:
-
-```yaml
-sysdig:
-  platformService:
-    alerts:
-      nats:
-        js:
-          runtime:
-            consumer:
-              stream: events
-```
-
-## **sysdig.platformService.alerts.nats.js.runtime.consumer.subjects**
-
-**Required**: `false`<br />
-**Description**: NATS subjects name of consumer for runtime integration<br/>
-**Default**: `events.source.events.policy.policies`<br />
-**Example**:
-
-```yaml
-sysdig:
-  platformService:
-    alerts:
-      nats:
-        js:
-          runtime:
-            consumer:
-              subjects: events.source.events.policy.policies
-```
-
-## **sysdig.platformService.alerts.nats.js.runtime.consumer.timeoutRetryMaxWait**
-
-**Required**: `false`<br />
-**Description**: Max retry wait time for consumer for runtime integration<br/>
-**Default**: `10s`<br />
-**Example**:
-
-```yaml
-sysdig:
-  platformService:
-    alerts:
-      nats:
-        js:
-          runtime:
-            consumer:
-              timeoutRetryMaxWait: 10s
-```
-
-## **sysdig.platformService.alerts.nats.js.runtime.notifier.enabled**
-
-**Required**: `false`<br />
-**Description**: Enable or disable NATS notifier publishing for runtime integration<br/>
-**Options**: `true|false`<br />
-**Default**: `false`<br />
-**Example**:
-
-```yaml
-sysdig:
-  platformService:
-    alerts:
-      nats:
-        js:
-          runtime:
+          vm:
             notifier:
               enabled: false
 ```
 
-## **sysdig.platformService.alerts.nats.js.runtime.notifier.stream**
+## **sysdig.platformService.alerts.nats.js.vm.notifier.stream**
 
 **Required**: `false`<br />
-**Description**: Name of a NATS stream for publishing events to notifier for runtime integration<br/>
+**Description**: Name of a NATS stream for publishing events to notifier for VM integration<br/>
 **Default**: `notifier-notifications-1`<br />
 **Example**:
 
@@ -14992,16 +14611,17 @@ sysdig:
     alerts:
       nats:
         js:
-          runtime:
+          vm:
             notifier:
               stream: notifier-notifications-1
 ```
 
-## **sysdig.platformService.alerts.nats.js.runtime.notifier.subject**
+
+## **sysdig.platformService.alerts.nats.js.vm.notifier.subject**
 
 **Required**: `false`<br />
-**Description**: NATS subject for publishing events to notifier for runtime integration<br/>
-**Default**: `notifier.notifications.1.runtime`<br />
+**Description**: NATS subject for publishing events to notifier for VM integration<br/>
+**Default**: `false`<br />
 **Example**:
 
 ```yaml
@@ -15010,10 +14630,11 @@ sysdig:
     alerts:
       nats:
         js:
-          runtime:
+          vm:
             notifier:
-              subject: notifier.notifications.1.runtime
+              subject: notifier.notifications.1.vm
 ```
+
 ## **sysdig.platformService.alerts.workers.notification.enabled**
 
 **Required**: `false`<br />
