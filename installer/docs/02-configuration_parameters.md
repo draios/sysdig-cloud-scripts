@@ -1466,12 +1466,12 @@ sysdig:
 **Required**: `false`<br />
 **Description**: The docker image tag of Opensearch.<br />
 **Options**:<br />
-**Default**: 0.3.6<br />
+**Default**: 0.3.12<br />
 **Example**:
 
 ```yaml
 sysdig:
-  opensearchVersion: 0.3.6
+  opensearchVersion: 0.3.12
 ```
 
 ## **sysdig.haproxyVersion**
@@ -8563,6 +8563,22 @@ It is auto-generated when not explicitly configured.<br />
 sysdig:
   admin:
     password: my-@w350m3-p@55w0rd
+```
+
+## **sysdig.admin.resetMfa**
+
+**Required**: `false`<br />
+**Description**: Whether to reset the MFA config for the Sysdig Platform super admin at startup.
+This is meant to be used if, for any reason, the MFA has been set up but the MFA device has been lost and
+no other admin user credentential is accessible. No value is interpreted as `false`.<br />
+**Options**:<br />
+**Default**:<br />
+**Example**:
+
+```yaml
+sysdig:
+  admin:
+    resetMfa: true
 ```
 
 ## **sysdig.api.enabled**

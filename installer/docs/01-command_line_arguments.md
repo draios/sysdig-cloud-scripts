@@ -78,25 +78,6 @@ actual name of the StatefulSet in the cluster differs
 
 - This flag will use the new import logic, which will import the values from the cluster and then generate the manifests based on the imported values. Defaults to `false`, which means the old import logic will be used, unless the `--use-import-v2` flag is provided. Import V2 is supported starting from version 6.6.0, and is expected to become the default in the future.
 
-## Command: `update-license`
-
-Prerequisite: `kubectl` version `1.20.0` or greater.
-
-This command performs the minimal changes and restarts to apply a new license.
-Based on [this page](https://docs.sysdig.com/en/docs/administration/on-premises-deployments/upgrade-an-on-premises-license/)
-
-This command performs the following:
-
-- Gets a new license from either `--license` or from `--license-file name.ext`
-
-- Applies the license to `common-config` and to the relevant Secret of the following backend services:
-
-  - `api`
-  - `collector`
-  - `worker`
-
-- If `secure` and `anchore` are enabled, it also applies and restarts all Anchore services.
-
 ## Command: `image-list`
 
 This command prints to `stdout` (and optionally to a file) a list of all images in a generated stack.
