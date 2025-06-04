@@ -10709,6 +10709,20 @@ sysdig:
       enabled: true
 ```
 
+**Required**: `false`<br />
+**Description**: Enables FIPS mode for Kafka cluster.<br />
+**Options**: `true|false`<br />
+**Default**: `false`<br />
+**Example**:
+
+```yaml
+sysdig:
+  kafka:
+    secure:
+      fipsmode: false
+```
+
+
 ## **sysdig.resources.kafka.requests.cpu**
 
 **Required**: `false`<br />
@@ -10979,20 +10993,6 @@ sysdig:
     enabled: true
 ```
 
-## **sysdig.beacon.platformMetricsEnabled**
-
-**Required**: `false`<br />
-**Description**: Enables IBM Platform Metrics version of beacon, the components that allow Sysdig to natively ingest Prometheus metrics via remote write.<br />
-**Options**: `true|false`<br />
-**Default**: Previously, this was called `beacon.enabled` and it defaults to that deprecated value, which defaults to `false`<br />
-**Example**:
-
-```yaml
-sysdig:
-  beacon:
-    platformMetricsEnabled: true
-```
-
 **WARNING**
 **`HostAlreadyClaimed` Error in Openshift**
 To use this feature on Openshift an overlay is required to avoid an error in Routes which will prevent the `Collector`
@@ -11049,19 +11049,6 @@ sysdig:
     token: change_me
 ```
 
-## **sysdig.promRemoteWriteVersion**
-
-**Required**: `false`<br />
-**Description**: Docker image tag of prom-remote-write, relevant when `sysdig.beacon.promEnabled` or `sysdig.beacon.platformMetricsEnabled` is `true`.<br />
-**Options**:<br />
-**Default**: [`sysdig.monitorVersion`](configuration_parameters.md#sysdigmonitorversion)<br />
-**Example**:
-
-```yaml
-sysdig:
-  promRemoteWriteVersion: 2.4.1.5032
-```
-
 ## **sysdig.promRemoteWriteBeaconReplicaCount**
 
 **Required**: `false`<br />
@@ -11082,26 +11069,6 @@ sysdig:
   promRemoteWriteBeaconReplicaCount: 5
 ```
 
-## **sysdig.promRemoteWritePlatformMetricsReplicaCount**
-
-**Required**: `false`<br />
-**Description**: Number of prom-remote-write replicas for IBM Platform Metrics.<br />
-**Options**:<br />
-**Default**: Previously, this was called `promRemoteWriteReplicaCount` and it defaults to that deprecated value.<br />
-
-| cluster-size | count |
-| ------------ | ----- |
-| small        | 1     |
-| medium       | 3     |
-| large        | 5     |
-
-**Example**:
-
-```yaml
-sysdig:
-  promRemoteWritePlatformMetricsReplicaCount: 5
-```
-
 ## **sysdig.promRemoteWriteBeacon.jvmOptions**
 
 **Required**: `false`<br />
@@ -11114,20 +11081,6 @@ sysdig:
 sysdig:
   promRemoteWriteBeacon:
     jvmOptions: -Xms4G -Xmx4G
-```
-
-## **sysdig.promRemoteWritePlatformMetrics.jvmOptions**
-
-**Required**: `false`<br />
-**Description**: The custom configuration for the IBM Platform Metrics prom-remote-write JVM. Note that the profile is actually implicit.<br />
-**Options**:<br />
-**Default**: Previously, this was called `promRemoteWrite.jvmOptions` and it defaults to that deprecated value.<br />
-**Example**:
-
-```yaml
-sysdig:
-  promRemoteWritePlatformMetrics:
-    jvmOptions: -Xms4G -Xmx4G -Dspring.profiles.active=beacon-ibm
 ```
 
 ## **sysdig.resources.promRemoteWriteBeacon.requests.cpu**
@@ -11218,106 +11171,6 @@ sysdig:
 sysdig:
   resources:
     promRemoteWriteBeacon:
-      requests:
-        memory: 2Gi
-```
-
-## **sysdig.resources.promRemoteWritePlatformMetrics.requests.cpu**
-
-**Required**: `false`<br />
-**Description**: The amount of cpu required to schedule each IBM Platform Metrics prom-remote-write pod.<br />
-**Options**:<br />
-**Default**:
-
-Previously, this was called `promRemoteWrite.requests.cpu` and it defaults to that deprecated value which has these defaults:<br />
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 1        |
-| medium       | 2        |
-| large        | 4        |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    promRemoteWritePlatformMetrics:
-      requests:
-        cpu: 2
-```
-
-## **sysdig.resources.promRemoteWritePlatformMetrics.requests.memory**
-
-**Required**: `false`<br />
-**Description**: The amount of memory required to schedule each IBM Platform Metrics prom-remote-write pod.<br />
-**Options**:<br />
-**Default**:
-
-Previously, this was called `promRemoteWrite.requests.memory` and it defaults to that deprecated value which has these defaults:<br />
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 3Gi      |
-| medium       | 8Gi      |
-| large        | 12Gi     |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    promRemoteWritePlatformMetrics:
-      requests:
-        memory: 2Gi
-```
-
-## **sysdig.resources.promRemoteWritePlatformMetrics.limits.cpu**
-
-**Required**: `false`<br />
-**Description**: The max amount of cpu assigned to each IBM Platform Metrics prom-remote-write pod.<br />
-**Options**:<br />
-**Default**:
-
-Previously, this was called `promRemoteWrite.limits.cpu` and it defaults to that deprecated value which has these defaults:<br />
-
-| cluster-size | limits |
-| ------------ | ------ |
-| small        | 2      |
-| medium       | 4      |
-| large        | 8      |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    promRemoteWritePlatformMetrics:
-      limits:
-        cpu: 2
-```
-
-## **sysdig.resources.promRemoteWritePlatformMetrics.limits.memory**
-
-**Required**: `false`<br />
-**Description**: The max amount of memory assigned to each IBM Platform Metrics prom-remote-write pod.<br />
-**Options**:<br />
-**Default**:
-
-Previously, this was called `promRemoteWrite.limits.memory` and it defaults to that deprecated value which has these defaults:<br />
-
-| cluster-size | limits |
-| ------------ | ------ |
-| small        | 8Gi    |
-| medium       | 16Gi   |
-| large        | 24Gi   |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    promRemoteWritePlatformMetrics:
       requests:
         memory: 2Gi
 ```
