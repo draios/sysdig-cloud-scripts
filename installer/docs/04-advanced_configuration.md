@@ -14,7 +14,7 @@
 
 ## Use hostPath for Static Storage of Sysdig Components
 
-As described in the Installation Storage Requirements, the Installer assumes usage of a dynamic storage provider (AWS or GKE). In case these are not used in your environment, add the entries below to the values.yaml to configure static storage.
+As described in the Installation Storage Requirements, the Installer assumes usage of a dynamic storage provider (AWS or GKE). If these are not used in your environment, add the entries below to the values.yaml to configure static storage.
 
 Based on the `size` found in the `values.yaml` file (small/medium/large), the Installer assumes a minimum number of replicas and nodes to be provided. You will enter the names of the nodes on which you will run the Cassandra, ElasticSearch and Postgres components of Sysdig in the values.yaml, as in the parameters and example below.
 
@@ -111,8 +111,7 @@ docker run  \
 EKS=true bash sysdig_installer.tar.gz
 ```
 
-The above ensures the `~/.aws` directory is correctly mounted for the airgap
-installer container.
+The above ensures the `~/.aws` directory is correctly mounted for the airgap installer container.
 
 ### Exposing the Sysdig endpoint
 
@@ -128,9 +127,9 @@ In route53 create an A record with the dns name pointing to external ip/endpoint
 
 Make sure that subnets have internet gateway configured and has enough ips.
 
-## Airgapped installations
+## airgapped Installations
 
-### Updating the feeds database in airgapped environments [ScanningV2]
+### Updating the Feeds Database in airgapped environments [ScanningV2]
 
 In non-airgap onprem environments, the vulnerabilities feeds is automatically retrieved by the Sysdig stack from a Sysdig SaaS endpoint.
 In an airgap onprem environment, the customer must retrieve the feed as a Docker image from a workstation with Internet access and then load the image onto their own private registry.
@@ -183,14 +182,95 @@ The above script could be scheduled using a Linux cronjob that runs every day. E
 ```bash
 0 8 * * * airgap-vuln-feeds-image-update.sh > /somedir/sysdig-airgapvulnfeed.log 2>&1
 ```
+### Updating the Feeds Database in airgapped environments using an internal registry as reverse proxy [ScanningV2]
 
-### Updating the feeds database in airgapped environments [Legacy Scanning]
+#### Prerequisites
+- Internal registry that acts as "reverse proxy/proxy cache" for quay.io (Ex: Nexus, Harbor)
+
+- Kubernetes access to the on-premise cluster where Sysdig On-Premise backend is running with the ability to create Cronjobs, Roles and RoleBindings
+
+#### Steps
+Create a kubernetes manifest file (for example: `feed-cronjob.yaml`) inside the file paste the following content:
+
+```
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: sysdig-feed
+  namespace: [SYSDIG-ONPREM-NAMESPACE]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: sysdig-feed-role
+  namespace: [SYSDIG-ONPREM-NAMESPACE]
+rules:
+- apiGroups:
+  - "apps"
+  resources:
+  - deployments
+  verbs:
+  - get
+  - patch
+  - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: sysdig-feed-rolebinding
+  namespace: [SYSDIG-ONPREM-NAMESPACE]
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: sysdig-feed-role
+subjects:
+- kind: ServiceAccount
+  name: sysdig-feed
+  namespace: [SYSDIG-ONPREM-NAMESPACE]
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: sysdig-airgapfeed-image-changer
+  namespace: [SYSDIG-ONPREM-NAMESPACE]
+spec:
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    metadata:
+      name: sysdig-airgapfeed-image-changer
+    spec:
+      template:
+        spec:
+          containers:
+          - image: bitnami/kubectl
+            name: airgap-feed
+            command:
+            - /bin/sh
+            - -c
+            - epoch=`date +%s`; IMAGE_TAG=$(( $epoch - 86400 - $epoch % 86400)); kubectl set image deploy/sysdigcloud-scanningv2-airgap-vuln-feeds airgap-vuln-feeds=[INTERNAL-REGISTRY-ADDRESS]/sysdig/airgap-vuln-feeds:${IMAGE_TAG}
+            resources: {}
+          serviceAccountName: sysdig-feed
+          restartPolicy: OnFailure
+  schedule: 0 2 * * *
+```
+The manifest above creates:
+
+- A serviceAccount called sysdig-feed
+- A role called sysdig-feed-role with the following permissions over deployments: get, list, patch.
+- A role Binding called sysdig-feed-rolebinding that associates both the ServiceAccount and Role
+- Cronjob that runs on daily basis at 2:00AM that calculates the image tag epoch and applies it to sysdigcloud-scanningv2-airgap-vuln-feeds deployment.
+
+*NOTE:* It is required to change [SYSDIG-ONPREM-NAMESPACE] with the namespace where Sysdig on-premise backend is running (usually `sysdig` or `sysdigcloud`) and [INTERNAL-REGISTRY-ADDRESS] with the address of the Registry. 
+
+The cronjob uses `bitnami/kubectl` container image from `docker.io`. This is just an example image containing kubectl binary. You can create your own container image (that must contain kubectl binary) and use it.
+
+### Updating the Feeds Database in airgapped Environments [Legacy Scanning]
 
 This is a procedure that can be used to automatically update the feeds database:
 
 1. download the image file quay.io/sysdig/vuln-feed-database-12:latest from Sysdig registry to the jumpbox server and save it locally
-2. move the file from the jumpbox server to the customer airgapped environment (optional)
-3. load the image file and push it to the customer's airgapped image registry
+2. (Optional) Move the file from the jumpbox server to your airgapped environment.
+3. Load the image file and push it to your airgapped image registry.
 4. restart the pod sysdigcloud-feeds-db
 5. restart the pod feeds-api
 
