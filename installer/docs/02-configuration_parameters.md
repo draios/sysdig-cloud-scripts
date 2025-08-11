@@ -20,6 +20,63 @@ global:
   graphServicesEnabled: true
 ```
 
+## **global.ingressServiceExternalTrafficPolicy**
+
+**Required**: `false`<br />
+**Description**: if [`sysdig.ingressNetworking`](#sysdigingressnetworking) is defined as `loadbalancer` or `nodeport`, this defines the `externalTrafficPolicy` of the associated service. This can be useful to preserve the ip address of the requests, if defined as `Local`.<br />
+**Options**: `Local`, `Cluster`<br />
+**Default**: null, that is interpreted as `Cluster`<br />
+**Example**:
+
+```yaml
+global:
+  ingressServiceExternalTrafficPolicy: Local
+```
+
+## **global.forwardedFor.headerName**
+
+**Required**: `false`<br />
+**Description**: this is used to define the header where the client ip address is retrieved in the ip allowlist feature.<br />
+**Options**: <br />
+**Default**: null, that is interpreted as `X-Forwarded-For`<br />
+**Example**:
+
+```yaml
+global:
+  forwardedFor:
+    headerName: X-Real-Ip
+```
+
+## **global.forwardedFor.ipAddressPositionInHeaderFromEnd**
+
+**Required**: `false`<br />
+**Description**: this is used to define the real client ip address of the request in the ip allowlist feature, by selecting the zero based Nth ip address from the end in the list retrieved in the `global.forwardedFor.headerName` header. For example, if `global.forwardedFor.headerName` is `X-Forwarded-For` and the value is `1.2.3.4, 5.6.7.8`, if `global.forwardedFor.ipAddressPositionInHeaderFromEnd` is set to 0, the ip `5.6.7.8` will be considered the real ip address of the client.<br />
+**Options**: <br />
+**Default**: null, that is interpreted as 0<br />
+**Example**:
+
+```yaml
+global:
+  forwardedFor:
+    ipAddressPositionInHeaderFromEnd: 2
+```
+
+## **global.haproxy.forwardfor**
+
+**Required**: `false`<br />
+**Description**: in case haproxy ingress is deployed, this regulates how the `X-Forwarded-For` is handled. <br />
+**Options**:
+  * `add`: haproxy should generate a `X-Forwarded-For` header with the source IP address.
+  * `update`: haproxy should preserve any `X-Forwarded-For` header, if provided, updating with the source IP address, which should be a fronting TCP or HTTP proxy/load balancer. This can be useful if the ingress is behing a L7 load balancer. When using the ip allowlist feature, combine this with an appropriate value for `global.forwardFor.ipAddressPositionInHeaderFromEnd`<br />
+**Default**: null, that is interpreted as `add`<br />
+**Example**:
+
+```yaml
+global:
+  haproxy:
+    forwardfor: add
+```
+
 ## **quaypullsecret**
 
 **Required**: `true`<br />
@@ -2444,30 +2501,6 @@ sysdig:
       db: reporting_db
       username: reporting_user
       password: my_reporting_user_password
-      sslmode: disable
-      admindb: root_db
-      adminusername: root_user
-      adminpassword: my_root_user_password
-```
-
-## **sysdig.postgresDatabases.padvisor**
-
-**Required**: `false`<br />
-**Description**: A map containing database connection details for external postgresql instance used as `padvisor` database. To use in conjunction with `sysdig.postgresql.external`. Only relevant if `sysdig.postgresql.primary` is configured.<br />
-**Example**:
-
-```yaml
-sysdig:
-  postgresql:
-    primary: true
-    external: true
-  postgresDatabases:
-    padvisor:
-      host: my-padvisor-db-external.com
-      port: 5432
-      db: padvisor_db
-      username: padvisor_user
-      password: my_padvisor_user_password
       sslmode: disable
       admindb: root_db
       adminusername: root_user
@@ -5289,7 +5322,7 @@ sysdig:
         memory: 200Mi
 ```
 
-## **sysdig.secure.scanning.retentionMgr.cronjob**
+## **scanningv1.retentionMgr.cronjob**
 
 **Required**: `false`<br />
 **Description**: Retention manager Cronjob<br />
@@ -5305,7 +5338,7 @@ sysdig:
         cronjob: 0 3 * * *
 ```
 
-## **sysdig.secure.scanning.retentionMgr.retentionPolicyMaxExecutionDuration**
+## **scanningv1.retentionMgr.retentionPolicyMaxExecutionDuration**
 
 **Required**: `false`<br />
 **Description**: Max execution duration for the retention policy<br />
@@ -5321,7 +5354,7 @@ sysdig:
         retentionPolicyMaxExecutionDuration: 23h
 ```
 
-## **sysdig.secure.scanning.retentionMgr.retentionPolicyGracePeriodDuration**
+## **scanningv1.retentionMgr.retentionPolicyGracePeriodDuration**
 
 **Required**: `false`<br />
 **Description**: Grace period for the retention policy<br />
@@ -5337,7 +5370,7 @@ sysdig:
         retentionPolicyGracePeriodDuration: 168h
 ```
 
-## **sysdig.secure.scanning.retentionMgr.retentionPolicyArtificialDelayAfterDelete**
+## **scanningv1.retentionMgr.retentionPolicyArtificialDelayAfterDelete**
 
 **Required**: `false`<br />
 **Description**: Artifical delay after each image deletion<br />
@@ -5353,7 +5386,7 @@ sysdig:
         retentionPolicyArtificialDelayAfterDelete: 1s
 ```
 
-## **sysdig.secure.scanning.retentionMgr.scanningGRPCEndpoint**
+## **scanningv1.retentionMgr.scanningGRPCEndpoint**
 
 **Required**: `false`<br />
 **Description**: Scanning GRPC endpoint<br />
@@ -5369,7 +5402,7 @@ sysdig:
         scanningGRPCEndpoint: sysdigcloud-scanning-api:6000
 ```
 
-## **sysdig.secure.scanning.retentionMgr.scanningDBEngine**
+## **scanningv1.retentionMgr.scanningDBEngine**
 
 **Required**: `false`<br />
 **Description**: Scanning DB engine<br />
@@ -5385,7 +5418,7 @@ sysdig:
         scanningDBEngine: postgres
 ```
 
-## **sysdig.secure.scanning.retentionMgr.defaultValues.datePolicy**
+## **scanningv1.retentionMgr.defaultValues.datePolicy**
 
 **Required**: `false`<br />
 **Description**: Default value for the date policy<br />
@@ -5402,7 +5435,7 @@ sysdig:
           datePolicy: 90
 ```
 
-## **sysdig.secure.scanning.retentionMgr.defaultValues.tagsPolicy**
+## **scanningv1.retentionMgr.defaultValues.tagsPolicy**
 
 **Required**: `false`<br />
 **Description**: Default value for the tags policy<br />
@@ -5419,7 +5452,7 @@ sysdig:
           tagsPolicy: 5
 ```
 
-## **sysdig.secure.scanning.retentionMgr.defaultValues.digestsPolicy**
+## **scanningv1.retentionMgr.defaultValues.digestsPolicy**
 
 **Required**: `false`<br />
 **Description**: Default value for the digests policy<br />
@@ -5436,7 +5469,7 @@ sysdig:
           digestsPolicy: 5
 ```
 
-## **sysdig.secure.scanning.retentionMgr.defaultValues.deleteSpuriousImages**
+## **scanningv1.retentionMgr.defaultValues.deleteSpuriousImages**
 
 **Required**: `false`<br />
 **Description**: Flag to enable/disable the deletion of spurious images<br />
@@ -5913,7 +5946,7 @@ sysdig:
         memory: 10Gi
 ```
 
-## **sysdig.secure.scanning.reporting.debug**
+## **scanningv1.reporting.debug**
 
 **Required**: `false`<br />
 **Description**: Enable logging at debug level<br />
@@ -5929,7 +5962,7 @@ sysdig:
         debug: false
 ```
 
-## **sysdig.secure.scanning.reporting.apiGRPCEndpoint**
+## **scanningv1.reporting.apiGRPCEndpoint**
 
 **Required**: `false`<br />
 **Description**: Reporting GRPC endpoint<br />
@@ -5945,7 +5978,7 @@ sysdig:
         apiGRPCEndpoint: sysdigcloud-scanning-reporting-api-grpc:6000
 ```
 
-## **sysdig.secure.scanning.reporting.scanningGRPCEndpoint**
+## **scanningv1.reporting.scanningGRPCEndpoint**
 
 **Required**: `false`<br />
 **Description**: Scanning GRPC endpoint<br />
@@ -5961,7 +5994,7 @@ sysdig:
         scanningGRPCEndpoint: sysdigcloud-scanning-api:6000
 ```
 
-## **sysdig.secure.scanning.reporting.storageDriver**
+## **scanningv1.reporting.storageDriver**
 
 **Required**: `false`<br />
 **Description**: Storage kind for generated reports<br />
@@ -5977,7 +6010,7 @@ sysdig:
         storageDriver: postgres
 ```
 
-## **sysdig.secure.scanning.reporting.storageCompression**
+## **scanningv1.reporting.storageCompression**
 
 **Required**: `false`<br />
 **Description**: Compression format for generated reports<br />
@@ -5993,7 +6026,7 @@ sysdig:
         storageCompression: zip
 ```
 
-## **sysdig.secure.scanning.reporting.storageFsDir**
+## **scanningv1.reporting.storageFsDir**
 
 **Required**: `false`<br />
 **Description**: The directory where reports will saved (required when using `fs` driver)<br />
@@ -6009,7 +6042,7 @@ sysdig:
         storageFsDir: /reports
 ```
 
-## **sysdig.secure.scanning.reporting.storagePostgresRetentionDays**
+## **scanningv1.reporting.storagePostgresRetentionDays**
 
 **Required**: `false`<br />
 **Description**: The number of days the generated reports will be kept for download (available when using `postgres` driver)<br />
@@ -6025,7 +6058,7 @@ sysdig:
         storagePostgresRetentionDays: 1
 ```
 
-## **sysdig.secure.scanning.reporting.storageS3Bucket**
+## **scanningv1.reporting.storageS3Bucket**
 
 **Required**: `false`<br />
 **Description**: The bucket name where reports will be saved (required when using `s3` driver)<br />
@@ -6041,7 +6074,7 @@ sysdig:
         storageS3Bucket: secure-scanning-reporting
 ```
 
-## **sysdig.secure.scanning.reporting.storageS3Prefix**
+## **scanningv1.reporting.storageS3Prefix**
 
 **Required**: `false`<br />
 **Description**: The object name prefix (directory) used when saving reports in a S3 bucket<br />
@@ -6057,7 +6090,7 @@ sysdig:
         storageS3Prefix: reports
 ```
 
-## **sysdig.secure.scanning.reporting.storageS3Endpoint**
+## **scanningv1.reporting.storageS3Endpoint**
 
 **Required**: `false`<br />
 **Description**: The service endpoint of a S3-compatible storage (required when using `s3` driver in a non-AWS deployment)<br />
@@ -6073,7 +6106,7 @@ sysdig:
         storageS3Endpoint: s3.example.com
 ```
 
-## **sysdig.secure.scanning.reporting.storageS3Region**
+## **scanningv1.reporting.storageS3Region**
 
 **Required**: `false`<br />
 **Description**: The AWS region where the S3 bucket is created (required when using `s3` driver in a AWS deployment)<br />
@@ -6089,7 +6122,7 @@ sysdig:
         storageS3Region: us-east-1
 ```
 
-## **sysdig.secure.scanning.reporting.storageS3AccessKeyID**
+## **scanningv1.reporting.storageS3AccessKeyID**
 
 **Required**: `false`<br />
 **Description**: The Access Key ID used to authenticate with a S3-compatible storage (required when using `s3` driver in a non-AWS deployment)<br />
@@ -6105,7 +6138,7 @@ sysdig:
         storageS3AccessKeyID: AKIAIOSFODNN7EXAMPLE
 ```
 
-## **sysdig.secure.scanning.reporting.storageS3SecretAccessKey**
+## **scanningv1.reporting.storageS3SecretAccessKey**
 
 **Required**: `false`<br />
 **Description**: The Secret Access Key used to authenticate with a S3-compatible storage (required when using `s3` driver in a non-AWS deployment)<br />
@@ -6121,7 +6154,7 @@ sysdig:
         storageS3SecretAccessKey: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
 ```
 
-## **sysdig.secure.scanning.reporting.onDemandGenerationEnabled**
+## **scanningv1.reporting.onDemandGenerationEnabled**
 
 **Required**: `true`<br />
 **Description**: The flag to enable on-demand generation of reports globally<br />
@@ -6137,7 +6170,7 @@ sysdig:
         onDemandGenerationEnabled: true
 ```
 
-## **sysdig.secure.scanning.reporting.onDemandGenerationCustomers**
+## **scanningv1.reporting.onDemandGenerationCustomers**
 
 **Required**: `false`<br />
 **Description**: The list of customers where on-demand generation of reports has to be enabled, if on-demand generation wasn't enabled globally<br />
@@ -6153,7 +6186,7 @@ sysdig:
         onDemandGenerationCustomers: "1,12,123"
 ```
 
-## **sysdig.secure.scanning.reporting.workerSleepTime**
+## **scanningv1.reporting.workerSleepTime**
 
 **Required**: `false`<br />
 **Description**: The sleep interval between two runs of the reporting worker<br />
@@ -7251,98 +7284,6 @@ sysdig:
     profiling-worker:
       requests:
         memory: 50Mi
-```
-
-## **sysdig.resources.secure-prometheus.limits.cpu**
-
-**Required**: `false`<br />
-**Description**: The amount of cpu assigned to secure-prometheus containers<br />
-**Options**:<br />
-**Default**:
-
-| cluster-size | limits |
-| ------------ | ------ |
-| small        | 2      |
-| medium       | 2      |
-| large        | 2      |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    secure-prometheus:
-      limits:
-        cpu: 2
-```
-
-## **sysdig.resources.secure-prometheus.limits.memory**
-
-**Required**: `false`<br />
-**Description**: The amount of memory assigned to secure-prometheus containers<br />
-**Options**:<br />
-**Default**:
-
-| cluster-size | limits |
-| ------------ | ------ |
-| small        | 8Gi    |
-| medium       | 8Gi    |
-| large        | 8Gi    |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    secure-prometheus:
-      limits:
-        memory: 8Gi
-```
-
-## **sysdig.resources.secure-prometheus.requests.cpu**
-
-**Required**: `false`<br />
-**Description**: The amount of cpu required to schedule secure-prometheus containers<br />
-**Options**:<br />
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 500m     |
-| medium       | 500m     |
-| large        | 500m     |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    secure-prometheus:
-      requests:
-        cpu: 500m
-```
-
-## **sysdig.resources.secure-prometheus.requests.memory**
-
-**Required**: `false`<br />
-**Description**: The amount of memory required to schedule secure-prometheus containers<br />
-**Options**:<br />
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 2Gi      |
-| medium       | 2Gi      |
-| large        | 2Gi      |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    secure-prometheus:
-      requests:
-        memory: 2Gi
 ```
 
 ## **sysdig.resources.events-api.limits.cpu**
@@ -8610,6 +8551,34 @@ sysdig:
       -XX:-UseContainerSupport -Ddraios.metrics-push.query.enabled=true
 ```
 
+## **api.ipAllowlistFilter.enabled**
+
+**Required**: `false`<br />
+**Description**: Wether to enable the ip allowlist filter feature.<br />
+**Options**:<br />
+**Default**: `false`<br />
+**Example**:
+
+```yaml
+api:
+  ipAllowlistFilter:
+    enabled: true
+```
+
+## **api.ipAllowlistFilter.noEnforce**
+
+**Required**: `false`<br />
+**Description**: If the ip allowlist feature is enabled, this flag can be used to temporary disable the enforcement of the allow list. This is useful in case a wrong allow list is added by mistake: the user can gain access back to the UI and change the misconfiguration.<br />
+**Options**:<br />
+**Default**: `false`<br />
+**Example**:
+
+```yaml
+api:
+  ipAllowlistFilter:
+    noEnforce: true
+```
+
 ## **sysdig.certificate.generate**
 
 **Required**: `false`<br />
@@ -8802,7 +8771,7 @@ sysdig:
       enabledIntegrations: "MCM,QRADAR"
 ```
 
-## **sysdig.secure.scanning.admissionControllerAPI.maxDurationBeforeDisconnection**
+## **scanningv1.admissionControllerAPI.maxDurationBeforeDisconnection**
 
 **Required**: `false`<br />
 **Description**: Max duration after the last ping from an AC before it is considered
@@ -8819,7 +8788,7 @@ sysdig:
         maxDurationBeforeDisconnection: 20m
 ```
 
-## **sysdig.secure.scanning.admissionControllerAPI.confTTLDuration**
+## **scanningv1.admissionControllerAPI.confTTLDuration**
 
 **Required**: `false`<br />
 **Description**: TTL of the cache for the cluster configuration. It should be
@@ -8837,7 +8806,7 @@ sysdig:
         confTTLDuration: 10m
 ```
 
-## **sysdig.secure.scanning.admissionControllerAPI.pingTTLDuration**
+## **scanningv1.admissionControllerAPI.pingTTLDuration**
 
 **Required**: `false`<br />
 **Description**: TTL of an AC ping. It should be used by the AC as polling
@@ -8856,7 +8825,7 @@ sysdig:
         pingTTLDuration: 8m
 ```
 
-## **sysdig.secure.scanning.admissionControllerAPI.clusterConfCacheMaxDuration**
+## **scanningv1.admissionControllerAPI.clusterConfCacheMaxDuration**
 
 **Required**: `false`<br />
 **Description**: Max duration of the cluster configuration cache. The API returns
@@ -8901,7 +8870,7 @@ sysdig:
   scanningAlertMgrForceAutoScan: false
 ```
 
-## **sysdig.secure.scanning.veJanitor.cronjob**
+## **scanningv1.veJanitor.cronjob**
 
 **Required**: `false`<br />
 **Description**: Cronjob schedule<br />
@@ -8916,7 +8885,7 @@ sysdig:
       cronjob: "5 0 * * *"
 ```
 
-## **sysdig.secure.scanning.veJanitor.anchoreDBsslmode**
+## **scanningv1.veJanitor.anchoreDBsslmode**
 
 **Required**: `false`<br />
 **Description**: Anchore db ssl mode. More info: <https://www.postgresql.org/docs/9.1/libpq-ssl.html><br />
@@ -8931,7 +8900,7 @@ sysdig:
       anchoreDBsslmode: "disable"
 ```
 
-## **sysdig.secure.scanning.veJanitor.scanningDbEngine**
+## **scanningv1.veJanitor.scanningDbEngine**
 
 **Required**: `false`<br />
 **Description**: which scanning database engine to use. <br />
@@ -9510,21 +9479,6 @@ sysdig:
       enabled: true
 ```
 
-## **sysdig.secure.padvisor.enabled**
-
-**Required**: `false`<br />
-**Description**: Enable policy advisor for Sysdig Secure.<br />
-**Options**:<br />
-**Default**: true<br />
-**Example**:
-
-```yaml
-sysdig:
-  secure:
-    padvisor:
-      enabled: false
-```
-
 ## **sysdig.secure.profiling.enabled**
 
 **Required**: `false`<br />
@@ -9540,7 +9494,7 @@ sysdig:
       enabled: true
 ```
 
-## **sysdig.secure.scanning.reporting.enabled**
+## **scanningv1.reporting.enabled**
 
 **Required**: `false`<br />
 **Description**: Enable reporting for Sysdig Secure.<br />
@@ -9556,10 +9510,10 @@ sysdig:
         enabled: true
 ```
 
-## **sysdig.secure.scanning.enabled**
+## **scanningv1.enabled**
 
 **Required**: `false`<br />
-**Description**: Enable scanning for Sysdig Secure.<br />
+**Description**: Enable scanningV1 for Sysdig Secure.<br />
 **Options**:<br />
 **Default**: true<br />
 **Example**:
@@ -9788,7 +9742,7 @@ sysdig:
       sessionIdleSecondsTTL: 300
 ```
 
-## **sysdig.secure.scanning.feedsEnabled**
+## **scanningv1.feedsEnabled**
 
 **Required**: `false`<br />
 **Description**: Deploys a local Sysdig Secure feeds API and DB for airgapped installs that cannot reach out to one of Sysdig SaaS products<br />
@@ -11227,102 +11181,6 @@ sysdig:
 | small        | 1     |
 | medium       | 3     |
 | large        | 5     |
-
-## **sysdig.resources.prometheus.redis.requests.cpu**
-
-**Required**: `false`<br />
-**Description**: The amount of cpu required to schedule Prometheus Redis pod<br />
-**Options**:<br />
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 1        |
-| medium       | 2        |
-| large        | 3        |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    prometheus:
-      redis:
-        requests:
-          cpu: 2
-```
-
-## **sysdig.resources.prometheus.redis.limits.cpu**
-
-**Required**: `false`<br />
-**Description**: The max amount of cpu assigned to Prometheus Redis pod<br />
-**Options**:<br />
-**Default**:
-
-| cluster-size | limits |
-| ------------ | ------ |
-| small        | 1      |
-| medium       | 2      |
-| large        | 3      |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    prometheus:
-      redis:
-        limits:
-          cpu: 2
-```
-
-## **sysdig.resources.prometheus.redis.requests.memory**
-
-**Required**: `false`<br />
-**Description**: The amount of memory required to schedule Prometheus Redis pod<br />
-**Options**:<br />
-**Default**:
-
-| cluster-size | requests |
-| ------------ | -------- |
-| small        | 600Mi    |
-| medium       | 1.2Gi    |
-| large        | 2.2Gi    |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    prometheus:
-      redis:
-        requests:
-          memory: 1.2Gi
-```
-
-## **sysdig.resources.prometheus.redis.limits.memory**
-
-**Required**: `false`<br />
-**Description**: The max amount of memory assigned to Prometheus Redis pod<br />
-**Options**:<br />
-**Default**:
-
-| cluster-size | limits |
-| ------------ | ------ |
-| small        | 800Mi  |
-| medium       | 1.5Gi  |
-| large        | 2.5Gi  |
-
-**Example**:
-
-```yaml
-sysdig:
-  resources:
-    prometheus:
-      redis:
-        requests:
-          memory: 1.5Gi
-```
 
 ## **sysdig.prometheus.redis.maxmemory**
 
