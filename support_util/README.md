@@ -32,7 +32,7 @@ The script uses `kubectl` or `oc` standard commands, like `get pod`, `get deploy
 Environments used for the test are Kubernetes v1.28 and greater and OpenShift v4.12 and greater.
 
 # Note for airgapped environment or enviroment with limited access to Internet
-The script execute a curl on a S3 url provided by Sysdig support, if your env is airgapped or with limited access to Internet, you can just hit `Control+c` when the script ask for such S3 url, and share the archive as attachment of the case.
+If your env is airgapped or with limited access to Internet, please follow the instructions provided by the script.
 
 # Usage
 
