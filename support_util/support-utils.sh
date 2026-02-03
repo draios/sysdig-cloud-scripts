@@ -125,7 +125,6 @@ if [[ -z $SYSDIG_DS_NAME ]] && [[ -z $SYSDIG_DEPLOY_NAME ]]; then
   exit $ERR_RC_NOTHING_FOUND
 fi
 
-
 #split the app name and the image name
 while IFS=$'\t' read -r APP_NAME IMAGE_NAME; do
     if [[ "$IMAGE_NAME" =~ $SYSDIG_AGENT_IMAGE_NAME ]]; then
