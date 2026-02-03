@@ -21,6 +21,7 @@ function initVar()
     local MESSAGE="$1"
     echo "$(date '+%Y-%m-%d %H:%M:%S') | $MESSAGE" >> "${ACTIVITY_LOG}"
   }
+  
   echo "Sysdig Support Script Activity Log - $(date)" > "${ACTIVITY_LOG}"
   log_activity "Initialized activity log and created/confirmed output folder."
 
