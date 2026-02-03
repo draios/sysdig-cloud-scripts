@@ -184,7 +184,6 @@ printf "Please put y if your environment has restrictions on internet access or 
 read answer
 log_activity "Selected $answer as response for internet restrictions"
 clear
-
 }
 
 function collectArtifacts()
