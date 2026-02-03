@@ -138,7 +138,6 @@ while IFS=$'\t' read -r APP_NAME IMAGE_NAME; do
 done <<< "${SYSDIG_DS_NAME}"
 
 
-
 while IFS=$'\t' read -r APP_NAME IMAGE_NAME; do
     if [[ "$IMAGE_NAME" =~ $SYSDIG_CS_IMAGE_NAME ]]; then
         SYSDIG_CS_APP_NAME=$APP_NAME
