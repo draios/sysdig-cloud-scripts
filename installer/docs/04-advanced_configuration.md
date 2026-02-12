@@ -1,9 +1,3 @@
-<!-- Space: IONP -->
-<!-- Parent: Installer -->
-<!-- Parent: Git Synced Docs -->
-<!-- Title: Advanced Configuration -->
-<!-- Layout: plain -->
-
 # Advanced Configuration
 
 <br />
@@ -20,15 +14,51 @@ Based on the `size` found in the `values.yaml` file (small/medium/large), the In
 
 ### Parameters
 
+### Old schema for `values.yaml` - for versions < `7.4.0`
+
 - `storageClassProvisioner`: hostPath.
 - `sysdig.cassandra.hostPathNodes`: The number of nodes configured here needs to be at minimum 1 when configured `size` is `small`, 3 when configured `size` is `medium` and 6 when configured `size` is large.
 - `elasticsearch.hostPathNodes`: The number of nodes configured here needs to be be at minimum 1 when configured `size` is `small`, 3 when configured `size` is `medium` and 6 when configured `size` is large.
 - `sysdig.mysql.hostPathNodes`: When sysdig.mysqlHa is configured to true this has to be at least 3 nodes and when sysdig.mysqlHa is not configured it should be at least one node.
 - `sysdig.postgresql.hostPathNodes`: This can be ignored if Sysdig Secure is not licensed or used on this environment. If Secure is used, then the parameter should be set to 1, regardless of the environment size setting.
+- `sysdig.redis.hostPathNodes`: The number of nodes configured here needs to be exactly 1 regardless of the environment size setting.
 - `.hostPathCustomPaths`: customize the location of the directory structure on the Kubernetes node
 - `.pvStorageSize.<small|medium|large>.<datastoreservice>`: customize the size of Volumes (check in the [configuration parameters list](/docs/02-configuration_parameters.md))
 
-### Example
+### New schema for versions >= `7.4.0`
+
+```yaml
+.global.storageClassProvisioner: hostPath
+.sysdigCommonConfig.hostPathConfigs.hostPathCustomPaths.cassandra.hostPathNodes: []
+.sysdigCommonConfig.hostPathConfigs.hostPathCustomPaths.postgresql.hostPathNodes: []
+.sysdigCommonConfig.hostPathConfigs.hostPathCustomPaths.kafka.hostPathNodes: []
+.sysdigCommonConfig.hostPathConfigs.hostPathCustomPaths.redis.hostPathNodes: []
+.sysdigCommonConfig.hostPathConfigs.hostPathCustomPaths.nats.hostPathNodes: []
+.sysdigCommonConfig.hostPathConfigs.hostPathCustomPaths.neo4j.hostPathNodes: []
+.sysdigCommonConfig.hostPathConfigs.hostPathNodesMapping.elasticsearch.hostPathNodes: []
+.sysdigCommonConfig.hostPathConfigs.hostPathNodesMapping.elasticsearch.hostPathMasterNodes: []
+.sysdigCommonConfig.hostPathConfigs.hostPathCustomPaths.cassandra: ""
+.sysdigCommonConfig.hostPathConfigs.hostPathCustomPaths.elasticsearch: ""
+.sysdigCommonConfig.hostPathConfigs.hostPathCustomPaths.kafka: ""
+.sysdigCommonConfig.hostPathConfigs.hostPathCustomPaths.zookeeper: ""
+.sysdigCommonConfig.hostPathConfigs.hostPathCustomPaths.postgresql: ""
+.sysdigCommonConfig.hostPathConfigs.hostPathCustomPaths.redis: ""
+.sysdigCommonConfig.hostPathConfigs.hostPathCustomPaths.natsJs: ""
+.sysdigCommonConfig.hostPathConfigs.hostPathCustomPaths.neo4j: ""
+.sysdigCommonConfig.pvStorageSize.cassandra:
+.sysdigCommonConfig.pvStorageSize.elasticsearch:
+.sysdigCommonConfig.pvStorageSize.postgresql:
+.sysdigCommonConfig.pvStorageSize.kafka:
+.sysdigCommonConfig.pvStorageSize.zookeeper:
+.sysdigCommonConfig.pvStorageSize.natsJs:
+.sysdigCommonConfig.pvStorageSize.neo4j:
+.sysdigCommonConfig.pvStorageSize.cassandra:
+.sysdigCommonConfig.pvStorageSize.redis:
+```
+
+### Example (Legacy Schema - versions < `7.4.0`)
+
+This example shows the legacy values.yaml structure, which is still supported for backward compatibility:
 
 ```yaml
 storageClassProvisioner: hostPath
@@ -62,6 +92,9 @@ sysdig:
       - i-0082bddac2e013639
       - i-05eb2d9719cc2dafa
       - i-082b0341a1bb2f2be
+  redis:
+    hostPathNodes:
+      - my-cool-host1.com
 pvStorageSize:
   medium:
     cassandra: 600Gi
@@ -71,7 +104,84 @@ hostPathCustomPaths:
   cassandra: /sysdig/cassandra
   elasticsearch: /sysdig/elasticsearch
   mysql: /sysdig/mysql
-  postgresql: /sysdig/postgresql    
+  postgresql: /sysdig/postgresql
+```
+
+### Example (New Schema - versions >= `7.4.0`)
+
+```yaml
+global:
+  storageClassProvisioner: hostPath
+
+sysdigCommonConfig:
+  hostPathConfigs:
+    # Centralized node mapping for all datastores
+    hostPathNodesMapping:
+      elasticsearch:
+        hostPathNodes:
+          - my-cool-host1.com
+          - my-cool-host2.com
+          - my-cool-host3.com
+          - my-cool-host4.com
+          - my-cool-host5.com
+          - my-cool-host6.com
+        hostPathMasterNodes:  # Optional: only if using dedicated Elasticsearch masters
+          - my-cool-host1.com
+          - my-cool-host2.com
+          - my-cool-host3.com
+      cassandra:
+        hostPathNodes:
+          - my-cool-host1.com
+          - my-cool-host2.com
+          - my-cool-host3.com
+          - my-cool-host4.com
+          - my-cool-host5.com
+          - my-cool-host6.com
+      postgresql:
+        hostPathNodes:
+          - my-cool-host1.com
+      kafka:
+        hostPathNodes:
+          - i-0082bddac2e013639
+          - i-05eb2d9719cc2dafa
+          - i-082b0341a1bb2f2be
+      zookeeper:
+        hostPathNodes:
+          - i-0082bddac2e013639
+          - i-05eb2d9719cc2dafa
+          - i-082b0341a1bb2f2be
+      redis:
+        hostPathNodes:
+          - my-cool-host1.com
+      nats:  # Note: "nats" key name (not "natsJs")
+        hostPathNodes:
+          - my-cool-host1.com
+      neo4j:
+        hostPathNodes:
+          - my-cool-host1.com
+
+    # Custom paths on the nodes (optional)
+    hostPathCustomPaths:
+      cassandra: /sysdig/cassandra
+      elasticsearch: /sysdig/elasticsearch
+      kafka: /sysdig/kafka
+      zookeeper: /sysdig/zookeeper
+      postgresql: /sysdig/postgresql
+      redis: /sysdig/redis
+      natsJs: /sysdig/nats
+      neo4j: /sysdig/neo4j
+      mysql: /sysdig/mysql
+
+  # Storage sizes can also be configured here
+  pvStorageSize:
+    cassandra: 600Gi
+    elasticsearch: 275Gi
+    postgresql: 120Gi
+    kafka: 100Gi
+    zookeeper: 100Gi
+    natsJs: 100Gi
+    neo4j: 100Gi
+    redis: 100Gi
 ```
 
 ## Installer on EKS
@@ -171,7 +281,8 @@ ssh -t user@airgapped-host "kubectl -n <namespace> rollout status deploy/sysdigc
 ```
 
 > Note: The `IMAGE_TAG` mentioned above could also be used with the timestamp as well, like it was used in previous releases, here an example how to re-write the `IMAGE_TAG` line for the timestamp:
-> ```
+
+> ```yaml
 > # Calculate the tag of the last version.
 > epoch=`date +%s`
 > IMAGE_TAG=$(( $epoch - 86400 - $epoch % 86400))
@@ -182,6 +293,91 @@ The above script could be scheduled using a Linux cronjob that runs every day. E
 ```bash
 0 8 * * * airgap-vuln-feeds-image-update.sh > /somedir/sysdig-airgapvulnfeed.log 2>&1
 ```
+
+### Updating the Feeds Database in airgapped environments using an internal registry as reverse proxy [ScanningV2]
+
+#### Prerequisites
+
+- Internal registry that acts as "reverse proxy/proxy cache" for quay.io (Ex: Nexus, Harbor)
+
+- Kubernetes access to the on-premise cluster where Sysdig On-Premise backend is running with the ability to create Cronjobs, Roles and RoleBindings
+
+#### Steps
+
+Create a kubernetes manifest file (for example: `feed-cronjob.yaml`) inside the file paste the following content:
+
+```yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: sysdig-feed
+  namespace: [SYSDIG-ONPREM-NAMESPACE]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: sysdig-feed-role
+  namespace: [SYSDIG-ONPREM-NAMESPACE]
+rules:
+- apiGroups:
+  - "apps"
+  resources:
+  - deployments
+  verbs:
+  - get
+  - patch
+  - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: sysdig-feed-rolebinding
+  namespace: [SYSDIG-ONPREM-NAMESPACE]
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: sysdig-feed-role
+subjects:
+- kind: ServiceAccount
+  name: sysdig-feed
+  namespace: [SYSDIG-ONPREM-NAMESPACE]
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: sysdig-airgapfeed-image-changer
+  namespace: [SYSDIG-ONPREM-NAMESPACE]
+spec:
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    metadata:
+      name: sysdig-airgapfeed-image-changer
+    spec:
+      template:
+        spec:
+          containers:
+          - image: bitnami/kubectl
+            name: airgap-feed
+            command:
+            - /bin/sh
+            - -c
+            - epoch=`date +%s`; IMAGE_TAG=$(( $epoch - 86400 - $epoch % 86400)); kubectl set image deploy/sysdigcloud-scanningv2-airgap-vuln-feeds airgap-vuln-feeds=[INTERNAL-REGISTRY-ADDRESS]/sysdig/airgap-vuln-feeds:${IMAGE_TAG}
+            resources: {}
+          serviceAccountName: sysdig-feed
+          restartPolicy: OnFailure
+  schedule: 0 2 * * *
+```
+
+The manifest above creates:
+
+- A serviceAccount called sysdig-feed
+- A role called sysdig-feed-role with the following permissions over deployments: get, list, patch.
+- A role Binding called sysdig-feed-rolebinding that associates both the ServiceAccount and Role
+- Cronjob that runs on daily basis at 2:00AM that calculates the image tag epoch and applies it to sysdigcloud-scanningv2-airgap-vuln-feeds deployment.
+
+*NOTE:* It is required to change [SYSDIG-ONPREM-NAMESPACE] with the namespace where Sysdig on-premise backend is running (usually `sysdig` or `sysdigcloud`) and [INTERNAL-REGISTRY-ADDRESS] with the address of the Registry. 
+
+The cronjob uses `bitnami/kubectl` container image from `docker.io`. This is just an example image containing kubectl binary. You can create your own container image (that must contain kubectl binary) and use it.
 
 ### Updating the Feeds Database in airgapped Environments [Legacy Scanning]
 
