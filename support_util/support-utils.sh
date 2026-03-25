@@ -203,14 +203,14 @@ function collectArtifacts()
       log_activity "Collected pod resource usage (kubectl mode)."
     fi
 
-    $k8sCmd describe po -n $namespace > $DEST_DIR/$SYSDIG_SUPPORT_DIR/describe_pods.txt
-    $k8sCmd get cm -o yaml -n $namespace > $DEST_DIR/$SYSDIG_SUPPORT_DIR/configmap.txt
-    $k8sCmd get ds -o yaml -n $namespace > $DEST_DIR/$SYSDIG_SUPPORT_DIR/daemonset.txt
-    $k8sCmd get deploy -o yaml -n $namespace > $DEST_DIR/$SYSDIG_SUPPORT_DIR/deployment.txt
-    log_activity "Saved configmap.txt, daemonset.txt, deployment.txt, describe_pods.txt"
+    $k8sCmd describe po -n $namespace > $DEST_DIR/$SYSDIG_SUPPORT_DIR/describe_pods.yaml
+    $k8sCmd get cm -o yaml -n $namespace > $DEST_DIR/$SYSDIG_SUPPORT_DIR/configmap.yaml
+    $k8sCmd get ds -o yaml -n $namespace > $DEST_DIR/$SYSDIG_SUPPORT_DIR/daemonset.yaml
+    $k8sCmd get deploy -o yaml -n $namespace > $DEST_DIR/$SYSDIG_SUPPORT_DIR/deployment.yaml
+    log_activity "Saved configmap.yaml, daemonset.yaml, deployment.yaml, describe_pods.yaml"
 
-    $k8sCmd describe nodes > $DEST_DIR/$SYSDIG_SUPPORT_DIR/nodes.txt
-    log_activity "Saved nodes.txt."
+    $k8sCmd describe nodes > $DEST_DIR/$SYSDIG_SUPPORT_DIR/nodes.yaml
+    log_activity "Saved nodes.yaml"
 
     printf "Configuration collection completed for all Sysdig pods\n"
     log_activity "Configuration collection completed for all pods."
@@ -227,16 +227,16 @@ function collectArtifacts()
       $k8sCmd top pod -n $namespace > $DEST_DIR/$SYSDIG_SUPPORT_DIR/top_pods.txt || printf "Metrics server not installed or ready, moving forward\n"
       log_activity "Collected pod resource usage (kubectl mode)."
     fi
-    $k8sCmd get po $podName -n $namespace -o wide > $DEST_DIR/$SYSDIG_SUPPORT_DIR/${podName}_node.txt
-    log_activity "Saved ${podName}_node.txt."
-    $k8sCmd describe po $podName -n $namespace > $DEST_DIR/$SYSDIG_SUPPORT_DIR/describe_pods_${podName}.txt
-    log_activity "Saved describe_pods_${podName}.txt."
-    $k8sCmd get cm -o yaml -n $namespace > $DEST_DIR/$SYSDIG_SUPPORT_DIR/configmap.txt
-    $k8sCmd get ds -o yaml -n $namespace > $DEST_DIR/$SYSDIG_SUPPORT_DIR/daemonset.txt
-    $k8sCmd get deploy -o yaml -n $namespace > $DEST_DIR/$SYSDIG_SUPPORT_DIR/deployment.txt
-    log_activity "Saved configmap.txt, daemonset.txt, deployment.txt."
-    $k8sCmd describe nodes > $DEST_DIR/$SYSDIG_SUPPORT_DIR/nodes.txt
-    log_activity "Saved nodes.txt."
+    $k8sCmd get po $podName -n $namespace -o wide > $DEST_DIR/$SYSDIG_SUPPORT_DIR/${podName}_node.yaml
+    log_activity "Saved ${podName}_node.yaml."
+    $k8sCmd describe po $podName -n $namespace > $DEST_DIR/$SYSDIG_SUPPORT_DIR/describe_pods_${podName}.yaml
+    log_activity "Saved describe_pods_${podName}.yaml"
+    $k8sCmd get cm -o yaml -n $namespace > $DEST_DIR/$SYSDIG_SUPPORT_DIR/configmap.yaml
+    $k8sCmd get ds -o yaml -n $namespace > $DEST_DIR/$SYSDIG_SUPPORT_DIR/daemonset.yaml
+    $k8sCmd get deploy -o yaml -n $namespace > $DEST_DIR/$SYSDIG_SUPPORT_DIR/deployment.yaml
+    log_activity "Saved configmap.yaml, daemonset.yaml, deployment.yaml"
+    $k8sCmd describe nodes > $DEST_DIR/$SYSDIG_SUPPORT_DIR/nodes.yaml
+    log_activity "Saved nodes.yaml"
     printf "Configuration collection completed for pod %s \n" "$podName"
     log_activity "Configuration collection completed for pod $podName"
   fi
@@ -281,7 +281,7 @@ function getLogs()
         fi
         if [[ $CS_POD_IP != "" && $csAttempt -eq 0 ]]; then
           log_activity "Tryng to perform curl against cluster shield health endpoint. If no error are reported, the call has been performed successfully"
-          $k8sCmd exec $pod -n $namespace -- curl "http://${CS_POD_IP}:${SYSDIG_CS_MONITORING_PORT}/${SYSDIG_CS_ENDPOINT}"> $DEST_DIR/$SYSDIG_SUPPORT_DIR/csFeaturesStatus.txt 2>/dev/null || log_activity "Unable to call CS health endpoint, moving forward"
+          $k8sCmd exec $pod -n $namespace -- curl "http://${CS_POD_IP}:${SYSDIG_CS_MONITORING_PORT}/${SYSDIG_CS_ENDPOINT}"> $DEST_DIR/$SYSDIG_SUPPORT_DIR/csFeaturesStatus.json 2>/dev/null || log_activity "Unable to call CS health endpoint, moving forward"
           ((csAttempt++))
         fi
         if [[ $drAgentAttempt -eq 0 ]]; then
@@ -431,15 +431,25 @@ function compressAndUpload()
 
 function cleanArtifacts
 {
+  local YAML_TO_REMOVE=(
+    "configmap.yaml"
+    "dragent.yaml"
+    "daemonset.yaml"
+    "deployment.yaml"
+    "describe_pods.yaml"
+    "describe_pods_${podName}.yaml"
+    "${podName}_node.yaml"
+    "nodes.yaml"
+  )
   printf "Cleanup started\n"
   log_activity "Script Cleanup Started"
   cd $DEST_DIR/$SYSDIG_SUPPORT_DIR
   printf "Removing cluster_info.json file\n"
-  rm -f cluster_info.json
-  printf "Removing dragent.yaml file\n"
-  rm -f dragent.yaml 
+  rm -f cluster_info.json csFeaturesStatus.json
   printf "Removing txt file\n"
   rm -f *.txt
+  printf "Removing yaml files\n"
+  rm -f "${YAML_TO_REMOVE[@]}"
   
   if [[ $IS_AIRGAPPED == "false" ]];
     then
