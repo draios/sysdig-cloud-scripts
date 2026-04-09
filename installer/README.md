@@ -282,12 +282,12 @@ This table represents the amount of resources for various cluster sizes and depl
 
 |Size                                    |Mode        |CPU Cores Requests|CPU Cores Limits|Memory GB Limits|Total Disk GB|
 |----------------------------------------|------------|------------------|----------------|----------------|-------------|
-|Small                                   |Secure Only |23                |80              |94              |947.15       |
-|                                        |Platform    |53                |119             |213             |1403.15      |
-|                                        |Monitor Only|26                |76              |169             |1191         |
-|Medium                                  |Secure Only |37                |92              |109             |1589         |
-|                                        |Platform    |61                |137             |222             |4244         |
-|                                        |Monitor Only|31                |81              |182             |2616         |
-|Large                                   |Secure Only |45                |101             |115             |3040         |
-|                                        |Platform    |111               |166             |403             |10180        |
-|                                        |Monitor Only|91                |120             |365             |6663         |
+|Small                                   |Secure Only |66                |162             |289             |947.15       |
+|                                        |Platform    |68                |166             |291             |1403.15      |
+|                                        |Monitor Only|39                |74              |171             |1191         |
+|Medium                                  |Secure Only |156               |290             |709             |1589         |
+|                                        |Platform    |163               |300             |713             |4244         |
+|                                        |Monitor Only|114               |170             |486             |2616         |
+|Large                                   |Secure Only |401               |603             |1559            |3040         |
+|                                        |Platform    |412               |618             |1565            |10180        |
+|                                        |Monitor Only|326               |422             |1262            |6663         |

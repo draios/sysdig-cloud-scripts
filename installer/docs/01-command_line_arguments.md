@@ -187,6 +187,14 @@ Performs a diff between the platform objects in a running Kubernetes cluster, an
 
 - Prints a summary of the diff errors.
 
+`--skip-ephemeral`
+
+- Skips ephemeral resources from the diff. Skips resources with Helm hooks (pre/post-install/upgrade) and Jobs with TTL (CronJobs are not skipped). Use this to reduce noise when comparing generated manifests to the cluster.
+
+`--skip-secret-shasum`
+
+- Filter out `*-shasum` annotations (e.g. `secret-shasum`, `config-shasum`) from the diff output. These annotations can change even when there are no meaningful configuration changes; excluding them reduces noise and false positives when diff output is used by external tooling (for example, to decide whether to roll out updates).
+
 The `diff` command also has options inherited from the `generate` command options. See **generate** command section.
 
 ### Sub-Command: secure-diff [DEPRECATED]
