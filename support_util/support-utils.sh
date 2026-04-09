@@ -72,6 +72,7 @@ function initVar()
   SYSDIG_NA_PREFIX=""
   SYSDIG_CS_PREFIX=""
   SYSDIG_KSPMC_PREFIX=""
+  FAILED_PODS=()
   
   export DEST_DIR
   export ARCHIVE_NAME
@@ -149,10 +150,10 @@ while IFS=$'\t' read -r APP_NAME IMAGE_NAME; do
     fi
 done <<< "${SYSDIG_DEPLOY_NAME}"
 
-[[ -n "${SYSDIG_AGENT_APP_NAME//[[:space:]]/}" ]] && export SYSDIG_AGENT_PREFIX="${SYSDIG_AGENT_APP_NAME}-[a-zA-Z0-9]{5}$"
-[[ -n "${SYSDIG_CS_APP_NAME//[[:space:]]/}" ]] && export SYSDIG_CS_PREFIX="${SYSDIG_CS_APP_NAME}-[a-zA-Z0-9]"
-[[ -n "${SYSDIG_NA_APP_NAME//[[:space:]]/}" ]] && export SYSDIG_NA_PREFIX="${SYSDIG_NA_APP_NAME}-[a-zA-Z0-9]" 
-[[ -n "${SYSDIG_KSPM_COLLECTOR_APP_NAME//[[:space:]]/}" ]] && export SYSDIG_KSPMC_PREFIX="${SYSDIG_KSPM_COLLECTOR_APP_NAME}-[a-zA-Z0-9]"
+[[ -n "${SYSDIG_AGENT_APP_NAME//[[:space:]]/}" ]] && export SYSDIG_AGENT_PREFIX="^${SYSDIG_AGENT_APP_NAME}-[a-zA-Z0-9]{5}$"
+[[ -n "${SYSDIG_CS_APP_NAME//[[:space:]]/}" ]] && export SYSDIG_CS_PREFIX="^${SYSDIG_CS_APP_NAME}-[a-zA-Z0-9]"
+[[ -n "${SYSDIG_NA_APP_NAME//[[:space:]]/}" ]] && export SYSDIG_NA_PREFIX="^${SYSDIG_NA_APP_NAME}-[a-zA-Z0-9]" 
+[[ -n "${SYSDIG_KSPM_COLLECTOR_APP_NAME//[[:space:]]/}" ]] && export SYSDIG_KSPMC_PREFIX="^${SYSDIG_KSPM_COLLECTOR_APP_NAME}-[a-zA-Z0-9]"
 
   printf "Init vars completed\n"
   log_activity "initVar completed."
@@ -160,6 +161,11 @@ done <<< "${SYSDIG_DEPLOY_NAME}"
   log_activity "Prefix for clusterShield $SYSDIG_CS_PREFIX"
   log_activity "Prefix for nodeAnalyzer $SYSDIG_NA_PREFIX"
   log_activity "Prefix for kspmCollector $SYSDIG_KSPMC_PREFIX"
+}
+
+function trackPodError()
+{
+  FAILED_PODS+=("$1")
 }
 
 function disclaimer()
@@ -274,10 +280,13 @@ function getLogs()
       if [[ -n "$SYSDIG_AGENT_PREFIX" ]] && [[ $pod =~ $SYSDIG_AGENT_PREFIX ]]; then
         mkdir -p $DEST_DIR/$SYSDIG_SUPPORT_DIR/logs/$pod
         $k8sCmd -n $namespace cp $pod:${AGENT_LOG_DIR}. $DEST_DIR/$SYSDIG_SUPPORT_DIR/logs/$pod --retries=$AGENT_CP_RETRY 2>/dev/null
-        if [[ $? -eq 0 ]] ; then
+        # Exit code 1 is allowed because tar (used by kubectl cp) returns 1 
+        # when a file (like a log) changes during the read process.
+        if [[ $? -eq 0 || $? -eq 1 ]] ; then
           log_activity "Copied agent log files for pod $pod."
         else
           log_activity "ERROR: Failed to copy logs for pod $pod (possibly recycled)."
+          trackPodError "$pod"
         fi
         if [[ $CS_POD_IP != "" && $csAttempt -eq 0 ]]; then
           log_activity "Tryng to perform curl against cluster shield health endpoint. If no error are reported, the call has been performed successfully"
@@ -290,9 +299,7 @@ function getLogs()
           log_activity "Getting dragent.yaml from pod $pod completed!"
           ((drAgentAttempt++))
         fi
-        
-      fi
-      if [[ -n "$SYSDIG_CS_PREFIX" ]] && [[ $pod =~ $SYSDIG_CS_PREFIX  ]]; then
+      elif [[ -n "$SYSDIG_CS_PREFIX" ]] && [[ $pod =~ $SYSDIG_CS_PREFIX  ]]; then
         mkdir -p $DEST_DIR/$SYSDIG_SUPPORT_DIR/logs/$SYSDIG_CS_DIR
         $k8sCmd -n $namespace logs $pod > $DEST_DIR/$SYSDIG_SUPPORT_DIR/logs/$SYSDIG_CS_DIR/$pod.log 2>/dev/null
         if [[ $? -eq 0 ]]; then
@@ -300,8 +307,7 @@ function getLogs()
         else
           log_activity "ERROR: Failed to collect cluster shield log for pod $pod (pod not found)."
         fi
-      fi
-      if [[ -n "$SYSDIG_NA_PREFIX" ]] && [[ $pod =~ $SYSDIG_NA_PREFIX ]]; then
+      elif [[ -n "$SYSDIG_NA_PREFIX" ]] && [[ $pod =~ $SYSDIG_NA_PREFIX ]]; then
         mkdir -p $DEST_DIR/$SYSDIG_SUPPORT_DIR/logs/$pod
         $k8sCmd -n $namespace logs $pod -c $SYSDIG_KSPMA_CONTAINER_NAME > /dev/null 2>&1 && \
         $k8sCmd -n $namespace logs $pod -c $SYSDIG_KSPMA_CONTAINER_NAME > $DEST_DIR/$SYSDIG_SUPPORT_DIR/logs/$pod/${pod}_${SYSDIG_KSPMA_CONTAINER_NAME}.log && \
@@ -315,8 +321,7 @@ function getLogs()
         $k8sCmd -n $namespace logs $pod -c $SYSDIG_RS_CONTAINER_NAME > $DEST_DIR/$SYSDIG_SUPPORT_DIR/logs/$pod/${pod}_${SYSDIG_RS_CONTAINER_NAME}.log && \
         log_activity "Collected runtime-scanner logs for pod $pod" || \
         log_activity "runtime-scanner not installed for pod $pod"
-      fi
-      if [[ -n "$SYSDIG_KSPMC_PREFIX" ]] && [[ $pod =~ $SYSDIG_KSPMC_PREFIX ]]; then
+      elif [[ -n "$SYSDIG_KSPMC_PREFIX" ]] && [[ $pod =~ $SYSDIG_KSPMC_PREFIX ]]; then
         mkdir -p $DEST_DIR/$SYSDIG_SUPPORT_DIR/logs/$pod
         $k8sCmd -n $namespace logs $pod > $DEST_DIR/$SYSDIG_SUPPORT_DIR/logs/$pod/$pod.log 2>/dev/null
         if [[ $? -eq 0 ]]; then
@@ -333,15 +338,17 @@ function getLogs()
       printf "Collecting log for pod %s\n" "$podName"
       mkdir -p $DEST_DIR/$SYSDIG_SUPPORT_DIR/logs/$podName
       $k8sCmd -n $namespace cp $podName:${AGENT_LOG_DIR}. $DEST_DIR/$SYSDIG_SUPPORT_DIR/logs/$podName --retries=$AGENT_CP_RETRY 2>/dev/null
-      if [[ $? -eq 0 ]]; then
+      # Exit code 1 is allowed because tar (used by kubectl cp) returns 1 
+      # when a file (like a log) changes during the read process.
+      if [[ $? -eq 0 || $? -eq 1  ]]; then
         printf "Log collected for pod %s\n" "$podName"
         log_activity "Collected agent log for pod $podName "
       else
         log_activity "ERROR: Failed to collect agent log for pod $podName (possibly recycled)."
+        trackPodError "$podName"
       fi
       $k8sCmd -n $namespace cp $podName:$AGENT_DRAGENT_DIR/dragent.yaml $DEST_DIR/$SYSDIG_SUPPORT_DIR/dragent.yaml 2>/dev/null
-    fi
-    if [[ $podName =~ $SYSDIG_CS_PREFIX ]]; then
+    elif [[ $podName =~ $SYSDIG_CS_PREFIX ]]; then
       printf "Collecting log for pod %s\n" "$podName"
       mkdir -p $DEST_DIR/$SYSDIG_SUPPORT_DIR/logs/$SYSDIG_CS_DIR
       $k8sCmd -n $namespace logs $podName > $DEST_DIR/$SYSDIG_SUPPORT_DIR/logs/$SYSDIG_CS_DIR/$podName.log 2>/dev/null
@@ -351,8 +358,7 @@ function getLogs()
       else
         log_activity "ERROR: Failed to collect cluster shield log for pod ${podName} (pod not found)."
       fi
-    fi
-    if [[ $podName =~ $SYSDIG_NA_PREFIX ]]; then
+    elif [[ $podName =~ $SYSDIG_NA_PREFIX ]]; then
       printf "Collecting log for pod %s\n" "$podName"
       mkdir -p $DEST_DIR/$SYSDIG_SUPPORT_DIR/logs/$podName
       $k8sCmd -n $namespace logs $podName -c $SYSDIG_KSPMA_CONTAINER_NAME > /dev/null 2>&1 && \
@@ -368,8 +374,7 @@ function getLogs()
       log_activity "Collected runtime-scanner log for pod $podName" || \
       log_activity "runtime-scanner not installed for pod $podName"
       printf "Log collected for pod %s\n" "$podName"
-    fi
-    if [[ $podName =~ $SYSDIG_KSPMC_PREFIX ]]; then
+    elif [[ $podName =~ $SYSDIG_KSPMC_PREFIX ]]; then
       printf "Collecting log for pod %s\n" "$podName"
       mkdir -p $DEST_DIR/$SYSDIG_SUPPORT_DIR/logs/$podName
       $k8sCmd -n $namespace logs $podName > $DEST_DIR/$SYSDIG_SUPPORT_DIR/logs/$podName/$podName.log 2>/dev/null
@@ -379,8 +384,8 @@ function getLogs()
       else
         log_activity "ERROR: Failed to collect kspmcollector log for pod $podName"
       fi
-    fi
     log_activity "Log collection completed for pod $podName"
+    fi
   fi
   log_activity "getLogs completed."
 }
@@ -460,6 +465,14 @@ function cleanArtifacts
   printf "Removing the logs directory\n"
   rm -fr logs
   printf "Cleanup completed!\n"
+  if [[ ${#FAILED_PODS[@]} -gt 0 ]]; then
+    printf "\n%s\n" "--- WARNING: SOME POD LOGS MAY HAVE NOT BEEN COLLECTED ---"
+    printf "%s\n" "Pod list:"
+    printf "  - %s\n" "${FAILED_PODS[@]}"
+    printf "%s\n" "Please collect the logs manually using:"
+    printf "$k8sCmd -n $namespace cp <podName>:opt/draios/logs/. <yourLocalPath> \n"
+    printf -- "---------------------------------------------------\n"
+  fi
   log_activity "Script Cleanup completed"
 }
 
