@@ -73,6 +73,8 @@ function initVar()
   SYSDIG_CS_PREFIX=""
   SYSDIG_KSPMC_PREFIX=""
   FAILED_PODS=()
+  YELLOW='\033[1;33m'
+  NC='\033[0m' # No Color (reset)
   
   export DEST_DIR
   export ARCHIVE_NAME
@@ -113,16 +115,19 @@ log_activity "Dp name found $SYSDIG_DEPLOY_NAME"
 done
 
 if [[ -z $SYSDIG_DS_NAME ]] && [[ -z $SYSDIG_DEPLOY_NAME ]]; then
+    printf "${YELLOW}"
     printf -- "-----------------------------------------------------------------------\n"
     printf "RESULT: No Sysdig components found in namespace: '%s'\n" "$namespace"
     printf -- "-----------------------------------------------------------------------\n"
     printf "Possible reasons:\n"
     printf " 1. The namespace provided is incorrect.\n"
     printf " 2. The components (DaemonSet/Deployment) are not yet deployed.\n"
-    printf " 3. The components are installed in a DIFFERENT namespace.\n\n"
+    printf " 3. The components are installed in a DIFFERENT namespace.\n"
+    printf " 4. Sysdig workload has not been installed using helm. If that's the case, please review the troubleshooting section available in the README\n"
     printf "NOTE: If your installation is split (e.g., Agent/Shield, Nodeanalyzer and/or ClusterShield in different\n"
     printf "namespaces), please run this script separately for each namespace.\n"
     printf -- "-----------------------------------------------------------------------"
+    printf "${NC}"
   exit $ERR_RC_NOTHING_FOUND
 fi
 
@@ -275,9 +280,9 @@ function getLogs()
   if [[ -z $podName ]]; then
     printf "Getting all sysdig logs, this could take a while\n"
     for pod in $(awk '{print $1}' < "$DEST_DIR/$SYSDIG_SUPPORT_DIR/running_pods.txt"); do
-      printf "Getting log of pod %s \n" "$pod"
-      log_activity "Attempting log collection for pod $pod"
       if [[ -n "$SYSDIG_AGENT_PREFIX" ]] && [[ $pod =~ $SYSDIG_AGENT_PREFIX ]]; then
+        printf "Getting log of pod %s \n" "$pod"
+        log_activity "Attempting log collection for pod $pod"
         mkdir -p $DEST_DIR/$SYSDIG_SUPPORT_DIR/logs/$pod
         $k8sCmd -n $namespace cp $pod:${AGENT_LOG_DIR}. $DEST_DIR/$SYSDIG_SUPPORT_DIR/logs/$pod --retries=$AGENT_CP_RETRY 2>/dev/null
         # Exit code 1 is allowed because tar (used by kubectl cp) returns 1 
@@ -300,6 +305,8 @@ function getLogs()
           ((drAgentAttempt++))
         fi
       elif [[ -n "$SYSDIG_CS_PREFIX" ]] && [[ $pod =~ $SYSDIG_CS_PREFIX  ]]; then
+        printf "Getting log of pod %s \n" "$pod"
+        log_activity "Attempting log collection for pod $pod"
         mkdir -p $DEST_DIR/$SYSDIG_SUPPORT_DIR/logs/$SYSDIG_CS_DIR
         $k8sCmd -n $namespace logs $pod > $DEST_DIR/$SYSDIG_SUPPORT_DIR/logs/$SYSDIG_CS_DIR/$pod.log 2>/dev/null
         if [[ $? -eq 0 ]]; then
@@ -308,6 +315,8 @@ function getLogs()
           log_activity "ERROR: Failed to collect cluster shield log for pod $pod (pod not found)."
         fi
       elif [[ -n "$SYSDIG_NA_PREFIX" ]] && [[ $pod =~ $SYSDIG_NA_PREFIX ]]; then
+        printf "Getting log of pod %s \n" "$pod"
+        log_activity "Attempting log collection for pod $pod"
         mkdir -p $DEST_DIR/$SYSDIG_SUPPORT_DIR/logs/$pod
         $k8sCmd -n $namespace logs $pod -c $SYSDIG_KSPMA_CONTAINER_NAME > /dev/null 2>&1 && \
         $k8sCmd -n $namespace logs $pod -c $SYSDIG_KSPMA_CONTAINER_NAME > $DEST_DIR/$SYSDIG_SUPPORT_DIR/logs/$pod/${pod}_${SYSDIG_KSPMA_CONTAINER_NAME}.log && \
@@ -322,6 +331,8 @@ function getLogs()
         log_activity "Collected runtime-scanner logs for pod $pod" || \
         log_activity "runtime-scanner not installed for pod $pod"
       elif [[ -n "$SYSDIG_KSPMC_PREFIX" ]] && [[ $pod =~ $SYSDIG_KSPMC_PREFIX ]]; then
+        printf "Getting log of pod %s \n" "$pod"
+        log_activity "Attempting log collection for pod $pod"
         mkdir -p $DEST_DIR/$SYSDIG_SUPPORT_DIR/logs/$pod
         $k8sCmd -n $namespace logs $pod > $DEST_DIR/$SYSDIG_SUPPORT_DIR/logs/$pod/$pod.log 2>/dev/null
         if [[ $? -eq 0 ]]; then

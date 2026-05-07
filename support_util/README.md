@@ -147,11 +147,34 @@ Before sharing the archive externally:
 
 ## Troubleshooting
 
-Script fails with permission errors, ensure that the **requisites** are fully met.
+Script fails with permission errors, ensure that the **prerequisites** are fully met.
 
 - No Sysdig pods found
   - Confirm that the products listed in Supported Sysdig products are actually installed in the target namespace
   - Check Helm releases or your deployment manifests to identify the correct namespace.
+  
+In this case, you may want to run manually the commands to get cluster info and sysdig pod logs:
+```
+## GET CLUSTER INFO. IF YOU'RE USING OC, please replace it in the below commands
+## replace $namespace with the one that you used to install Sysdig pods
+
+kubectl get po --sort-by='.status.containerStatuses[0].restartCount' --no-headers -n $namespace -o wide > running_pods.txt 
+kubectl describe po -n $namespace > describe_pods.yaml
+kubectl get cm -o yaml -n $namespace > configmap.yaml
+kubectl get ds -o yaml -n $namespace > daemonset.yaml
+kubectl get deploy -o yaml -n $namespace > deployment.yaml
+
+##POD LOG COLLECTION. IF YOU'RE USING OC, please replace it in the below commands.
+##WE JUST NEED A COUPLE OF LOG FILE FOR EACH SYSDIG WORKLOAD RUNNING
+
+#IF YOU ARE RUNNING HOSTSHIELD OR THE SYSDIG-AGENT PODS, PLEASE REPLACE THE PLACEHOLDER WITH THE CORRECT POD NAME:
+kubectl -n $namespace cp $<hostShieldPod/agentPod>:opt/draios/logs/. . 
+
+#FOR ALL THE OTHER SYSDIG PODS, use:
+kubectl -n $namespace logs <sysdigPod> > <sysdigPod>.log
+```
+Please tar/gzip all the information into an archive and share it with us.
+
 
 If you still experience issues running the script, share:
 
