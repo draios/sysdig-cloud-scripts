@@ -20,7 +20,25 @@ API_KEY=""
 SECURE_API_KEY=""
 SKIP_LOGS="false"
 ELASTIC_CURL=""
+MAX_JOBS_MIN=1
+MAX_JOBS_MAX=16
 MAX_JOBS="${MAX_JOBS:-6}"
+
+validate_max_jobs() {
+    # Validate that MAX_JOBS is an integer in [MAX_JOBS_MIN, MAX_JOBS_MAX].
+    # Called from both the env-var default path and the --max-jobs flag path
+    # so customers cannot bypass bounds by setting MAX_JOBS in the environment.
+    if ! [[ "${MAX_JOBS}" =~ ^[0-9]+$ ]]; then
+        echo "Error: --max-jobs must be a positive integer (got: '${MAX_JOBS}')" >&2
+        exit 1
+    fi
+    if [ "${MAX_JOBS}" -lt "${MAX_JOBS_MIN}" ] || [ "${MAX_JOBS}" -gt "${MAX_JOBS_MAX}" ]; then
+        echo "Error: --max-jobs must be between ${MAX_JOBS_MIN} and ${MAX_JOBS_MAX} (got: ${MAX_JOBS}). Higher values risk apiserver throttling and local resource exhaustion." >&2
+        exit 1
+    fi
+}
+
+validate_max_jobs
 
 print_help() {
     printf 'Usage: %s [-a|--api-key <API_KEY>] [c|--context <CONTEXT>] [-d|--debug] [-l|--labels <LABELS>] [-n|--namespace <NAMESPACE>] [-s|--since <TIMEFRAME>] [--skip-logs] [--max-jobs <N>] [-h|--help]\n' "$0"
@@ -33,7 +51,7 @@ print_help() {
     printf "\t%s\n" "-s,--since: Specify the timeframe of logs to collect (e.g. -s 1h)"
     printf "\t%s\n" "-sa,--secure-api-key: Provide the Secure Superuser API key for advanced data collection"
     printf "\t%s\n" "--skip-logs: Skip all log collection. (default: ${SKIP_LOGS})"
-    printf "\t%s\n" "--max-jobs: Maximum number of concurrent background jobs (default: ${MAX_JOBS}). Higher values increase API load."
+    printf "\t%s\n" "--max-jobs: Maximum number of concurrent background jobs (default: ${MAX_JOBS}, allowed: ${MAX_JOBS_MIN}-${MAX_JOBS_MAX}). Higher values increase API load and may trigger apiserver throttling."
     printf "\t%s\n" "-h,--help: Prints help"
 }
 
@@ -95,6 +113,7 @@ parse_commandline() {
             --max-jobs)
                 test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
                 MAX_JOBS="$2"
+                validate_max_jobs
                 shift
                 ;;
         esac
@@ -142,7 +161,7 @@ BACKGROUND_FAIL=0
 collect_container_logs() {
     local pod="$1"
     local container="$2"
-    local tar_command='tar czf - /logs/ /opt/draios/ /var/log/sysdigcloud/ /var/log/cassandra/ /tmp/redis.log /var/log/redis-server/redis.log /var/log/mysql/error.log /opt/prod.conf 2>/dev/null || true'
+    local tar_command='tar czf - /logs/ /opt/draios/ /var/log/sysdigcloud/ /var/log/cassandra/ /tmp/redis.log /var/log/redis-server/redis.log /opt/prod.conf 2>/dev/null || true'
 
     # Collect kubectl logs
     kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} logs ${pod} -c ${container} ${SINCE_OPTS} > ${LOG_DIR}/pod_logs/${pod}/${container}-kubectl-logs.txt || true
@@ -274,16 +293,6 @@ collect_postgresql_storage() {
     done
 }
 
-collect_mysql_storage() {
-    for pod in $(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get pods -l role=mysql --no-headers -o custom-columns=NAME:metadata.name)
-    do
-        echo "Checking Used MySQL Storage - ${pod}"
-        mkdir -p ${LOG_DIR}/mysql/${pod}
-        printf "${pod}\n" > ${LOG_DIR}/mysql/${pod}/mysql_storage.log
-        kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod} -c mysql -- du -ch /var/lib/mysql | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' >> ${LOG_DIR}/mysql/${pod}/mysql_storage.log || true
-    done
-}
-
 collect_kafka_storage() {
     for pod in $(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get pods -l role=cp-kafka --no-headers -o custom-columns=NAME:metadata.name)
     do
@@ -331,39 +340,36 @@ collect_neo4j_stats() {
 }
 
 run_bg() {
-    # Run a command in the background with output redirection
-    # Usage: run_bg <jobname> <command...>
+    # Run a command in the background with output redirection.
+    # Per-job stdout/stderr are preserved under ${LOG_DIR}/_background_jobs/
+    # so they ship in the final support bundle for post-hoc debugging.
+    # The command and its args are passed directly via "$@" — no eval — so
+    # callers should pass args unquoted (e.g. `run_bg "name" my_fn arg1 arg2`,
+    # not `run_bg "name" "my_fn arg1 arg2"`).
     local jobname="$1"
     shift
-    local cmd="$@"
 
-    # Create output files for this job
-    local stdout_file="${LOG_DIR}/_bg_${jobname}.out"
-    local stderr_file="${LOG_DIR}/_bg_${jobname}.err"
+    local bg_log_dir="${LOG_DIR}/_background_jobs"
+    mkdir -p "${bg_log_dir}"
+    local stdout_file="${bg_log_dir}/${jobname}.out"
+    local stderr_file="${bg_log_dir}/${jobname}.err"
 
-    # Run command in background, redirecting output
     (
-        eval "$cmd" > "$stdout_file" 2> "$stderr_file"
-        exit $?
+        "$@" > "$stdout_file" 2> "$stderr_file"
     ) &
 
-    local pid=$!
-    BACKGROUND_PIDS+=($pid)
+    BACKGROUND_PIDS+=($!)
 }
 
 throttle() {
-    # Ensure no more than MAX_JOBS are running concurrently
-    # Use wait -n if available (Bash 4.3+), otherwise poll
-
+    # Ensure no more than MAX_JOBS are running concurrently.
+    # Poll only — do not call `wait -n` here. If throttle reaped a tracked
+    # background job, wait_all would later wait on its already-reaped PID,
+    # which is unreliable across bash versions and can confuse failure
+    # reporting. Leaving wait_all as the sole reaper keeps the PID lifecycle
+    # simple and exit statuses observable.
     while [ $(jobs -pr | wc -l) -ge $MAX_JOBS ]; do
-        # Try wait -n (Bash 4.3+)
-        if wait -n 2>/dev/null; then
-            # wait -n succeeded, a job finished
-            :
-        else
-            # wait -n not available or failed, use polling
-            sleep 0.1
-        fi
+        sleep 0.1
     done
 }
 
@@ -381,11 +387,10 @@ wait_all() {
         fi
     done
 
-    # Reset the PID array for next phase
+    # Reset the PID array for next phase. Per-job .out/.err files are
+    # intentionally retained under ${LOG_DIR}/_background_jobs/ so they ship
+    # in the final tarball.
     BACKGROUND_PIDS=()
-
-    # Clean up background job output files
-    rm -f ${LOG_DIR}/_bg_*.out ${LOG_DIR}/_bg_*.err 2>/dev/null || true
 }
 
 main() {
@@ -613,7 +618,7 @@ main() {
     CLUSTER_DUMP_DIR="${LOG_DIR}/kubectl-cluster-dump"
     mkdir -p ${CLUSTER_DUMP_DIR}
     echo "Starting cluster-info dump in background"
-    run_bg "cluster-info-dump" "kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} cluster-info dump --output-directory=${CLUSTER_DUMP_DIR}"
+    run_bg "cluster-info-dump" kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} cluster-info dump --output-directory=${CLUSTER_DUMP_DIR}
 
     # Collect container logs for each pod (parallelized per container)
     if [[ "${SKIP_LOGS}" == "false" ]]; then
@@ -630,7 +635,7 @@ main() {
             containers=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get pod ${pod} -o json | jq -r '.spec.containers[].name' || echo "")
             for container in ${containers}; do
                 echo "  - Launching background job for ${pod}/${container}"
-                run_bg "pod-${pod}-${container}" "collect_container_logs ${pod} ${container}"
+                run_bg "pod-${pod}-${container}" collect_container_logs "${pod}" "${container}"
                 throttle
             done
         done
@@ -662,7 +667,7 @@ main() {
         echo "Scheduling node manifest collection (parallelized)"
         for node in ${NODES[@]}; do
             echo "  - Launching background job for node ${node}"
-            run_bg "node-${node}" "collect_node_info ${node}"
+            run_bg "node-${node}" collect_node_info "${node}"
             throttle
         done
 
@@ -695,7 +700,7 @@ main() {
     # Launch parallel collection for each resource type
     for object in "${objects[@]}"; do
         echo "Scheduling manifest collection for ${object}"
-        run_bg "manifests-${object}" "collect_resource_manifests ${object}"
+        run_bg "manifests-${object}" collect_resource_manifests "${object}"
         throttle
     done
 
@@ -729,35 +734,31 @@ main() {
     printf "Containers: ${num_total_containers}\n" >> ${LOG_DIR}/container_density.txt
 
     # Fetch Cassandra Nodetool output (run in background)
-    run_bg "cassandra-stats" "collect_cassandra_stats"
+    run_bg "cassandra-stats" collect_cassandra_stats
     throttle
 
     # Fetch Elasticsearch health info (run in background)
-    run_bg "elasticsearch-stats" "collect_elasticsearch_stats"
+    run_bg "elasticsearch-stats" collect_elasticsearch_stats
     throttle
 
     # Fetch Neo4j health info (run in background)
-    run_bg "neo4j-stats" "collect_neo4j_stats"
+    run_bg "neo4j-stats" collect_neo4j_stats
     throttle
 
     # Fetch Cassandra storage info (run in background)
-    run_bg "cassandra-storage" "collect_cassandra_storage"
+    run_bg "cassandra-storage" collect_cassandra_storage
     throttle
 
     # Fetch postgresql storage info (run in background)
-    run_bg "postgresql-storage" "collect_postgresql_storage"
-    throttle
-
-    # Fetch mysql storage info (run in background)
-    run_bg "mysql-storage" "collect_mysql_storage"
+    run_bg "postgresql-storage" collect_postgresql_storage
     throttle
 
     # Fetch kafka storage info (run in background)
-    run_bg "kafka-storage" "collect_kafka_storage"
+    run_bg "kafka-storage" collect_kafka_storage
     throttle
 
     # Fetch zookeeper storage info (run in background)
-    run_bg "zookeeper-storage" "collect_zookeeper_storage"
+    run_bg "zookeeper-storage" collect_zookeeper_storage
     throttle
 
     # Collect the sysdigcloud-config configmap, and write to the log directory
