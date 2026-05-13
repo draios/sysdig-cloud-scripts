@@ -20,9 +20,28 @@ API_KEY=""
 SECURE_API_KEY=""
 SKIP_LOGS="false"
 ELASTIC_CURL=""
+MAX_JOBS_MIN=1
+MAX_JOBS_MAX=16
+MAX_JOBS="${MAX_JOBS:-6}"
+
+validate_max_jobs() {
+    # Validate that MAX_JOBS is an integer in [MAX_JOBS_MIN, MAX_JOBS_MAX].
+    # Called from both the env-var default path and the --max-jobs flag path
+    # so customers cannot bypass bounds by setting MAX_JOBS in the environment.
+    if ! [[ "${MAX_JOBS}" =~ ^[0-9]+$ ]]; then
+        echo "Error: --max-jobs must be a positive integer (got: '${MAX_JOBS}')" >&2
+        exit 1
+    fi
+    if [ "${MAX_JOBS}" -lt "${MAX_JOBS_MIN}" ] || [ "${MAX_JOBS}" -gt "${MAX_JOBS_MAX}" ]; then
+        echo "Error: --max-jobs must be between ${MAX_JOBS_MIN} and ${MAX_JOBS_MAX} (got: ${MAX_JOBS}). Higher values risk apiserver throttling and local resource exhaustion." >&2
+        exit 1
+    fi
+}
+
+validate_max_jobs
 
 print_help() {
-    printf 'Usage: %s [-a|--api-key <API_KEY>] [c|--context <CONTEXT>] [-d|--debug] [-l|--labels <LABELS>] [-n|--namespace <NAMESPACE>] [-s|--since <TIMEFRAME>] [--skip-logs] [-h|--help]\n' "$0"
+    printf 'Usage: %s [-a|--api-key <API_KEY>] [c|--context <CONTEXT>] [-d|--debug] [-l|--labels <LABELS>] [-n|--namespace <NAMESPACE>] [-s|--since <TIMEFRAME>] [--skip-logs] [--max-jobs <N>] [-h|--help]\n' "$0"
     printf "\t%s\n" "-a,--api-key: Provide the Superuser API key for advanced data collection"
     printf "\t%s\n" "-c,--context: Specify the kubectl context. If not set, the current context will be used."
     printf "\t%s\n" "-d,--debug: Enables Debug"
@@ -32,6 +51,7 @@ print_help() {
     printf "\t%s\n" "-s,--since: Specify the timeframe of logs to collect (e.g. -s 1h)"
     printf "\t%s\n" "-sa,--secure-api-key: Provide the Secure Superuser API key for advanced data collection"
     printf "\t%s\n" "--skip-logs: Skip all log collection. (default: ${SKIP_LOGS})"
+    printf "\t%s\n" "--max-jobs: Maximum number of concurrent background jobs (default: ${MAX_JOBS}, allowed: ${MAX_JOBS_MIN}-${MAX_JOBS_MAX}). Higher values increase API load and may trigger apiserver throttling."
     printf "\t%s\n" "-h,--help: Prints help"
 }
 
@@ -90,6 +110,12 @@ parse_commandline() {
                 SECURE_API_KEY="$2"
                 shift
                 ;;
+            --max-jobs)
+                test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
+                MAX_JOBS="$2"
+                validate_max_jobs
+                shift
+                ;;
         esac
         shift
     done
@@ -125,6 +151,246 @@ segment_by="${2}"
           -d "{\"requests\":[{\"format\":{\"type\":\"data\"},\"time\":{\"from\":${FROM_EPOCH_TIME}000000,\"to\":${TO_EPOCH_TIME}000000,\"sampling\":600000000},\"metrics\":{\"v0\":\"${metric}\",\"k0\":\"timestamp\",\"k1\":\"${segment_by}\"},\"group\":{\"aggregations\":{\"v0\":\"avg\"},\"groupAggregations\":{\"v0\":\"avg\"},\"by\":[{\"metric\":\"k0\",\"value\":600000000},{\"metric\":\"k1\"}],\"configuration\":{\"groups\":[{\"groupBy\":[]}]}},\"paging\":{\"from\":0,\"to\":9999},\"sort\":[{\"v0\":\"desc\"}],\"scope\":null,\"compareTo\":null}]}'"
         )
         curl "${PARAMS[@]}" >${LOG_DIR}/metrics/${metric}_${segment_by}.json || echo "Curl failed collecting ${metric}_${segment_by} data!" && true
+}
+
+# Parallel execution framework
+BACKGROUND_PIDS=()
+BACKGROUND_FAIL=0
+
+# Container log collection function (to be run in background per container)
+collect_container_logs() {
+    local pod="$1"
+    local container="$2"
+    local tar_command='tar czf - /logs/ /opt/draios/ /var/log/sysdigcloud/ /var/log/cassandra/ /tmp/redis.log /var/log/redis-server/redis.log /opt/prod.conf 2>/dev/null || true'
+
+    # Collect kubectl logs
+    kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} logs ${pod} -c ${container} ${SINCE_OPTS} > ${LOG_DIR}/pod_logs/${pod}/${container}-kubectl-logs.txt || true
+
+    # Try to exec into container and collect support files
+    kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod} -c ${container} -- bash -c "echo" >/dev/null 2>&1 && RETVAL=$? || RETVAL=$? && true
+    kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod} -c ${container} -- sh -c "echo" >/dev/null 2>&1 && RETVAL1=$? || RETVAL1=$? && true
+
+    if [ $RETVAL -eq 0 ]; then
+        kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod} -c ${container} -- bash -c "${tar_command}" > ${LOG_DIR}/pod_logs/${pod}/${container}-support-files.tgz || true
+    elif [ $RETVAL1 -eq 0 ]; then
+        kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod} -c ${container} -- sh -c "${tar_command}" > ${LOG_DIR}/pod_logs/${pod}/${container}-support-files.tgz || true
+    fi
+}
+
+# Resource manifest collection function (to be run in background per resource type)
+collect_resource_manifests() {
+    local object="$1"
+
+    # Get all items of this resource type
+    items=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get ${object} -o jsonpath="{.items[*]['metadata.name']}")
+
+    # Collect each item
+    for item in ${items}; do
+        kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get ${object} ${item} -o json > ${LOG_DIR}/${object}/${item}-kubectl.json
+    done
+}
+
+# Node information collection function (to be run in background per node)
+collect_node_info() {
+    local node="$1"
+    kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get node ${node} -ojson > ${LOG_DIR}/nodes/${node}-kubectl.json
+}
+
+# Database collection functions (to be run in background)
+# Note that sed processing is to maintain compatibility with health check script
+collect_cassandra_stats() {
+    echo "Fetching Cassandra statistics"
+    for pod in $(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get pod -l role=cassandra --no-headers -o custom-columns=NAME:metadata.name)
+    do
+        mkdir -p ${LOG_DIR}/cassandra/${pod}
+        kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod} -c cassandra -- nodetool info | sed 's/$/\r/' > ${LOG_DIR}/cassandra/${pod}/nodetool_info.log
+        kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod} -c cassandra -- nodetool status | sed 's/$/\r/' > ${LOG_DIR}/cassandra/${pod}/nodetool_status.log
+        kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod} -c cassandra -- nodetool getcompactionthroughput | sed 's/$/\r/' > ${LOG_DIR}/cassandra/${pod}/nodetool_getcompactionthroughput.log
+        kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod} -c cassandra -- nodetool cfstats | sed 's/$/\r/' > ${LOG_DIR}/cassandra/${pod}/nodetool_cfstats.log
+        kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod} -c cassandra -- nodetool cfhistograms draios message_data10 | sed 's/$/\r/' > ${LOG_DIR}/cassandra/${pod}/nodetool_cfhistograms.log
+        kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod} -c cassandra -- nodetool proxyhistograms | sed 's/$/\r/' > ${LOG_DIR}/cassandra/${pod}/nodetool_proxyhistograms.log
+        kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod} -c cassandra -- nodetool tpstats | sed 's/$/\r/' > ${LOG_DIR}/cassandra/${pod}/nodetool_tpstats.log
+        kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod} -c cassandra -- nodetool compactionstats | sed 's/$/\r/' > ${LOG_DIR}/cassandra/${pod}/nodetool_compactionstats.log
+    done
+}
+
+collect_cassandra_storage() {
+    for pod in $(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get pods -l role=cassandra --no-headers -o custom-columns=NAME:metadata.name)
+    do
+        echo "Checking Used Cassandra Storage - ${pod}"
+        mkdir -p ${LOG_DIR}/cassandra/${pod}
+        printf "${pod}\n" > ${LOG_DIR}/cassandra/${pod}/cassandra_storage.log
+        mountpath=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get sts sysdigcloud-cassandra -ojsonpath='{.spec.template.spec.containers[].volumeMounts[?(@.name == "data")].mountPath}')
+        if [ ! -z $mountpath ]; then
+            kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod} -c cassandra -- du -ch ${mountpath} | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' >> ${LOG_DIR}/cassandra/${pod}/cassandra_storage.log || true
+       else
+          printf "Error getting Cassandra ${pod} mount path\n" >> ${LOG_DIR}/cassandra/${pod}/cassandra_storage.log
+       fi
+    done
+}
+
+collect_elasticsearch_stats() {
+    echo "Fetching Elasticsearch health info"
+    ELASTIC_POD=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get pods -l role=elasticsearch --no-headers -o custom-columns=NAME:metadata.name | head -1) || true
+
+    if [ ! -z ${ELASTIC_POD} ]; then
+        ELASTIC_IMAGE=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get pod ${ELASTIC_POD} -ojsonpath='{.spec.containers[?(@.name == "elasticsearch")].image}' | awk -F '/' '{print $NF}' | cut -f 1 -d ':') || true
+
+        if [[ ${ELASTIC_IMAGE} == "opensearch"* ]]; then
+            CERTIFICATE_DIRECTORY="/usr/share/opensearch/config"
+            ELASTIC_TLS="true"
+        else
+            CERTIFICATE_DIRECTORY="/usr/share/elasticsearch/config"
+            ELASTIC_TLS=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${ELASTIC_POD} -c elasticsearch -- env | grep -i ELASTICSEARCH_TLS_ENCRYPTION) || true
+            if [[ ${ELASTIC_TLS} == *"ELASTICSEARCH_TLS_ENCRYPTION=true"* ]]; then
+                ELASTIC_TLS="true"
+            fi
+        fi
+
+        if [[ ${ELASTIC_TLS} == "true" ]]; then
+            ELASTIC_CURL="curl -s --cacert ${CERTIFICATE_DIRECTORY}/root-ca.pem https://\${ELASTICSEARCH_ADMINUSER}:\${ELASTICSEARCH_ADMIN_PASSWORD}@\$(hostname):9200"
+        else
+            ELASTIC_CURL='curl -s -k http://$(hostname):9200'
+        fi
+
+        for pod in $(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get pods -l role=elasticsearch --no-headers -o custom-columns=NAME:metadata.name)
+        do
+            mkdir -p ${LOG_DIR}/elasticsearch/${pod}
+
+            kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}/_cat/health" > ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_health.log || true
+            kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}/_cat/indices" > ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_indices.log || true
+            kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}/_cat/nodes?v" > ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_nodes.log || true
+            kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}/_cluster/allocation/explain?pretty" > ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_index_allocation.log || true
+
+            echo "Fetching ElasticSearch SSL Certificate Expiration Dates"
+            kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod}  -c elasticsearch -- openssl x509 -in ${CERTIFICATE_DIRECTORY}/node.pem -noout -enddate > ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_node_pem_expiration.log || true
+            kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod}  -c elasticsearch -- openssl x509 -in ${CERTIFICATE_DIRECTORY}/admin.pem -noout -enddate > ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_admin_pem_expiration.log || true
+            kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod}  -c elasticsearch -- openssl x509 -in ${CERTIFICATE_DIRECTORY}/root-ca.pem -noout -enddate > ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_root_ca_pem_expiration.log || true
+
+            echo "Fetching Elasticsearch Index Versions"
+            kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod} -c elasticsearch -- bash -c "${ELASTIC_CURL}/_all/_settings/index.version\*?pretty" > ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_index_versions.log || true
+
+            echo "Checking Used Elasticsearch Storage - ${pod}"
+            mountpath=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get sts sysdigcloud-elasticsearch -ojsonpath='{.spec.template.spec.containers[].volumeMounts[?(@.name == "data")].mountPath}')
+            if [ ! -z $mountpath ]; then
+               kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod} -c elasticsearch -- du -ch ${mountpath} | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' > ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_storage.log || true
+           else
+              printf "Error getting ElasticSearch ${pod} mount path\n" > ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_storage.log
+           fi
+        done
+    else
+        echo "Unable to fetch ElasticSearch pod to gather health info!"
+    fi
+}
+
+collect_postgresql_storage() {
+    for pod in $(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get pods -l role=postgresql --no-headers -o custom-columns=NAME:metadata.name)
+    do
+        echo "Checking Used PostgreSQL Storage - ${pod}"
+        mkdir -p ${LOG_DIR}/postgresql/${pod}
+        printf "${pod}\n" > ${LOG_DIR}/postgresql/${pod}/postgresql_storage.log
+        kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod} -c postgresql -- du -ch /var/lib/postgresql | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' >> ${LOG_DIR}/postgresql/${pod}/postgresql_storage.log || true
+    done
+}
+
+collect_kafka_storage() {
+    for pod in $(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get pods -l role=cp-kafka --no-headers -o custom-columns=NAME:metadata.name)
+    do
+        echo "Checking Used Kafka Storage - ${pod}"
+        mkdir -p ${LOG_DIR}/kafka/${pod}
+        printf "${pod}\n" > ${LOG_DIR}/kafka/${pod}/kafka_storage.log
+        kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod} -c broker -- du -ch /opt/kafka/data | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' >> ${LOG_DIR}/kafka/${pod}/kafka_storage.log || true
+    done
+}
+
+collect_zookeeper_storage() {
+    for pod in $(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get pods -l role=zookeeper --no-headers -o custom-columns=NAME:metadata.name)
+    do
+        echo "Checking Used Zookeeper Storage - ${pod}"
+        mkdir -p ${LOG_DIR}/zookeeper/${pod}
+        printf "${pod}\n" > ${LOG_DIR}/zookeeper/${pod}/zookeeper_storage.log
+        kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod} -c server -- du -ch /var/lib/zookeeper/data | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' >> ${LOG_DIR}/zookeeper/${pod}/zookeeper_storage.log || true
+    done
+}
+
+collect_neo4j_stats() {
+    echo "Fetching Neo4j health info"
+
+    INGESTION_ADMIN_PASSWORD=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get secret neo4jdb-user-secrets \
+        -o jsonpath='{.data.INGESTION_ADMIN_PASSWORD}' 2>/dev/null | base64 -d 2>/dev/null) || true
+    if [ -z "${INGESTION_ADMIN_PASSWORD}" ]; then
+        INGESTION_ADMIN_PASSWORD=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get secret neo4j-user-secrets \
+            -o jsonpath='{.data.INGESTION_ADMIN_PASSWORD}' 2>/dev/null | base64 -d 2>/dev/null) || true
+    fi
+    if [ -z "${INGESTION_ADMIN_PASSWORD}" ]; then
+       mkdir -p "${LOG_DIR}/neo4j"
+    echo "Skipping Neo4j cypher-shell checks: unable to retrieve ingestion_admin password from secrets" \
+      > "${LOG_DIR}/neo4j/neo4j_cypher_status_skipped.log"
+    return 0
+    fi
+
+    NEO4J_CYPHER_SHELL="cypher-shell -a neo4j+ssc://neo4j-internals.${NAMESPACE}.svc.cluster.local:7687 -u ingestion_admin -p ${INGESTION_ADMIN_PASSWORD}"
+
+    for pod in $(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get pods -l app=neo4j-cluster --no-headers -o custom-columns=NAME:metadata.name)
+    do
+        mkdir -p ${LOG_DIR}/neo4j/${pod}
+        kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod} -c neo4j -- bash -c "${NEO4J_CYPHER_SHELL} 'SHOW SERVERS;'" > ${LOG_DIR}/neo4j/${pod}/cypher_show_servers.txt || true
+        kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod} -c neo4j -- bash -c "${NEO4J_CYPHER_SHELL} 'SHOW DATABASES;'" > ${LOG_DIR}/neo4j/${pod}/cypher_show_databases.txt || true
+    done
+}
+
+run_bg() {
+    # Run a command in the background with output redirection.
+    # Per-job stdout/stderr are preserved under ${LOG_DIR}/_background_jobs/
+    # so they ship in the final support bundle for post-hoc debugging.
+    # The command and its args are passed directly via "$@" — no eval — so
+    # callers should pass args unquoted (e.g. `run_bg "name" my_fn arg1 arg2`,
+    # not `run_bg "name" "my_fn arg1 arg2"`).
+    local jobname="$1"
+    shift
+
+    local bg_log_dir="${LOG_DIR}/_background_jobs"
+    mkdir -p "${bg_log_dir}"
+    local stdout_file="${bg_log_dir}/${jobname}.out"
+    local stderr_file="${bg_log_dir}/${jobname}.err"
+
+    (
+        "$@" > "$stdout_file" 2> "$stderr_file"
+    ) &
+
+    BACKGROUND_PIDS+=($!)
+}
+
+throttle() {
+    # Ensure no more than MAX_JOBS are running concurrently.
+    # Poll only — do not call `wait -n` here. If throttle reaped a tracked
+    # background job, wait_all would later wait on its already-reaped PID,
+    # which is unreliable across bash versions and can confuse failure
+    # reporting. Leaving wait_all as the sole reaper keeps the PID lifecycle
+    # simple and exit statuses observable.
+    while [ $(jobs -pr | wc -l) -ge $MAX_JOBS ]; do
+        sleep 0.1
+    done
+}
+
+wait_all() {
+    # Wait for all background jobs to complete
+    # Track failures but don't exit (maintain current error tolerance)
+
+    for pid in "${BACKGROUND_PIDS[@]}"; do
+        if wait $pid; then
+            :
+        else
+            local exit_code=$?
+            BACKGROUND_FAIL=1
+            echo "Warning: Background job (PID $pid) failed with exit code $exit_code" >&2
+        fi
+    done
+
+    # Reset the PID array for next phase. Per-job .out/.err files are
+    # intentionally retained under ${LOG_DIR}/_background_jobs/ so they ship
+    # in the final tarball.
+    BACKGROUND_PIDS=()
 }
 
 main() {
@@ -348,33 +614,36 @@ main() {
     echo "Using namespace ${NAMESPACE}"
     echo "Using context ${CONTEXT}"
 
-    # Collect kubectl cluster dump
+    # Collect kubectl cluster dump (run in background)
     CLUSTER_DUMP_DIR="${LOG_DIR}/kubectl-cluster-dump"
     mkdir -p ${CLUSTER_DUMP_DIR}
-    kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} cluster-info dump --output-directory=${CLUSTER_DUMP_DIR}
+    echo "Starting cluster-info dump in background"
+    run_bg "cluster-info-dump" kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} cluster-info dump --output-directory=${CLUSTER_DUMP_DIR}
 
-    # Collect container logs for each pod
+    # Collect container logs for each pod (parallelized per container)
     if [[ "${SKIP_LOGS}" == "false" ]]; then
-        echo "Gathering Logs from ${NAMESPACE} pods"
-        command='tar czf - /logs/ /opt/draios/ /var/log/sysdigcloud/ /var/log/cassandra/ /tmp/redis.log /var/log/redis-server/redis.log /var/log/mysql/error.log /opt/prod.conf 2>/dev/null || true'
+        echo "Gathering Logs from ${NAMESPACE} pods (parallelized)"
+
+        # Phase 1: Serial discovery - create directories and get container lists
         for pod in ${SYSDIGCLOUD_PODS}; do
-            echo "Getting support logs for ${pod}"
             mkdir -p ${LOG_DIR}/pod_logs/${pod}
+        done
+
+        # Phase 2: Parallel collection - launch background jobs per container
+        for pod in ${SYSDIGCLOUD_PODS}; do
+            echo "Scheduling log collection for ${pod}"
             containers=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get pod ${pod} -o json | jq -r '.spec.containers[].name' || echo "")
             for container in ${containers}; do
-                kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} logs ${pod} -c ${container} ${SINCE_OPTS} > ${LOG_DIR}/pod_logs/${pod}/${container}-kubectl-logs.txt || true
-                echo "Execing into ${container}"
-                kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod} -c ${container} -- bash -c "echo" >/dev/null 2>&1 && RETVAL=$? || RETVAL=$? && true
-                kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod} -c ${container} -- sh -c "echo" >/dev/null 2>&1 && RETVAL1=$? || RETVAL1=$? && true
-                if [ $RETVAL -eq 0 ]; then
-                    kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod} -c ${container} -- bash -c "${command}" > ${LOG_DIR}/pod_logs/${pod}/${container}-support-files.tgz || true
-                elif [ $RETVAL1 -eq 0 ]; then
-                    kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod} -c ${container} -- sh -c "${command}" > ${LOG_DIR}/pod_logs/${pod}/${container}-support-files.tgz || true
-                else
-                    echo "Skipping log gathering for ${pod}"
-                fi
+                echo "  - Launching background job for ${pod}/${container}"
+                run_bg "pod-${pod}-${container}" collect_container_logs "${pod}" "${container}"
+                throttle
             done
         done
+
+        # Wait for all container log collection to complete
+        echo "Waiting for all container log collection jobs to complete..."
+        wait_all
+        echo "Container log collection complete"
     fi
 
     echo "Gathering pod descriptions"
@@ -388,12 +657,25 @@ main() {
     echo "Collecting node information"
     kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} describe nodes | tee -a ${LOG_DIR}/describe_node_output.log || echo "No permission to describe nodes!"
 
+    # Collect per-node JSON manifests (parallelized)
     NODES=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get nodes --no-headers -o custom-columns=NAME:metadata.name) && RETVAL=0 || { RETVAL=$? && echo "No permission to get nodes!"; }
     if [[ "${RETVAL}" == "0" ]]; then
+        # Pre-create nodes directory
         mkdir -p ${LOG_DIR}/nodes
+
+        # Launch parallel collection for each node
+        echo "Scheduling node manifest collection (parallelized)"
         for node in ${NODES[@]}; do
-            kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get node ${node} -ojson > ${LOG_DIR}/nodes/${node}-kubectl.json
+            echo "  - Launching background job for node ${node}"
+            run_bg "node-${node}" collect_node_info "${node}"
+            throttle
         done
+
+        # Wait for all node collection to complete
+        echo "Waiting for all node collection jobs to complete..."
+        wait_all
+        echo "Node collection complete"
+
         unset RETVAL
     fi
 
@@ -403,19 +685,29 @@ main() {
     kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get storageclass | tee -a ${LOG_DIR}/sc_output.log || echo "No permission to get StorageClasses"
 
     # Get info on deployments, statefulsets, persistentVolumeClaims, daemonsets, ingresses, ocp routes and pod distruption budgets
-    echo "Gathering Manifest Information"
+    echo "Gathering Manifest Information (parallelized)"
     objects=("svc" "deployment" "sts" "pvc" "daemonset" "ingress" "replicaset" "networkpolicy" "cronjob" "configmap" "pdb")
     # Check within API server if "routes" api resource is available (in order to gather ingresses on OCP)
     if $(kubectl api-resources | grep -q "routes"); then
         objects+=("routes")
     fi
+
+    # Pre-create directories for all resource types
     for object in "${objects[@]}"; do
-        items=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get ${object} -o jsonpath="{.items[*]['metadata.name']}")
         mkdir -p ${LOG_DIR}/${object}
-        for item in ${items}; do
-            kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get ${object} ${item} -o json > ${LOG_DIR}/${object}/${item}-kubectl.json
-        done
     done
+
+    # Launch parallel collection for each resource type
+    for object in "${objects[@]}"; do
+        echo "Scheduling manifest collection for ${object}"
+        run_bg "manifests-${object}" collect_resource_manifests "${object}"
+        throttle
+    done
+
+    # Wait for all manifest collection to complete
+    echo "Waiting for all manifest collection jobs to complete..."
+    wait_all
+    echo "Manifest collection complete"
 
     # Fetch container density information
     num_nodes=0
@@ -441,131 +733,42 @@ main() {
     printf "Running Containers: ${num_running_containers}\n" >> ${LOG_DIR}/container_density.txt
     printf "Containers: ${num_total_containers}\n" >> ${LOG_DIR}/container_density.txt
 
-    # Fetch Cassandra Nodetool output
-    echo "Fetching Cassandra statistics"
-    for pod in $(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get pod -l role=cassandra --no-headers -o custom-columns=NAME:metadata.name)
-    do
-        mkdir -p ${LOG_DIR}/cassandra/${pod}
-        kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec -it ${pod} -c cassandra -- nodetool info | tee -a ${LOG_DIR}/cassandra/${pod}/nodetool_info.log
-        kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec -it ${pod} -c cassandra -- nodetool status | tee -a ${LOG_DIR}/cassandra/${pod}/nodetool_status.log
-        kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec -it ${pod} -c cassandra -- nodetool getcompactionthroughput | tee -a ${LOG_DIR}/cassandra/${pod}/nodetool_getcompactionthroughput.log
-        kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec -it ${pod} -c cassandra -- nodetool cfstats | tee -a ${LOG_DIR}/cassandra/${pod}/nodetool_cfstats.log
-        kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec -it ${pod} -c cassandra -- nodetool cfhistograms draios message_data10 | tee -a ${LOG_DIR}/cassandra/${pod}/nodetool_cfhistograms.log
-        kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec -it ${pod} -c cassandra -- nodetool proxyhistograms | tee -a ${LOG_DIR}/cassandra/${pod}/nodetool_proxyhistograms.log
-        kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec -it ${pod} -c cassandra -- nodetool tpstats | tee -a ${LOG_DIR}/cassandra/${pod}/nodetool_tpstats.log
-        kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec -it ${pod} -c cassandra -- nodetool compactionstats | tee -a ${LOG_DIR}/cassandra/${pod}/nodetool_compactionstats.log
-    done
+    # Fetch Cassandra Nodetool output (run in background)
+    run_bg "cassandra-stats" collect_cassandra_stats
+    throttle
 
-    echo "Fetching Elasticsearch health info"
-    # CHECK HERE IF THE TLS ENV VARIABLE IS SET IN ELASTICSEARCH, AND BUILD THE CURL COMMAND OUT
-    ELASTIC_POD=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get pods -l role=elasticsearch --no-headers -o custom-columns=NAME:metadata.name | head -1) || true
+    # Fetch Elasticsearch health info (run in background)
+    run_bg "elasticsearch-stats" collect_elasticsearch_stats
+    throttle
 
-    if [ ! -z ${ELASTIC_POD} ]; then
-        ELASTIC_IMAGE=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get pod ${ELASTIC_POD} -ojsonpath='{.spec.containers[?(@.name == "elasticsearch")].image}' | awk -F '/' '{print $NF}' | cut -f 1 -d ':') || true
+    # Fetch Neo4j health info (run in background)
+    run_bg "neo4j-stats" collect_neo4j_stats
+    throttle
 
-        if [[ ${ELASTIC_IMAGE} == "opensearch"* ]]; then
-            CERTIFICATE_DIRECTORY="/usr/share/opensearch/config"
-            ELASTIC_TLS="true"
-        else
-            CERTIFICATE_DIRECTORY="/usr/share/elasticsearch/config"
-            ELASTIC_TLS=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${ELASTIC_POD} -c elasticsearch -- env | grep -i ELASTICSEARCH_TLS_ENCRYPTION) || true
-            if [[ ${ELASTIC_TLS} == *"ELASTICSEARCH_TLS_ENCRYPTION=true"* ]]; then
-                ELASTIC_TLS="true"
-            fi
-        fi
+    # Fetch Cassandra storage info (run in background)
+    run_bg "cassandra-storage" collect_cassandra_storage
+    throttle
 
-        if [[ ${ELASTIC_TLS} == "true" ]]; then
-            ELASTIC_CURL="curl -s --cacert ${CERTIFICATE_DIRECTORY}/root-ca.pem https://\${ELASTICSEARCH_ADMINUSER}:\${ELASTICSEARCH_ADMIN_PASSWORD}@\$(hostname):9200"
-        else
-            ELASTIC_CURL='curl -s -k http://$(hostname):9200'
-        fi
+    # Fetch postgresql storage info (run in background)
+    run_bg "postgresql-storage" collect_postgresql_storage
+    throttle
 
-        for pod in $(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get pods -l role=elasticsearch --no-headers -o custom-columns=NAME:metadata.name)
-        do
-            mkdir -p ${LOG_DIR}/elasticsearch/${pod}
+    # Fetch kafka storage info (run in background)
+    run_bg "kafka-storage" collect_kafka_storage
+    throttle
 
-            kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}/_cat/health" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_health.log || true
-
-            kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}/_cat/indices" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_indices.log || true
-
-            kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}/_cat/nodes?v" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_nodes.log || true
-
-            kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod}  -c elasticsearch -- /bin/bash -c "${ELASTIC_CURL}/_cluster/allocation/explain?pretty" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_index_allocation.log || true
-
-            echo "Fetching ElasticSearch SSL Certificate Expiration Dates"
-            kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod}  -c elasticsearch -- openssl x509 -in ${CERTIFICATE_DIRECTORY}/node.pem -noout -enddate | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_node_pem_expiration.log || true
-            kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod}  -c elasticsearch -- openssl x509 -in ${CERTIFICATE_DIRECTORY}/admin.pem -noout -enddate | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_admin_pem_expiration.log || true
-            kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod}  -c elasticsearch -- openssl x509 -in ${CERTIFICATE_DIRECTORY}/root-ca.pem -noout -enddate | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_root_ca_pem_expiration.log || true
-
-
-            echo "Fetching Elasticsearch Index Versions"
-            kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod} -c elasticsearch -- bash -c "${ELASTIC_CURL}/_all/_settings/index.version\*?pretty" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_index_versions.log || true
-
-            echo "Checking Used Elasticsearch Storage - ${pod}"
-            mountpath=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get sts sysdigcloud-elasticsearch -ojsonpath='{.spec.template.spec.containers[].volumeMounts[?(@.name == "data")].mountPath}')
-            if [ ! -z $mountpath ]; then
-               kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec ${pod} -c elasticsearch -- du -ch ${mountpath} | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_storage.log || true
-           else
-              printf "Error getting ElasticSearch ${pod} mount path\n" | tee -a ${LOG_DIR}/elasticsearch/${pod}/elasticsearch_storage.log
-           fi
-        done
-    else
-        echo "Unable to fetch ElasticSearch pod to gather health info!"
-    fi
-
-    # Fetch Cassandra storage info
-    for pod in $(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get pods -l role=cassandra --no-headers -o custom-columns=NAME:metadata.name)
-    do
-        echo "Checking Used Cassandra Storage - ${pod}"
-        mkdir -p ${LOG_DIR}/cassandra/${pod}
-        printf "${pod}\n" | tee -a ${LOG_DIR}/cassandra/${pod}/cassandra_storage.log
-        mountpath=$(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get sts sysdigcloud-cassandra -ojsonpath='{.spec.template.spec.containers[].volumeMounts[?(@.name == "data")].mountPath}')
-        if [ ! -z $mountpath ]; then
-            kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec -it ${pod} -c cassandra -- du -ch ${mountpath} | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' | tee -a ${LOG_DIR}/cassandra/${pod}/cassandra_storage.log || true
-       else
-          printf "Error getting Cassandra ${pod} mount path\n" | tee -a ${LOG_DIR}/cassandra/${pod}/cassandra_storage.log
-       fi
-    done
-
-    # Fetch postgresql storage info
-    for pod in $(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get pods -l role=postgresql --no-headers -o custom-columns=NAME:metadata.name)
-    do
-        echo "Checking Used PostgreSQL Storage - ${pod}"
-        mkdir -p ${LOG_DIR}/postgresql/${pod}
-        printf "${pod}\n" | tee -a ${LOG_DIR}/postgresql/${pod}/postgresql_storage.log
-        kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec -it ${pod} -c postgresql -- du -ch /var/lib/postgresql | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' | tee -a ${LOG_DIR}/postgresql/${pod}/postgresql_storage.log || true
-    done
-
-    # Fetch mysql storage info
-    for pod in $(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get pods -l role=mysql --no-headers -o custom-columns=NAME:metadata.name)
-    do
-        echo "Checking Used MySQL Storage - ${pod}"
-        mkdir -p ${LOG_DIR}/mysql/${pod}
-        printf "${pod}\n" | tee -a ${LOG_DIR}/mysql/${pod}/mysql_storage.log
-        kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec -it ${pod} -c mysql -- du -ch /var/lib/mysql | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' | tee -a ${LOG_DIR}/mysql/${pod}/mysql_storage.log || true
-    done
-
-    # Fetch kafka storage info
-    for pod in $(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get pods -l role=cp-kafka --no-headers -o custom-columns=NAME:metadata.name)
-    do
-        echo "Checking Used Kafka Storage - ${pod}"
-        mkdir -p ${LOG_DIR}/kafka/${pod}
-        printf "${pod}\n" | tee -a ${LOG_DIR}/kafka/${pod}/kafka_storage.log
-        kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec -it ${pod} -c broker -- du -ch /opt/kafka/data | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' | tee -a ${LOG_DIR}/kafka/${pod}/kafka_storage.log || true
-    done
-
-    # Fetch zookeeper storage info
-    for pod in $(kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get pods -l role=zookeeper --no-headers -o custom-columns=NAME:metadata.name)
-    do
-        echo "Checking Used Zookeeper Storage - ${pod}"
-        mkdir -p ${LOG_DIR}/zookeeper/${pod}
-        printf "${pod}\n" | tee -a ${LOG_DIR}/zookeeper/${pod}/zookeeper_storage.log
-        kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} exec -it ${pod} -c server -- du -ch /var/lib/zookeeper/data | grep -i total | awk '{printf "%-13s %10s\n",$1,$2}' | tee -a ${LOG_DIR}/zookeeper/${pod}/zookeeper_storage.log || true
-    done
+    # Fetch zookeeper storage info (run in background)
+    run_bg "zookeeper-storage" collect_zookeeper_storage
+    throttle
 
     # Collect the sysdigcloud-config configmap, and write to the log directory
     echo "Fetching the sysdigcloud-config ConfigMap"
     kubectl ${CONTEXT_OPTS} ${KUBE_OPTS} get configmap sysdigcloud-config -o yaml | grep -v password | grep -v apiVersion > ${LOG_DIR}/config.yaml || true
+
+    # Wait for all background jobs to complete before creating tarball
+    echo "Waiting for all background collection jobs to complete..."
+    wait_all
+    echo "All background jobs completed"
 
     # Generate the bundle name, create a tarball, and remove the temp log directory
     BUNDLE_NAME=$(date +%s)_sysdig_cloud_support_bundle.tgz
