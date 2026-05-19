@@ -277,6 +277,8 @@ function getLogs()
   log_activity "Starting getLogs (namespace: $namespace, pod: ${podName:-ALL})"
   local csAttempt=0
   local drAgentAttempt=0
+  local cpError
+  local cpDrAgentError
   if [[ -z $podName ]]; then
     printf "Getting all sysdig logs, this could take a while\n"
     for pod in $(awk '{print $1}' < "$DEST_DIR/$SYSDIG_SUPPORT_DIR/running_pods.txt"); do
@@ -284,13 +286,13 @@ function getLogs()
         printf "Getting log of pod %s \n" "$pod"
         log_activity "Attempting log collection for pod $pod"
         mkdir -p $DEST_DIR/$SYSDIG_SUPPORT_DIR/logs/$pod
-        $k8sCmd -n $namespace cp $pod:${AGENT_LOG_DIR}. $DEST_DIR/$SYSDIG_SUPPORT_DIR/logs/$pod --retries=$AGENT_CP_RETRY 2>/dev/null
+        cpError=$($k8sCmd -n $namespace cp $pod:${AGENT_LOG_DIR}. $DEST_DIR/$SYSDIG_SUPPORT_DIR/logs/$pod --retries=$AGENT_CP_RETRY 2>&1)
         # Exit code 1 is allowed because tar (used by kubectl cp) returns 1 
         # when a file (like a log) changes during the read process.
         if [[ $? -eq 0 || $? -eq 1 ]] ; then
-          log_activity "Copied agent log files for pod $pod."
+          log_activity "Copied agent log files for pod $pod. ${cpError:-} "
         else
-          log_activity "ERROR: Failed to copy logs for pod $pod (possibly recycled)."
+          log_activity "ERROR: Failed to copy logs for pod $pod. Reason: $cpError"
           trackPodError "$pod"
         fi
         if [[ $CS_POD_IP != "" && $csAttempt -eq 0 ]]; then
@@ -300,8 +302,8 @@ function getLogs()
         fi
         if [[ $drAgentAttempt -eq 0 ]]; then
           log_activity "Getting dragent.yaml from pod $pod"
-          $k8sCmd -n $namespace cp $pod:$AGENT_DRAGENT_DIR/dragent.yaml $DEST_DIR/$SYSDIG_SUPPORT_DIR/dragent.yaml 2>/dev/null
-          log_activity "Getting dragent.yaml from pod $pod completed!"
+          cpDrAgentError=$($k8sCmd -n $namespace cp $pod:$AGENT_DRAGENT_DIR/dragent.yaml $DEST_DIR/$SYSDIG_SUPPORT_DIR/dragent.yaml 2>&1)
+          log_activity "Getting dragent.yaml from pod $pod completed! ${cpDrAgentError:-}"
           ((drAgentAttempt++))
         fi
       elif [[ -n "$SYSDIG_CS_PREFIX" ]] && [[ $pod =~ $SYSDIG_CS_PREFIX  ]]; then
@@ -348,17 +350,18 @@ function getLogs()
     if [[ $podName =~ $SYSDIG_AGENT_PREFIX ]]; then
       printf "Collecting log for pod %s\n" "$podName"
       mkdir -p $DEST_DIR/$SYSDIG_SUPPORT_DIR/logs/$podName
-      $k8sCmd -n $namespace cp $podName:${AGENT_LOG_DIR}. $DEST_DIR/$SYSDIG_SUPPORT_DIR/logs/$podName --retries=$AGENT_CP_RETRY 2>/dev/null
+      cpError=$($k8sCmd -n $namespace cp $podName:${AGENT_LOG_DIR}. $DEST_DIR/$SYSDIG_SUPPORT_DIR/logs/$podName --retries=$AGENT_CP_RETRY 2>&1)
       # Exit code 1 is allowed because tar (used by kubectl cp) returns 1 
       # when a file (like a log) changes during the read process.
       if [[ $? -eq 0 || $? -eq 1  ]]; then
         printf "Log collected for pod %s\n" "$podName"
-        log_activity "Collected agent log for pod $podName "
+        log_activity "Collected agent log for pod $podName. ${cpError:-} "
       else
-        log_activity "ERROR: Failed to collect agent log for pod $podName (possibly recycled)."
+        log_activity "ERROR: Failed to collect agent log for pod $podName. Reason: ${cpError:-}."
         trackPodError "$podName"
       fi
-      $k8sCmd -n $namespace cp $podName:$AGENT_DRAGENT_DIR/dragent.yaml $DEST_DIR/$SYSDIG_SUPPORT_DIR/dragent.yaml 2>/dev/null
+      cpDrAgentError=$($k8sCmd -n $namespace cp $podName:$AGENT_DRAGENT_DIR/dragent.yaml $DEST_DIR/$SYSDIG_SUPPORT_DIR/dragent.yaml 2>&1)
+      log_activity "Getting dragent.yaml from pod $podName completed! ${cpDrAgentError:-}"
     elif [[ $podName =~ $SYSDIG_CS_PREFIX ]]; then
       printf "Collecting log for pod %s\n" "$podName"
       mkdir -p $DEST_DIR/$SYSDIG_SUPPORT_DIR/logs/$SYSDIG_CS_DIR
