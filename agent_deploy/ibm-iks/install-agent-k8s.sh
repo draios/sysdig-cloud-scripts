@@ -1,1 +1,0 @@
-../IBMCloud-Kubernetes-Service/install-agent-k8s.sh
