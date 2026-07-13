@@ -31,6 +31,7 @@ function initVar()
   ARCHIVE_NAME="support-util-${CURR_DATE}.tar.gz"
   
   #DO NOT CHANGE THE SECTION BELOW, UNLESS YOU'RE USING CUSTOM NAMES
+  SCRIPT_VERSION="1.0"
   SYSDIG_KSPM_IMAGE_NAME="kspm-analyzer"
   SYSDIG_HS_IMAGE_NAME="host-scanner"
   SYSDIG_RS_IMAGE_NAME="runtime-scanner"
@@ -85,6 +86,7 @@ function initVar()
   export IS_AIRGAPPED
 
   printf "All the data will be saved using the path %s \n" "$DEST_DIR/$SYSDIG_SUPPORT_DIR"
+  log_activity "Starting support_util, version $SCRIPT_VERSION"
   log_activity "Data directory set to $DEST_DIR/$SYSDIG_SUPPORT_DIR"
   printf "Please put your executable to access your k8s cluster, kubectl or oc\n"
   read k8sCmd
