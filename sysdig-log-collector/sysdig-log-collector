@@ -5,7 +5,15 @@
 # ─────────────────────────────────────────────
 # SemVer. Bump on release; the git tag (vX.Y.Z) mirrors this value. Surfaced
 # by the `version` command and printed under the interactive banner.
-SLC_VERSION="1.0.1"
+SLC_VERSION="1.1.2"
+
+# Canonical download location for the `upgrade` command — fixed to the official
+# repo (master publishes only the latest script). This is both the update source
+# and the URL printed in the air-gapped (manual download) instructions. It is
+# intentionally a constant, NOT configurable: letting the environment redirect
+# where the self-updater fetches from would be a supply-chain risk (the integrity
+# gate checks the file is a valid script, not that it is authentic).
+SLC_UPGRADE_URL="https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/master/sysdig-log-collector/sysdig-log-collector"
 
 function display_banner() {
   local term_width
@@ -30,7 +38,25 @@ function display_banner() {
   local ver_len=${#ver}
   local ver_pad=$(( (term_width - ver_len) / 2 ))
   [[ $ver_pad -lt 0 ]] && ver_pad=0
-  printf "%${ver_pad}s\033[2m%s\033[0m\n\n" "" "$ver"
+  printf "%${ver_pad}s\033[2m%s\033[0m\n" "" "$ver"
+
+  # Update notice on its own line under the badge, so the version itself stays
+  # centered and legible (it's what a support engineer reads off a screenshot).
+  # Only ever printed when a newer version exists — see _update_notice. Yellow,
+  # not green: being behind isn't success. ASCII "->" only: ${#str} counts
+  # characters but printf pads by BYTES, so a multi-byte arrow here would sit
+  # visibly off-centre. The probe starts on the first draw (interactive startup)
+  # and the answer is normally ready by the second (after the disclaimer).
+  _start_update_check
+  _update_notice                 # sets UPDATE_NOTICE; never call it in a subshell
+  local _upd_len _upd_pad
+  if [[ -n "$UPDATE_NOTICE" ]]; then
+    _upd_len=${#UPDATE_NOTICE}
+    _upd_pad=$(( (term_width - _upd_len) / 2 ))
+    [[ $_upd_pad -lt 0 ]] && _upd_pad=0
+    printf "%${_upd_pad}s\033[0;33m%s\033[0m\n" "" "$UPDATE_NOTICE"
+  fi
+  printf "\n"
 }
 
 # ─────────────────────────────────────────────
@@ -92,6 +118,10 @@ MONITOR_API_KEY=""
 SECURE_API_KEY=""
 API_URL=""
 API_PORTFORWARD_PID=""
+UPGRADE_TMP_FILE=""            # Phase 3 `upgrade`: path of the in-flight downloaded candidate script, published here so _cleanup_on_signal can remove it if the user interrupts between the download and the install. Cleared the moment the file is installed, removed, or intentionally retained for the manual-sudo fallback.
+UPDATE_CHECK_FILE=""           # Interactive only: temp file the BACKGROUND version probe writes the remote SLC_VERSION into. Read once and removed by _update_notice; also reaped by _cleanup_on_signal.
+UPDATE_CHECK_PID=""            # PID of that background probe — lets _update_notice tell "still running" apart from "finished with nothing".
+UPDATE_NOTICE=""               # Cached notice text, so the version comparison happens once per process no matter how often the banner is drawn.
 REQUESTING_TEAM=""
 
 # Parallel execution config (matches legacy v2 defaults; cap 16 protects the
@@ -1777,6 +1807,25 @@ function _cleanup_on_signal() {
   MONITOR_API_KEY=""
   SECURE_API_KEY=""
 
+  # Discard a half-finished `upgrade` download (Phase 3 only). Unlike collected
+  # output, this temp file is worthless on its own — it was never validated or
+  # installed — so it is removed rather than preserved. Silent by design: it is
+  # not user-visible state, so it stays out of the interrupt summary below.
+  if [[ -n "$UPGRADE_TMP_FILE" ]]; then
+    rm -f "$UPGRADE_TMP_FILE"
+    UPGRADE_TMP_FILE=""
+  fi
+
+  # Same for the interactive update probe: stop it and drop its scratch file.
+  if [[ -n "$UPDATE_CHECK_PID" ]]; then
+    kill "$UPDATE_CHECK_PID" 2>/dev/null
+    UPDATE_CHECK_PID=""
+  fi
+  if [[ -n "$UPDATE_CHECK_FILE" ]]; then
+    rm -f "$UPDATE_CHECK_FILE"
+    UPDATE_CHECK_FILE=""
+  fi
+
   # Tell the user where the partial output lives. Files on disk (activity.log,
   # config artifacts, per-pod logs collected before the interrupt) are
   # preserved on purpose — same convention as kubectl / tar / docker. Only
@@ -2139,7 +2188,7 @@ function _setup_platform_workdir() {
 }
 
 function automatic_platform_collector() {
-  trap 'stop_platform_portforward; trap - INT TERM RETURN' RETURN
+  trap 'stop_platform_portforward; trap - RETURN' RETURN
   prepare_platform_context || return 1
 
   _populate_sysdigcloud_pods
@@ -3018,7 +3067,7 @@ function _manual_summary_confirm() {
 }
 
 function manual_platform_collector() {
-  trap 'stop_platform_portforward; trap - INT TERM RETURN' RETURN
+  trap 'stop_platform_portforward; trap - RETURN' RETURN
 
   prepare_platform_context || return 1
 
@@ -4187,7 +4236,7 @@ function collectArtifactsNamespaceOnly() {
 function _upload_archive_to_s3() {
   local _archive="$1" _work_dir="$2"
   [[ "$UPLOAD_TO_S3" == "true" ]] || return 0
-  printf "Uploading archive to S3, please wait...\n"
+  printf '%s\n' "$(_upload_progress_msg "$SYSDIG_UPLOAD_URL")"
   log_activity "Uploading $_archive to S3."
   local _http
   _http=$(curl -s -S -o /dev/null -w "%{http_code}" -X PUT --url "${SYSDIG_UPLOAD_URL}" \
@@ -5197,23 +5246,53 @@ function _format_utc_from_epoch() {
     date -u -d "@$_epoch" +"%Y-%m-%d %H:%M:%S UTC" 2>/dev/null
 }
 
+# Extract the Sysdig support ticket id (e.g. TKT-36095) from a presigned upload
+# URL's path, if present. Echoes the id, or an empty string when the URL carries
+# no ticket segment. bash-3.2-safe: the =~ pattern is left unquoted so it's a
+# regex (3.2 treats a quoted RHS as a literal), and BASH_REMATCH works in 3.2.
+function _s3_url_ticket() {
+  [[ "$1" =~ TKT-[0-9]+ ]] && printf '%s' "${BASH_REMATCH[0]}"
+}
+
+# Compose the upload progress line, naming the support ticket when the URL
+# carries one (e.g. "Uploading archive for TKT-36095, please wait...") and
+# falling back to a plain line otherwise. Echoes the message without a trailing
+# newline so callers control surrounding blank lines. Shared by both the
+# collect-then-upload and standalone `upload` paths so they read identically.
+function _upload_progress_msg() {
+  local _tkt
+  _tkt=$(_s3_url_ticket "$1")
+  if [[ -n "$_tkt" ]]; then
+    printf "Uploading archive for %s, please wait..." "$_tkt"
+  else
+    printf "Uploading archive, please wait..."
+  fi
+}
+
 # Verify a presigned URL's X-Amz-Date + X-Amz-Expires window hasn't passed.
-# Prints "Error: presigned <label> expired N ago (at T). Request a fresh URL."
-# to stderr and returns 1 if expired. Returns 0 if not expired, or if the
-# expiry fields are missing/unparseable (silent skip).
+# Prints "Error: presigned <label> expired N ago (at T). <request-a-fresh-url>"
+# to stderr and returns 1 if expired — naming the ticket ("... on TKT-36095.")
+# when the URL contains one, else the generic "Request a fresh URL." Returns 0 if
+# not expired, or if the expiry fields are missing/unparseable (silent skip).
 # When verbose=1, additionally prints an OK line on success — used by
 # `upload --dry-run` to surface remaining URL lifetime up-front.
 #
 # Args: <url> [label="URL"] [indent=""] [verbose=0]
 function _check_s3_url_expiry() {
   local _url="$1" _label="${2:-URL}" _indent="${3:-}" _verbose="${4:-0}"
-  local _exp _now _diff
+  local _exp _now _diff _tkt _fresh
   _exp=$(_s3_url_expiry_epoch "$_url") || return 0
   _now=$(date -u +%s)
   _diff=$((_exp - _now))
   if (( _diff <= 0 )); then
-    printf "%s${_C_ERR}Error: presigned %s expired %s ago (at %s). Request a fresh URL.${_C_RESET}\n" \
-      "$_indent" "$_label" "$(_format_duration "$_diff")" "$(_format_utc_from_epoch "$_exp")" >&2
+    _tkt=$(_s3_url_ticket "$_url")
+    if [[ -n "$_tkt" ]]; then
+      _fresh="Please request a fresh URL on ${_tkt}."
+    else
+      _fresh="Request a fresh URL."
+    fi
+    printf "%s${_C_ERR}Error: presigned %s expired %s ago (at %s). %s${_C_RESET}\n" \
+      "$_indent" "$_label" "$(_format_duration "$_diff")" "$(_format_utc_from_epoch "$_exp")" "$_fresh" >&2
     return 1
   fi
   (( _verbose )) && printf "${_C_OK}OK:${_C_RESET} URL not expired (valid for %s, until %s).\n" \
@@ -5247,7 +5326,7 @@ function _perform_upload() {
   local _file="$1" _url="$2"
   local _filename
   _filename=$(basename "$_file")
-  printf "\nUploading %s, please wait...\n" "$_filename"
+  printf '\n%s\n' "$(_upload_progress_msg "$_url")"
   log_activity "Uploading $_file to S3."
   local _http
   _http=$(curl -s -S -o /dev/null -w "%{http_code}" -X PUT --url "$_url" \
@@ -5851,6 +5930,7 @@ Available commands:
   list             Discover component / pod names for use with --from-file.
   upload           Upload an archive to a Sysdig-provided S3 location.
   autocomplete     Enable or disable shell tab-completion (bash / zsh auto-detected).
+  upgrade          Upgrade the Sysdig Log Collector (SLC) to the latest version (online, or from a downloaded file).
   version          Print the Sysdig Log Collector (SLC) version and exit.
 
 Flags:
@@ -5865,6 +5945,8 @@ Examples:
   sysdig-log-collector list agent pods --help
   sysdig-log-collector list platform components --help
   sysdig-log-collector upload --help
+  sysdig-log-collector upgrade --help
+  sysdig-log-collector version
 
 Safety:
   - No Kubernetes resources are created, modified, or deleted.
@@ -5912,6 +5994,44 @@ Examples:
   sysdig-log-collector upload -f bundle.tgz --url "https://...amazonaws.com/...x-id=PutObject"
   sysdig-log-collector upload --file=./bundle.tgz --url="https://...PutObject"
   sysdig-log-collector upload -f bundle.tgz --url "https://...PutObject" --dry-run
+EOF
+}
+
+# Per-command help for: upgrade.
+function print_help_upgrade() {
+  cat <<'EOF'
+Upgrade the Sysdig Log Collector (SLC) to the latest version published in the repo.
+
+Usage:
+  sysdig-log-collector upgrade
+  sysdig-log-collector upgrade -f <absolute-path>
+  sysdig-log-collector upgrade --file=<absolute-path>
+  sysdig-log-collector upgrade -d <download-dir>
+  sysdig-log-collector upgrade --dry-run
+
+Flags:
+  -f, --file <path>    Install from an already-downloaded script instead of
+                       fetching it over the network (for air-gapped hosts).
+                       Applied only if it is newer than the running version.
+                       The file is used in place and never modified or removed.
+  -d, --download-dir <dir>
+                       Directory to download into before installing. Defaults to
+                       $TMPDIR, or /tmp when that is unset. Use it when /tmp is
+                       not writable (read-only root filesystem, stale $TMPDIR).
+                       The download is removed once the upgrade is installed.
+                       Cannot be combined with --file, which downloads nothing.
+      --dry-run        Report whether a new version is available and where it
+                       would install, then exit without downloading or
+                       installing anything. Exits 0 either way.
+  -h, --help           Show help and exit.
+
+Examples:
+  sysdig-log-collector upgrade
+  sysdig-log-collector upgrade -f /home/me/downloads/sysdig-log-collector
+  sysdig-log-collector upgrade --file=/tmp/sysdig-log-collector
+  sysdig-log-collector upgrade -d ~/slc-download
+  sysdig-log-collector upgrade --download-dir=/var/tmp
+  sysdig-log-collector upgrade --dry-run
 EOF
 }
 
@@ -6311,7 +6431,7 @@ _sysdig_log_collector() {
   # from <TAB> listings so the completion UI is dominated by self-documenting
   # long-form flags (--namespace > -n, --output-dir > -o, …).
   if [[ $COMP_CWORD -eq 1 ]]; then
-    COMPREPLY=( $(compgen -W "interactive collect list upload autocomplete version --help --interactive" -- "$cur") )
+    COMPREPLY=( $(compgen -W "interactive collect list upload autocomplete upgrade version --help --interactive" -- "$cur") )
     return
   fi
 
@@ -6321,6 +6441,7 @@ _sysdig_log_collector() {
       list)         COMPREPLY=( $(compgen -W "agent platform --help" -- "$cur") ) ;;
       autocomplete) COMPREPLY=( $(compgen -W "enable disable --help" -- "$cur") ) ;;
       upload)       COMPREPLY=( $(compgen -W "--file --url --dry-run --help" -- "$cur") ) ;;
+      upgrade)      COMPREPLY=( $(compgen -W "--file --download-dir --dry-run --help" -- "$cur") ) ;;
     esac
     return
   fi
@@ -7754,9 +7875,17 @@ Single-namespace flags:
   -n, --namespace <ns>     Target namespace (required unless --namespaces is used).
       --no-headers         Strip headers; emit bare names only — pipe-friendly
                            output suitable for redirecting into --from-file.
-      --status <state>     (pods only) filter by pod status, e.g. Running or
-                           CrashLoopBackOff. Comma-separate to include multiple
-                           states.
+      --status <state>     (pods only) filter by pod status, case-insensitive.
+                           Comma-separate to include multiple states.
+                           Phases: Pending, Running, Succeeded, Failed, Unknown.
+                           Container reasons (kubelet-provided, not exhaustive):
+                           ContainerCreating, PodInitializing, CrashLoopBackOff,
+                           ImagePullBackOff, ErrImagePull, CreateContainerError,
+                           CreateContainerConfigError, RunContainerError,
+                           Completed, Error, OOMKilled.
+                           Note: Terminating is not a status here — kubectl
+                           derives it from deletionTimestamp; a terminating pod
+                           still reports its phase.
       --components <list>  (pods only) filter pods by component bucket, comma-
                            separated. Use this to preview which pods a
                            `collect agent --components=...` run would target.
@@ -7796,9 +7925,19 @@ Flags:
   -c, --context <name>     Kubectl context (defaults to current-context).
       --no-headers         Strip headers; emit bare names only — pipe-friendly
                            output suitable for redirecting into --from-file.
-      --status <state>     (pods only) filter by pod status, e.g. Running or
-                           CrashLoopBackOff. Comma-separate to include multiple
-                           states.
+      --status <state>     (pods only) filter by pod status, case-insensitive.
+                           Comma-separate to include multiple states.
+                           Phases: Pending, Running, Succeeded, Failed, Unknown.
+                           Container reasons (kubelet-provided, not exhaustive):
+                           ContainerCreating, PodInitializing, CrashLoopBackOff,
+                           ImagePullBackOff, ErrImagePull, CreateContainerError,
+                           CreateContainerConfigError, RunContainerError,
+                           Completed, Error, OOMKilled.
+                           Note: Terminating is not a status here — kubectl
+                           derives it from deletionTimestamp; a terminating pod
+                           still reports its phase.
+                           Job-owned pods are excluded, so Completed rarely
+                           matches on the platform target.
       --components <list>  (pods only) filter pods by component bucket, comma-
                            separated. Use this to preview which pods a
                            `collect platform --components=...` run would target.
@@ -7906,14 +8045,19 @@ function _cli_list_parse_args() {
 }
 
 # Returns 0 if a pod's status passes the --status filter (or no filter set).
+# Whitespace is stripped and the comparison is case-insensitive.
 function _list_status_match() {
   local _have="$1"
   [[ -z "$_LIST_STATUS" ]] && return 0
-  local _want
+  local _want _have_lc
+  _have_lc=$(printf '%s' "$_have" | tr '[:upper:]' '[:lower:]')
   IFS=',' read -ra _want <<<"$_LIST_STATUS"
   local _s
   for _s in "${_want[@]}"; do
-    [[ "$_have" == "$_s" ]] && return 0
+    _s="${_s//[[:space:]]/}"
+    [[ -z "$_s" ]] && continue
+    _s=$(printf '%s' "$_s" | tr '[:upper:]' '[:lower:]')
+    [[ "$_have_lc" == "$_s" ]] && return 0
   done
   return 1
 }
@@ -7971,7 +8115,7 @@ function cli_list_agent() {
   # the SYSDIG_AGENT_IS_SHIELD_HOST flag. Suppress its stdout chatter so
   # only our table reaches the terminal.
   if [[ -n "$_LIST_NAMESPACES_CSV" ]]; then
-    local _ns_list _ns _first=1
+    local _ns_list _ns _first=1 _any=1
     IFS=',' read -ra _ns_list <<<"$_LIST_NAMESPACES_CSV"
     for _ns in "${_ns_list[@]}"; do
       _ns="${_ns// /}"
@@ -7983,11 +8127,12 @@ function cli_list_agent() {
       printf "── Namespace: %s ──\n" "$_ns"
       _first=0
       if [[ "$_LIST_KIND" == "components" ]]; then
-        _list_agent_components
+        _list_agent_components && _any=0
       else
-        _list_agent_pods
+        _list_agent_pods && _any=0
       fi
     done
+    return $_any
   else
     namespace="$_LIST_NS"
     resetDiscoveryVars
@@ -8041,8 +8186,12 @@ function _list_agent_components() {
     _bucket_list+="$_comp"$'\n'
   done
   if [[ -z "$_bucket_list" ]]; then
-    [[ $_LIST_NO_HEADERS -eq 0 ]] && printf "${_C_WARN}No Sysdig agent-side components found in namespace '%s'.${_C_RESET}\n" "$namespace"
-    return 0
+    if (( _LIST_NO_HEADERS )); then
+      printf "${_C_WARN}No Sysdig agent-side components found in namespace '%s'.${_C_RESET}\n" "$namespace" >&2
+    else
+      printf "${_C_WARN}No Sysdig agent-side components found in namespace '%s'.${_C_RESET}\n" "$namespace"
+    fi
+    return 1
   fi
   if (( _LIST_NO_HEADERS )); then
     printf '%s' "$_bucket_list" | sort -u
@@ -8069,7 +8218,12 @@ function _list_agent_pods() {
       _list_components_match "$_comp" || continue
       _list_status_match "$_status" || continue
       printf "%s\n" "$_name"
+      _emitted=1
     done <<<"$_rows"
+    if (( _emitted == 0 )); then
+      printf "${_C_WARN}No matching Sysdig agent-side pods in namespace '%s'.${_C_RESET}\n" "$namespace" >&2
+      return 1
+    fi
     return 0
   fi
   # Table mode: buffer matching rows, then let awk compute per-column widths.
@@ -8085,7 +8239,7 @@ function _list_agent_pods() {
   done <<<"$_rows"
   if (( _emitted == 0 )); then
     printf "${_C_WARN}No matching Sysdig agent-side pods in namespace '%s'.${_C_RESET}\n" "$namespace"
-    return 0
+    return 1
   fi
   printf '%s' "$_filtered" | _print_pod_table
 }
@@ -8105,6 +8259,11 @@ function cli_list_platform() {
   BASE_K8S_CMD="${BASE_K8S_CMD:-kubectl}"
   [[ -n "$_LIST_CONTEXT" ]] && k8sCmd="$BASE_K8S_CMD --context=$_LIST_CONTEXT" || k8sCmd="$BASE_K8S_CMD"
 
+  if ! has_sysdig_platform; then
+    printf "${_C_ERR}Error: namespace '%s' is not a Sysdig on-prem platform namespace ('sysdigcloud-api' deployment not found).${_C_RESET}\n" "$namespace" >&2
+    return 1
+  fi
+
   if [[ "$_LIST_KIND" == "components" ]]; then
     _list_platform_components
   else
@@ -8113,22 +8272,21 @@ function cli_list_platform() {
 }
 
 # Platform component bucketing: role label OR owner-workload (stripped of ReplicaSet
-# hash) OR "(unlabeled)". Mirrors _discover_platform_components but skips Phase-1
-# workloads (agent/shield etc.) so they don't appear here.
+# hash) OR "(unlabeled)". Mirrors _discover_platform_components; the caller gates
+# on has_sysdig_platform so every non-Job pod in the namespace is a platform pod.
 function _list_platform_buckets_raw() {
-  local _agent_re='agent-slim|agent$|cluster-shield|kspm-analyzer|host-scanner|runtime-scanner|host-analyzer|node-image-analyzer|compliance-benchmark-runner|eveclient-api|kspm-collector|admission-controller|secure-admission-controller|inline-scan-service|runtime-status-integrator|image-sbom-extractor|rapid-response-host-component'
-  # Columns: NAME ROLE OWNER_KIND OWNER_NAME PHASE WAIT TERM IMAGE. STATUS is
+  # Columns: NAME ROLE OWNER_KIND OWNER_NAME PHASE WAIT TERM. STATUS is
   # derived (container reason → phase) by the derive_status() awk function, which
   # mirrors the shell _derive_pod_status helper — keep the two in sync.
   $k8sCmd get pods -n "$namespace" --no-headers \
-    -o custom-columns="NAME:metadata.name,ROLE:metadata.labels.role,OWNER_KIND:metadata.ownerReferences[0].kind,OWNER_NAME:metadata.ownerReferences[0].name,PHASE:status.phase,WAIT:status.containerStatuses[*].state.waiting.reason,TERM:status.containerStatuses[*].state.terminated.reason,IMAGE:spec.containers[0].image" 2>/dev/null \
-    | awk -v aw="$_agent_re" '
+    -o custom-columns="NAME:metadata.name,ROLE:metadata.labels.role,OWNER_KIND:metadata.ownerReferences[0].kind,OWNER_NAME:metadata.ownerReferences[0].name,PHASE:status.phase,WAIT:status.containerStatuses[*].state.waiting.reason,TERM:status.containerStatuses[*].state.terminated.reason" 2>/dev/null \
+    | awk '
       function derive_status(ph, w, t,   a, n, i) {
         if (w != "<none>" && w != "") { n=split(w,a,","); for(i=1;i<=n;i++) if(a[i]!="" && a[i]!="<none>") return a[i] }
         if (t != "<none>" && t != "") { n=split(t,a,","); for(i=1;i<=n;i++) if(a[i]!="" && a[i]!="<none>") return a[i] }
         return ph
       }
-      $3 != "Job" && $8 !~ aw {
+      $3 != "Job" {
         pod=$1; role=$2; ok=$3; on=$4; st=derive_status($5,$6,$7)
         if (role != "<none>" && role != "") comp=role
         else if (ok=="ReplicaSet") { sub(/-[a-z0-9]{8,10}$/,"",on); sub(/-deployment$/,"",on); comp=on }
@@ -8146,8 +8304,12 @@ function _list_platform_components() {
     _bucket_list+="$_comp"$'\n'
   done < <(_list_platform_buckets_raw)
   if [[ -z "$_bucket_list" ]]; then
-    [[ $_LIST_NO_HEADERS -eq 0 ]] && printf "${_C_WARN}No Sysdig platform components found in namespace '%s'.${_C_RESET}\n" "$namespace"
-    return 0
+    if (( _LIST_NO_HEADERS )); then
+      printf "${_C_WARN}No Sysdig platform components found in namespace '%s'.${_C_RESET}\n" "$namespace" >&2
+    else
+      printf "${_C_WARN}No Sysdig platform components found in namespace '%s'.${_C_RESET}\n" "$namespace"
+    fi
+    return 1
   fi
   if (( _LIST_NO_HEADERS )); then
     printf '%s' "$_bucket_list" | sort -u
@@ -8165,7 +8327,12 @@ function _list_platform_pods() {
       _list_components_match "$_comp" || continue
       _list_status_match "$_st" || continue
       printf "%s\n" "$_pod"
+      _emitted=1
     done < <(_list_platform_buckets_raw)
+    if (( _emitted == 0 )); then
+      printf "${_C_WARN}No matching Sysdig platform pods in namespace '%s'.${_C_RESET}\n" "$namespace" >&2
+      return 1
+    fi
     return 0
   fi
   # Table mode: buffer matching rows, then let awk compute per-column widths.
@@ -8178,7 +8345,7 @@ function _list_platform_pods() {
   done < <(_list_platform_buckets_raw)
   if (( _emitted == 0 )); then
     printf "${_C_WARN}No matching Sysdig platform pods in namespace '%s'.${_C_RESET}\n" "$namespace"
-    return 0
+    return 1
   fi
   printf '%s' "$_filtered" | _print_pod_table
 }
@@ -8188,6 +8355,451 @@ function _list_platform_pods() {
 # arguments are ignored. Reads SLC_VERSION, the single source of truth.
 function cli_version() {
   printf 'Sysdig Log Collector version %s\n' "$SLC_VERSION"
+}
+
+# ─────────────────────────────────────────────
+#  upgrade (Phase 3)
+# ─────────────────────────────────────────────
+
+# Resolve the absolute path of the running script, following symlinks, so the
+# upgrade writes over the ACTUAL file being executed — not a $PATH lookup (which
+# `which` would do, missing a portable ./sysdig-log-collector run and picking the
+# wrong copy when several are on PATH), and not a symlink pointing elsewhere.
+# bash-3.2-safe: no `readlink -f` (absent on macOS); we walk symlinks by hand.
+function _upgrade_resolve_self() {
+  local _src="$0" _dir
+  [[ "$_src" != /* ]] && _src="$(pwd)/$_src"
+  while [[ -h "$_src" ]]; do
+    _dir="$(cd -P "$(dirname "$_src")" >/dev/null 2>&1 && pwd)"
+    _src="$(readlink "$_src")"
+    [[ "$_src" != /* ]] && _src="$_dir/$_src"
+  done
+  _dir="$(cd -P "$(dirname "$_src")" >/dev/null 2>&1 && pwd)"
+  printf '%s/%s\n' "$_dir" "$(basename "$_src")"
+}
+
+# Normalize one version field to a base-10 integer. Strips any non-digits (so a
+# "-rc1"-style suffix collapses to its leading number) and defaults empty to 0.
+# The 10# prefix stops a leading-zero field (e.g. "08") from being read as octal.
+function _upgrade_num_field() {
+  local _n="${1//[!0-9]/}"
+  printf '%s' "$((10#${_n:-0}))"
+}
+
+# Compare two dotted versions. Return code encodes the result (no stdout):
+#   0 = equal, 1 = a > b, 2 = a < b. Missing/non-numeric fields count as 0.
+# bash-3.2-safe: split on '.' via IFS + positional params.
+function _upgrade_vercmp() {
+  local _a="$1" _b="$2" _oldIFS="$IFS"
+  local a1 a2 a3 b1 b2 b3
+  IFS='.'; set -- $_a; a1="${1:-0}"; a2="${2:-0}"; a3="${3:-0}"
+  set -- $_b; b1="${1:-0}"; b2="${2:-0}"; b3="${3:-0}"
+  IFS="$_oldIFS"
+  a1=$(_upgrade_num_field "$a1"); a2=$(_upgrade_num_field "$a2"); a3=$(_upgrade_num_field "$a3")
+  b1=$(_upgrade_num_field "$b1"); b2=$(_upgrade_num_field "$b2"); b3=$(_upgrade_num_field "$b3")
+  if   (( a1 > b1 )); then return 1
+  elif (( a1 < b1 )); then return 2
+  elif (( a2 > b2 )); then return 1
+  elif (( a2 < b2 )); then return 2
+  elif (( a3 > b3 )); then return 1
+  elif (( a3 < b3 )); then return 2
+  fi
+  return 0
+}
+
+# Echo the SLC_VERSION value declared in <file> (first match), stripped of quotes;
+# empty string + non-zero if the file has no SLC_VERSION= line.
+function _upgrade_extract_version() {
+  local _line
+  _line=$(grep -m1 '^SLC_VERSION=' "$1" 2>/dev/null) || return 1
+  _line="${_line#SLC_VERSION=}"
+  _line="${_line#\"}"; _line="${_line%\"}"
+  _line="${_line#\'}"; _line="${_line%\'}"
+  [[ -z "$_line" ]] && return 1
+  printf '%s\n' "$_line"
+}
+
+# Fetch ONLY the remote SLC_VERSION line. `grep -m1` exits at line ~8, curl gets
+# SIGPIPE and stops — a few KB move, not the whole 8k-line script. Echoes the
+# remote version on success; returns 1 (empty stdout) on any connection failure
+# so the caller can fall back to the air-gapped instructions.
+function _upgrade_fetch_remote_version() {
+  local _v _args
+  # Optional arg: --max-time seconds. The interactive background probe passes one
+  # so a black-holed connection can't leave a curl running for minutes; `upgrade`
+  # itself passes nothing and keeps curl's default behaviour.
+  _args=(-fsSL)
+  [[ -n "${1:-}" ]] && _args+=(--max-time "$1")
+  _v=$(curl "${_args[@]}" "$SLC_UPGRADE_URL" 2>/dev/null | grep -m1 '^SLC_VERSION=')
+  [[ -z "$_v" ]] && return 1
+  _v="${_v#SLC_VERSION=}"
+  _v="${_v#\"}"; _v="${_v%\"}"
+  _v="${_v#\'}"; _v="${_v%\'}"
+  [[ -z "$_v" ]] && return 1
+  printf '%s\n' "$_v"
+}
+
+# Kick off the interactive update check. Runs in the BACKGROUND so the banner
+# never waits on the network, and starts at most once per process. Every failure
+# path is silent: an offline or air-gapped host must not get a scary line under
+# the logo on every launch, so a failed probe simply means no notice.
+function _start_update_check() {
+  [[ -n "$UPDATE_CHECK_FILE" || -n "$UPDATE_NOTICE" ]] && return 0
+  UPDATE_CHECK_FILE=$(mktemp "${TMPDIR:-/tmp}/slc-vercheck.XXXXXX" 2>/dev/null) || {
+    UPDATE_CHECK_FILE=""
+    return 0
+  }
+  _upgrade_fetch_remote_version 5 > "$UPDATE_CHECK_FILE" 2>/dev/null &
+  UPDATE_CHECK_PID=$!
+}
+
+# Sets UPDATE_NOTICE to "Update available: vX.Y.Z" once the background probe has
+# answered AND the remote version is strictly newer. Leaves it empty when the
+# probe is still running, failed, or the host is already current — "already
+# current" is not reported on purpose: there is nothing to act on, and rendering
+# a status either way would mean rendering a failure state too.
+#
+# Writes a global instead of echoing, and must NOT be called in a subshell:
+# `$(_update_notice)` would discard both the cache and the "file already
+# consumed" bookkeeping, so the notice would vanish on the next banner draw.
+function _update_notice() {
+  [[ -n "$UPDATE_NOTICE" ]] && return 0
+  [[ -z "$UPDATE_CHECK_FILE" ]] && return 0
+  # Nothing written yet and the probe is still alive — try again on the next draw
+  # rather than deleting a file curl is about to write into.
+  if [[ ! -s "$UPDATE_CHECK_FILE" ]] && [[ -n "$UPDATE_CHECK_PID" ]] \
+     && kill -0 "$UPDATE_CHECK_PID" 2>/dev/null; then
+    return 0
+  fi
+  local _remote
+  _remote=$(cat "$UPDATE_CHECK_FILE" 2>/dev/null)
+  rm -f "$UPDATE_CHECK_FILE"
+  UPDATE_CHECK_FILE=""
+  UPDATE_CHECK_PID=""
+  [[ -z "$_remote" ]] && return 0
+  _upgrade_vercmp "$_remote" "$SLC_VERSION"
+  [[ $? -eq 1 ]] || return 0     # 1 = remote is strictly newer
+  UPDATE_NOTICE="Update available: v${_remote}"
+}
+
+# --dry-run report. Only reached when an upgrade WOULD happen — the "already
+# current" case deliberately prints the same line a real run prints, because
+# nothing would have happened there either. Args: current version, candidate
+# version, install target, remote|file.
+function _upgrade_print_dry_run() {
+  local _cur="$1" _new="$2" _target="$3" _source="$4"
+  if [[ "$_source" == "file" ]]; then
+    printf "${_C_WARN}The file is newer than the running version: v%s -> v%s${_C_RESET}\n" "$_cur" "$_new"
+  else
+    printf "${_C_WARN}A new version is available: v%s -> v%s${_C_RESET}\n" "$_cur" "$_new"
+  fi
+  printf "  Would install to: %s\n" "$_target"
+  if [[ -w "$(dirname "$_target")" ]]; then
+    printf "  This path is writable — no sudo needed.\n"
+  else
+    printf "  ${_C_WARN}This path is not writable by you — the upgrade will need sudo.${_C_RESET}\n"
+  fi
+  printf "${_C_WARN}Nothing was changed (--dry-run).${_C_RESET}\n"
+}
+
+# Integrity gate before the file can replace the running script: it must be
+# non-empty, start with a shebang, carry an SLC_VERSION line, still have its
+# top-level dispatch block, and pass `bash -n`. Returns non-zero on the first
+# failed check WITHOUT naming which one — the caller prints one generic
+# "integrity check failed" error, so a corrupted download can't be hand-patched
+# through the gate.
+function _upgrade_validate_file() {
+  local _f="$1" _first
+  [[ -s "$_f" ]] || return 1
+  _first=$(head -n1 "$_f" 2>/dev/null)
+  [[ "$_first" == '#!'* ]] || return 1
+  grep -q '^SLC_VERSION=' "$_f" || return 1
+  # Tail anchor. The shebang and SLC_VERSION both live in the first 10 lines, and
+  # a cut at a complete function boundary is still valid bash — so without this
+  # check a file truncated anywhere past line ~10 passes every other check and
+  # installs as a SILENT no-op: it has the functions but not the dispatch block,
+  # so every command exits 0 printing nothing. The top-level `case` is the last
+  # construct in the file, which makes its presence a cheap proof that the tail
+  # arrived. Truncation *inside* the case block is caught by `bash -n` below
+  # (unterminated `case`), so the two checks together cover any cut point.
+  #   The \$ escaping is required — '^case "${1:-}" in$' matches nothing at all,
+  # which would turn this into a no-op check. Do not "simplify" it to `grep -F`
+  # either: unanchored, that also matches the nested dispatch cases inside the
+  # cli_* helpers, so a file missing only the tail would still pass.
+  grep -q '^case "\${1:-}" in$' "$_f" || return 1
+  bash -n "$_f" 2>/dev/null || return 1
+  return 0
+}
+
+# Printed when the latest script can't be fetched. Two callers, two different
+# failures: the version probe never reached the server (mode=probe), or the probe
+# already succeeded and the transfer itself broke (mode=download, with curl's exit
+# code). Only the diagnosis differs — the manual download/transfer/--file recipe
+# below applies either way. Args: probe|download, [curl exit code].
+function _upgrade_print_airgap_instructions() {
+  local _mode="${1:-probe}" _curl_rc="${2:-}"
+  if [[ "$_mode" == "download" ]]; then
+    if [[ -n "$_curl_rc" ]]; then
+      printf "${_C_ERR}Error: the download from %s did not complete (curl exit %s).${_C_RESET}\n" "$SLC_UPGRADE_URL" "$_curl_rc" >&2
+    else
+      printf "${_C_ERR}Error: the download from %s did not complete.${_C_RESET}\n" "$SLC_UPGRADE_URL" >&2
+    fi
+    printf "The version check reached the server, so this is most likely a dropped\n" >&2
+    printf "connection, a proxy closing the transfer, or a full download directory.\n" >&2
+    printf "Nothing was installed — re-running the upgrade may be all you need.\n\n" >&2
+    printf "${_C_BOLD}If it keeps failing, install from a file downloaded elsewhere:${_C_RESET}\n" >&2
+  else
+    printf "${_C_ERR}Error: could not reach %s${_C_RESET}\n" "$SLC_UPGRADE_URL" >&2
+    printf "The host may be offline or behind a proxy/firewall.\n\n" >&2
+    printf "${_C_BOLD}To upgrade in a restricted / air-gapped environment:${_C_RESET}\n" >&2
+  fi
+  printf "  1. On a machine WITH internet access, download the latest version of SLC:\n" >&2
+  printf "       ${_C_KEY}curl -fsSL \"%s\" -o sysdig-log-collector${_C_RESET}\n" "$SLC_UPGRADE_URL" >&2
+  printf "  2. Copy that file to this host (scp, USB, etc.).\n" >&2
+  printf "  3. Install it from the copied path (absolute path recommended):\n" >&2
+  printf "       ${_C_KEY}sysdig-log-collector upgrade --file /absolute/path/to/sysdig-log-collector${_C_RESET}\n" >&2
+}
+
+# Where the download is staged: --download-dir when given, else $TMPDIR, else
+# /tmp. Echoes the directory; the caller feeds it to mktemp, so the name inside
+# stays random (see _upgrade_print_staging_error for why a fixed name is unsafe
+# in a shared directory).
+function _upgrade_staging_dir() {
+  if [[ -n "${1:-}" ]]; then printf '%s\n' "$1"; else printf '%s\n' "${TMPDIR:-/tmp}"; fi
+}
+
+# Printed when the download has nowhere to land. The plain "could not create a
+# temp file" this replaces was a dead end: it named neither the directory that
+# refused the write nor the way out. Args: staging dir, whether it
+# came from --download-dir (1) or the $TMPDIR/tmp default (0).
+function _upgrade_print_staging_error() {
+  local _dir="$1" _explicit="$2"
+  if (( _explicit )); then
+    printf "${_C_ERR}Error: cannot write the download to %s${_C_RESET}\n" "$_dir" >&2
+  else
+    printf "${_C_ERR}Error: cannot write the download to %s (no writable temp directory).${_C_RESET}\n" "$_dir" >&2
+  fi
+  printf "\n" >&2
+  printf "${_C_BOLD}Pick a directory you can write to:${_C_RESET}\n" >&2
+  printf "       ${_C_KEY}sysdig-log-collector upgrade --download-dir /path/to/dir${_C_RESET}\n" >&2
+  printf "  ${_C_DIM}(or export TMPDIR=/path/to/dir for the same effect)${_C_RESET}\n" >&2
+}
+
+# Remove the in-flight download and stop advertising it to the signal trap. A
+# no-op on the `--file` path, where UPGRADE_TMP_FILE is never set and the user's
+# own file must survive. Call this — don't hand-inline the rm — so the file and
+# the global can never disagree about whether a temp file is still live.
+function _upgrade_discard_tmp() {
+  [[ -n "$UPGRADE_TMP_FILE" ]] && rm -f "$UPGRADE_TMP_FILE"
+  UPGRADE_TMP_FILE=""
+}
+
+# CLI entry point for `upgrade` (Phase 3). Two paths:
+#   online  — probe the remote version; install only if it's newer.
+#   --file  — validate and install a pre-downloaded script unconditionally
+#             (deliberate act; also the repair path). Both are writability-gated:
+#             a root-owned target is never touched, we print the sudo command.
+function cli_upgrade() {
+  local _local_file="" _self _target_dir _cur_ver _new_ver _tmp="" _src_file _cleanup_tmp=0
+  local _dl_dir="" _stage_dir _curl_rc=0 _dry_run=0
+
+  while (( $# > 0 )); do
+    case "$1" in
+      -h|--help)
+        print_help_upgrade
+        return 0
+        ;;
+      -f|--file)
+        _require_value "$1" "${2:-}" || return 1
+        _local_file="$2"; shift 2
+        ;;
+      --file=*)
+        _local_file="${1#--file=}"; shift
+        ;;
+      -f=*)
+        _local_file="${1#-f=}"; shift
+        ;;
+      -d|--download-dir)
+        _require_value "$1" "${2:-}" || return 1
+        _dl_dir="$2"; shift 2
+        ;;
+      --download-dir=*)
+        _dl_dir="${1#--download-dir=}"; shift
+        ;;
+      -d=*)
+        _dl_dir="${1#-d=}"; shift
+        ;;
+      --dry-run)
+        _dry_run=1; shift
+        ;;
+      *)
+        printf "${_C_ERR}Error: unknown flag for upgrade: %s${_C_RESET}\n" "$1" >&2
+        printf "  Run 'sysdig-log-collector upgrade --help' for usage.\n" >&2
+        return 1
+        ;;
+    esac
+  done
+
+  # --download-dir only describes where a download lands, so pairing it with
+  # --file (which downloads nothing) is a contradiction. Refuse rather than
+  # silently ignore one of the two flags the user explicitly asked for.
+  if [[ -n "$_dl_dir" && -n "$_local_file" ]]; then
+    printf "${_C_ERR}Error: --download-dir cannot be combined with --file (nothing is downloaded).${_C_RESET}\n" >&2
+    printf "  Run 'sysdig-log-collector upgrade --help' for usage.\n" >&2
+    return 1
+  fi
+  # Same contradiction as above: --dry-run never downloads, so a download
+  # directory has nothing to describe.
+  if [[ -n "$_dl_dir" ]] && (( _dry_run )); then
+    printf "${_C_ERR}Error: --download-dir cannot be combined with --dry-run (nothing is downloaded).${_C_RESET}\n" >&2
+    printf "  Run 'sysdig-log-collector upgrade --help' for usage.\n" >&2
+    return 1
+  fi
+  # Validate the directory up front, naming the exact problem — mktemp's own
+  # failure can't distinguish "missing" from "not a directory" from "read-only".
+  if [[ -n "$_dl_dir" ]]; then
+    if [[ ! -d "$_dl_dir" ]]; then
+      printf "${_C_ERR}Error: download directory not found: %s${_C_RESET}\n" "$_dl_dir" >&2
+      return 1
+    fi
+    if [[ ! -w "$_dl_dir" ]]; then
+      _upgrade_print_staging_error "$_dl_dir" 1
+      return 1
+    fi
+  fi
+
+  _self=$(_upgrade_resolve_self)
+  _cur_ver="$SLC_VERSION"
+
+  # ---- Pick the source of the candidate script ----
+  if [[ -n "$_local_file" ]]; then
+    if [[ ! -f "$_local_file" ]]; then
+      printf "${_C_ERR}Error: file not found: %s${_C_RESET}\n" "$_local_file" >&2
+      return 1
+    fi
+    if [[ ! -r "$_local_file" ]]; then
+      printf "${_C_ERR}Error: file not readable: %s${_C_RESET}\n" "$_local_file" >&2
+      return 1
+    fi
+    _src_file="$_local_file"
+  else
+    printf "Checking for updates...\n"
+    _new_ver=$(_upgrade_fetch_remote_version)
+    if [[ -z "$_new_ver" ]]; then
+      _upgrade_print_airgap_instructions probe
+      return 1
+    fi
+    # Already current (equal) or ahead of the remote (local edited higher): stop
+    # without downloading anything.
+    _upgrade_vercmp "$_new_ver" "$_cur_ver"
+    case $? in
+      0|2)
+        printf "${_C_OK}✓ Sysdig Log Collector (SLC) is already at the latest version (v%s).${_C_RESET}\n" "$_cur_ver"
+        return 0
+        ;;
+    esac
+    # A newer version exists. With --dry-run, report and stop here — before
+    # mktemp, so a preview never downloads 370 KB it isn't going to install.
+    if (( _dry_run )); then
+      _upgrade_print_dry_run "$_cur_ver" "$_new_ver" "$_self" remote
+      return 0
+    fi
+    _stage_dir=$(_upgrade_staging_dir "$_dl_dir")
+    _tmp=$(mktemp "$_stage_dir/slc-upgrade.XXXXXX" 2>/dev/null) || {
+      _upgrade_print_staging_error "$_stage_dir" "$([[ -n "$_dl_dir" ]] && echo 1 || echo 0)"
+      return 1
+    }
+    _cleanup_tmp=1
+    # Publish the path so _cleanup_on_signal can reap it if the user hits Ctrl+C
+    # during the download, the validation, or the sudo password prompt.
+    UPGRADE_TMP_FILE="$_tmp"
+    curl -fsSL "$SLC_UPGRADE_URL" -o "$_tmp" 2>/dev/null
+    _curl_rc=$?
+    if (( _curl_rc != 0 )); then
+      _upgrade_discard_tmp
+      _upgrade_print_airgap_instructions download "$_curl_rc"
+      return 1
+    fi
+    _src_file="$_tmp"
+  fi
+
+  # ---- Validate before it can overwrite anything ----
+  if ! _upgrade_validate_file "$_src_file"; then
+    printf "${_C_ERR}Error: integrity check failed — refusing to install.${_C_RESET}\n" >&2
+    _upgrade_discard_tmp
+    return 1
+  fi
+
+  _new_ver=$(_upgrade_extract_version "$_src_file") || _new_ver="?"
+
+  # ---- Forward-only version gate ----
+  # The online path already gated before downloading. --file hasn't been gated
+  # yet, so gate it here: upgrades only ever move forward, so a same-or-older
+  # file is a no-op (no reinstall, no downgrade).
+  if [[ -n "$_local_file" ]]; then
+    _upgrade_vercmp "$_new_ver" "$_cur_ver"
+    case $? in
+      0|2)
+        printf "${_C_OK}✓ Sysdig Log Collector (SLC) is already at the latest version (v%s).${_C_RESET}\n" "$_cur_ver"
+        return 0
+        ;;
+    esac
+  fi
+  # --file reaches here after validation and the version gate (the online path
+  # already returned above), so this is the file preview.
+  if (( _dry_run )); then
+    _upgrade_print_dry_run "$_cur_ver" "$_new_ver" "$_self" file
+    return 0
+  fi
+
+  printf "Upgrading v%s → v%s...\n" "$_cur_ver" "$_new_ver"
+
+  # ---- Install, gated on writability of the resolved target ----
+  _target_dir=$(dirname "$_self")
+
+  if [[ -w "$_target_dir" ]]; then
+    if install -m 0555 "$_src_file" "$_self" 2>/dev/null; then
+      _upgrade_discard_tmp
+      printf "${_C_OK}✓ Sysdig Log Collector upgraded to v%s.${_C_RESET}\n" "$_new_ver"
+      printf "  Installed at: %s\n" "$_self"
+      return 0
+    fi
+    printf "${_C_ERR}Error: install to %s failed.${_C_RESET}\n" "$_self" >&2
+    _upgrade_discard_tmp
+    return 1
+  fi
+
+  # Non-writable target (root-owned dir, e.g. /usr/local/bin). upgrade is a
+  # maintenance action, so on an interactive terminal we elevate via sudo — its
+  # own password prompt is the consent step. The global signal traps are left
+  # intact on purpose: Ctrl+C / Ctrl+Z at the prompt funnel through the tool's
+  # usual _cleanup_on_signal (clean exit 130), and sudo restores the tty on the
+  # same signal. On non-interactive stdin (CI, pipes) a password prompt would
+  # hang, so we skip straight to printing the command; any sudo failure (wrong
+  # password, not a sudoer) falls back to the same printed command.
+  if [[ -t 0 ]]; then
+    printf "${_C_WARN}%s is root-owned; elevating with sudo...${_C_RESET}\n" "$_self"
+    if sudo install -m 0555 "$_src_file" "$_self"; then
+      _upgrade_discard_tmp
+      printf "${_C_OK}✓ Sysdig Log Collector upgraded to v%s.${_C_RESET}\n" "$_new_ver"
+      printf "  Installed at: %s\n" "$_self"
+      return 0
+    fi
+    printf "${_C_ERR}Error: sudo install did not complete — nothing was changed.${_C_RESET}\n" >&2
+  else
+    printf "${_C_WARN}%s is not writable and stdin is not a terminal (can't prompt for sudo).${_C_RESET}\n" "$_self" >&2
+  fi
+
+  # Fallback for both cases: hand over the exact command to run manually. Keep
+  # the the file so the command has something to install.
+  printf "Run this to finish the upgrade with elevated privileges:\n\n" >&2
+  printf "  ${_C_KEY}sudo install -m 0555 %s %s${_C_RESET}\n\n" "$_src_file" "$_self" >&2
+  (( _cleanup_tmp )) && printf "  ${_C_DIM}(the downloaded file is kept at %s until you run the command above)${_C_RESET}\n" "$_tmp" >&2
+  # This is the one path that keeps the temp file: we just told the user to
+  # install from it. Retract it from the signal trap (without deleting it) so a
+  # later Ctrl+C can't delete the file the printed command depends on.
+  UPGRADE_TMP_FILE=""
+  return 1
 }
 
 case "${1:-}" in
@@ -8228,6 +8840,11 @@ case "${1:-}" in
   autocomplete)
     shift
     cli_autocomplete "$@"
+    exit $?
+    ;;
+  upgrade)
+    shift
+    cli_upgrade "$@"
     exit $?
     ;;
   version)
