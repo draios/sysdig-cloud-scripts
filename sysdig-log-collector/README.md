@@ -21,7 +21,7 @@ Download the script and install it onto your `PATH`:
 
 ```bash
 # 1. Download the script
-curl -fsSL "<download-url>" -o sysdig-log-collector
+curl -fsSL "https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/master/sysdig-log-collector/sysdig-log-collector" -o sysdig-log-collector
 
 # 2. Install onto your PATH
 sudo install -m 0555 sysdig-log-collector /usr/local/bin/sysdig-log-collector
@@ -49,16 +49,6 @@ install -m 0555 sysdig-log-collector ~/.local/bin/
   break the script. (Most users collecting Kubernetes bundles run on Linux/macOS.)
 - The examples below use placeholders like `<sysdig-agent>` and `<sysdigcloud>` —
   replace them with your actual namespace names.
-
-## Upgrading
-
-To upgrade, re-download the latest script and re-run the install — it overwrites
-the existing copy:
-
-```bash
-curl -fsSL "<download-url>" -o sysdig-log-collector
-sudo install -m 0555 sysdig-log-collector /usr/local/bin/sysdig-log-collector
-```
 
 ## Quick start
 
@@ -120,10 +110,37 @@ sysdig-log-collector collect agent -n <sysdig-agent> --pods --from-file=pods.txt
 
 ## Discover names first: `list`
 
+`list` is a read-only discovery helper. Before narrowing a collection with
+`--components` or `--pods`, run it to find the exact names in your cluster —
+component-type names differ by chart, and pod names carry random suffixes, so
+guessing them is error-prone.
+
+Give it a **target** (`agent` or `platform`) and a **kind** (`components` or
+`pods`; default `components`); the names it prints are exactly what `collect`
+expects:
+
 ```bash
+# Component-type buckets in the namespace → feed to --components
 sysdig-log-collector list agent components -n <sysdig-agent>
+
+# Every Sysdig pod, with its component bucket → feed to --pods
 sysdig-log-collector list agent pods -n <sysdig-agent>
+
+# On-prem Platform (both kinds supported)
 sysdig-log-collector list platform components -n <sysdigcloud>
+sysdig-log-collector list platform pods -n <sysdigcloud>
+```
+
+Handy flags for pod listings: `--status <state>` filters by pod status (e.g.
+`Running`, `CrashLoopBackOff`); `--components <list>` previews exactly which pods
+a `collect --components=...` run would target; `--no-headers` emits bare names,
+pipe-friendly for building a `--from-file` list. Agent listings can span several
+namespaces with `--namespaces=ns1,ns2`.
+
+```bash
+# Capture pod names to a file, then collect from it
+sysdig-log-collector list agent pods -n <sysdig-agent> --no-headers > pods.txt
+sysdig-log-collector collect agent -n <sysdig-agent> --pods --from-file=pods.txt
 ```
 
 ## Uploading to Sysdig Support
@@ -160,13 +177,60 @@ window), `--api-key` / `--secure-api-key` (optional API data), `--local-api`
 
 Run `sysdig-log-collector <command> --help` for the full flag list.
 
+## Upgrade
+
+There are two ways to upgrade SLC. Pick the one that matches the host you're
+upgrading SLC on — you don't need both.
+
+### Host with internet access
+
+Updates SLC to the latest published version in place:
+
+```bash
+# Run this command if the host has internet access — no separate download or install step
+sysdig-log-collector upgrade
+```
+
+It checks the published version first and upgrades **only if a new version is
+available**. Otherwise no changes are applied — it tells you SLC is already
+up to date. When the running copy lives in a root-owned directory (e.g.
+`/usr/local/bin`), it elevates with `sudo` — and if it can't prompt for a
+password, it prints the exact `sudo install` command to run.
+
+To check for a new version without installing anything, add `--dry-run`:
+
+```bash
+# Reports what an upgrade would do, then exits — nothing is downloaded or installed
+sysdig-log-collector upgrade --dry-run
+```
+
+It prints the available version, where it would install, and whether that will
+need `sudo`. If SLC is already up to date it says so.
+
+### Air-gapped / restricted host
+
+If the host is air-gapped or has no internet access, run these two commands on
+**two different machines**:
+
+```bash
+# 1. On a SEPARATE host that HAS internet access — download the latest version of SLC
+curl -fsSL "https://raw.githubusercontent.com/draios/sysdig-cloud-scripts/master/sysdig-log-collector/sysdig-log-collector" -o sysdig-log-collector
+
+# 2. On the AIR-GAPPED host, after copying that file across (scp, USB, etc.) — install it
+sysdig-log-collector upgrade --file /absolute/path/to/sysdig-log-collector
+```
+
+A `--file` copy is installed only if it is a newer version than the one running;
+otherwise no changes are applied. The file you point at is never modified or
+removed.
+
 ## Version
 
 Print the Sysdig Log Collector version (useful when reporting an issue to Sysdig Support):
 
 ```bash
 sysdig-log-collector version
-# Sysdig Log Collector version 1.0.1
+# Sysdig Log Collector version X.Y.Z
 ```
 
 The same version is shown under the banner in interactive mode (`-i`) and
@@ -209,3 +273,7 @@ requirements before sending it to Support.
 | `<pod>: file-based logs unavailable (…), fell back to kubectl logs — stdout logs only for this pod` | The in-pod `tar` step (Tier 0) couldn't run — the exec was refused — so only container stdout was collected instead of the full on-disk `draios.log`. The Sysdig image ships `tar`, so the cause is one of:<br>• **Missing RBAC** — grant `create` on `pods/exec` in the Role/ClusterRole bound to the collector's identity (a namespace Role suffices), or run from a context that already has exec.<br>• **Admission controller** (Kyverno / OPA-Gatekeeper) blocking exec — add an exec exception for the namespace.<br>The `Tier 0: cannot exec …` line in `activity.log` has the raw error, which tells you which. |
 | `Error: no logs collected for <pod> (all 3 tiers failed — …)` | The stdout fallback (Tier 3) also produced nothing. The `Reason:` in `activity.log` says which:<br>• The pod **isn't running** — confirm with `kubectl get pod <pod> -n <ns>`.<br>• Missing **`get` on `pods`/`pods/log`** — grant it on the Role/ClusterRole bound to the collector's identity.<br>• The pod has written nothing to stdout. |
 | `bad interpreter` / `\r: command not found` | The file has Windows (CRLF) line endings — re-save as LF, or run `sed -i 's/\r$//' sysdig-log-collector`. |
+| `integrity check failed — refusing to install` (`upgrade`) | The new script didn't pass validation — usually a truncated or corrupted download, or (with `--file`) a file truncated while being copied to this host by an interrupted `scp` or a bad USB copy. Re-download from the official repo, or re-copy the file and check its size matches the source, then retry. The specific failed check is withheld by design; don't hand-edit the file to get past it. |
+| `could not reach <url>` (`upgrade`) | The host can't fetch the script (offline / proxy / firewall). Use the air-gapped path in [Upgrade](#air-gapped--restricted-host). |
+| `the download ... did not complete (curl exit N)` (`upgrade`) | The version check reached the server but the transfer broke — usually transient, so **retry first**. Nothing was installed and the partial download is removed. If it keeps failing, use the air-gapped path in [Upgrade](#air-gapped--restricted-host). Common codes: `18` partial file, `28` timeout, `56` connection reset, `35` TLS failure. |
+| `cannot write the download to <dir>` (`upgrade`) | The directory the download would land in isn't writable — read-only `/tmp`, a stale `$TMPDIR` pointing at a directory that no longer exists, or a full disk. Point it somewhere you can write: `sysdig-log-collector upgrade --download-dir /path/to/dir` (or `export TMPDIR=/path/to/dir`). The download is removed once the upgrade is installed. |
