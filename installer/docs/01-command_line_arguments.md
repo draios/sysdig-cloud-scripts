@@ -1,3 +1,9 @@
+<!-- Space: IONP -->
+<!-- Parent: Installer -->
+<!-- Parent: Git Synced Docs -->
+<!-- Title: Command Line Arguments -->
+<!-- Layout: plain -->
+
 # Command Line Arguments
 
 <br/>
@@ -18,16 +24,28 @@
 
 `--skip-serviceaccount`
 
-- Update 2025/10/03: this flag only applies to the `sysdig-common-config` chart and to two ServiceAccount resources
 - The user must provide service accounts with the exact same name expected:
 
 ```text
 sysdig-serviceaccount.yaml:  name: sysdig
 sysdig-serviceaccount.yaml:  name: node-labels-to-files
+sysdig-serviceaccount.yaml:  name: sysdig-with-root
+sysdig-serviceaccount.yaml:  name: sysdig-elasticsearch
+sysdig-serviceaccount.yaml:  name: sysdig-cassandra
 ```
 
 - One implication of this is that unless the `node-to-labels` ServiceAccount is added,
   rack awareness will not be available for any datastore.
+  Another implication is that if the  ServiceAccount(s) are missing, the user will have to `describe`
+  the StatefulSet because Pods will not start at all:
+
+```text
+Events:
+  Type     Reason            Age                   From                    Message
+  ----     ------            ----                  ----                    -------
+  Normal   SuccessfulCreate  2m29s                 statefulset-controller  create Claim data-sysdigcloud-cassandra-0 Pod sysdigcloud-cassandra-0 in StatefulSet sysdigcloud-cassandra success
+  Warning  FailedCreate      67s (x15 over 2m29s)  statefulset-controller  create Pod sysdigcloud-cassandra-0 in StatefulSet sysdigcloud-cassandra failed error: pods "sysdigcloud-cassandra-0" is forbidden: error looking up service account benedetto/sysdig-cassandra: serviceaccount "sysdig-cassandra" not found
+```
 
 `--skip-storageclass`
 
@@ -36,9 +54,9 @@ sysdig-serviceaccount.yaml:  name: node-labels-to-files
 
 `--disable-proxy`
 
-- This flag is obsolete and only applies to proxy configurations for legacy scanning when executing an `import`.
-
-- It is scheduled for removal.
+- This flag allows disabling an existing configuration for proxy. Several services can be configured to use a proxy to go out to the Internet. For example `scanningv2-pkgmeta`, `certmanager`, `eventsForwarder` etc.
+- If it becomes necessary to remove such configuration, this flag can be used to remove the proxy configuration.
+- This flag also applies to `generate`, `diff` and `import`.
 
 ## Command: `import`
 
@@ -58,13 +76,7 @@ actual name of the StatefulSet in the cluster differs
 
 `--use-import-v2`
 
-- EXPERIMENTAL: do not use unless you fully understand the implications.
-
-- Use the a new, experimental, import logic: import the `completeValues` used for the previous installation from a Secret
-
-- Defaults to `false`
-
-- This EXPERIMENTAL feature exists since 6.6.0 and is used in the `kwok` deployment tests (currently disabled)
+- This flag will use the new import logic, which will import the values from the cluster and then generate the manifests based on the imported values. Defaults to `false`, which means the old import logic will be used, unless the `--use-import-v2` flag is provided. Import V2 is supported starting from version 6.6.0, and is expected to become the default in the future.
 
 ## Command: `image-list`
 
@@ -186,14 +198,6 @@ Performs a diff between the platform objects in a running Kubernetes cluster, an
 `--summary`
 
 - Prints a summary of the diff errors.
-
-`--skip-ephemeral`
-
-- Skips ephemeral resources from the diff. Skips resources with Helm hooks (pre/post-install/upgrade) and Jobs with TTL (CronJobs are not skipped). Use this to reduce noise when comparing generated manifests to the cluster.
-
-`--skip-secret-shasum`
-
-- Filter out `*-shasum` annotations (e.g. `secret-shasum`, `config-shasum`) from the diff output. These annotations can change even when there are no meaningful configuration changes; excluding them reduces noise and false positives when diff output is used by external tooling (for example, to decide whether to roll out updates).
 
 The `diff` command also has options inherited from the `generate` command options. See **generate** command section.
 
