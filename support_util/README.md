@@ -1,5 +1,9 @@
 # support-util
 
+**DEPRECATION NOTICE**
+
+**Starting from October 9 2026, support_utils.sh will be deprecated, please use sysdig-log-collector**
+
 Utility script to collect **Kubernetes and Sysdig diagnostics** from orchestrated environments.
 It speeds up data/log collection for Sysdig pods and produces a single archive you can attach to a Sysdig support ticket.
 
